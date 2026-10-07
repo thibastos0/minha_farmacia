@@ -6,6 +6,19 @@
 
 import { store } from './core/store.ts';
 import { NavigationManager, MODULE_TABS, type ModuleRole } from './core/navigation.ts';
+import {
+  initFleetMap,
+  invalidateMapSize,
+  renderMapMarkers,
+  getFleetMarkersData,
+  INDAIATUBA_CENTER
+} from './modules/farmacia/fleetMapService.ts';
+import {
+  getCourierDeliveries,
+  getWhatsAppLink,
+  validateAndCompleteDelivery,
+  formatPhoneForWhatsApp
+} from './modules/entregador/entregadorService.ts';
 
 // Inicializa o gerenciador de navegação
 export const navManager = new NavigationManager('cidadao');
@@ -94,17 +107,47 @@ function updatePanelsVisibility(): void {
   });
 }
 
+// Vincula ouvinte de ativação do módulo da farmácia ao hook invalidateSize do mapa
+navManager.onFarmaciaActivated(() => {
+  setTimeout(() => {
+    invalidateMapSize();
+    renderMapMarkers();
+  }, 100);
+});
+
+// Sincroniza atualizações reativas do store com os marcadores do mapa
+store.subscribe(() => {
+  renderMapMarkers();
+});
+
 // Vincula ouvintes e disponibiliza funções no escopo global para o index.html
 if (typeof window !== 'undefined') {
   (window as any).MinhaFarmacia = {
     store,
     navManager,
     switchRole,
-    announceToScreenReader
+    announceToScreenReader,
+    initFleetMap,
+    invalidateMapSize,
+    renderMapMarkers,
+    getFleetMarkersData,
+    INDAIATUBA_CENTER,
+    getCourierDeliveries,
+    getWhatsAppLink,
+    validateAndCompleteDelivery,
+    formatPhoneForWhatsApp
   };
 
   // Suporte aos cliques dos botões legados ou declarados inline
   (window as any).switchRole = switchRole;
+  (window as any).initMap = () => {
+    initFleetMap('map-gerencial');
+  };
+  (window as any).initFleetMap = initFleetMap;
+  (window as any).invalidateMapSize = invalidateMapSize;
+  (window as any).getCourierDeliveries = getCourierDeliveries;
+  (window as any).getWhatsAppLink = getWhatsAppLink;
+  (window as any).validateAndCompleteDelivery = validateAndCompleteDelivery;
 
   navManager.onAnnouncement((msg) => {
     announceToScreenReader(msg);

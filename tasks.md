@@ -12,8 +12,8 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 - [x] **Task 3: Módulo do Cidadão (`/cidadao`) — Upload, Timeline e PIN Independente**
 - [x] **Task 4: Módulo da Farmácia (`/farmacia`) — Triagem e Desmembramento 1:N**
 - [x] **Task 5: Módulo da Farmácia (`/farmacia`) — CRUD de Catálogo e Reabastecimento Reativo**
-- [ ] **Task 6: Módulo da Farmácia (`/farmacia`) — Mapa da Frota Leaflet.js com `invalidateSize()`**
-- [ ] **Task 7: Módulo do Entregador (`/entregador`) — Fila, Contato WhatsApp e Baixa por PIN**
+- [x] **Task 6: Módulo da Farmácia (`/farmacia`) — Mapa da Frota Leaflet.js com `invalidateSize()`**
+- [x] **Task 7: Módulo do Entregador (`/entregador`) — Fila, Contato WhatsApp e Baixa por PIN**
 - [ ] **Task 8: Integração Global End-to-End, Auditoria WCAG e Validação Final**
 
 ---
@@ -97,8 +97,8 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - Marcador da Farmácia Central e marcadores da frota de motoboys em rota.
   - Hook de redimensionamento que invoca `map.invalidateSize()` após ativação da aba do mapa, corrigindo o problema de tiles cinzas.
 - **Critérios de Aceitação:**
-  - [ ] O mapa carrega centralizado e sem tiles quebrados ou cinzas ao alternar de aba.
-  - [ ] Marcadores clicáveis com popups informativos de entregador, veículo e corrida ativa.
+  - [x] O mapa carrega centralizado e sem tiles quebrados ou cinzas ao alternar de aba.
+  - [x] Marcadores clicáveis com popups informativos de entregador, veículo e corrida ativa.
 
 ---
 
@@ -110,9 +110,9 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - Modal de validação de PIN com teclado numérico acessível.
   - Finalização da entrega com baixa imediata no status da SubOrder para `ENTREGUE`.
 - **Critérios de Aceitação:**
-  - [ ] Entregador só consegue finalizar a entrega se digitar o PIN exato daquela SubOrder.
-  - [ ] Tentativa com PIN errado exibe alerta de erro claro e mantém a entrega aberta.
-  - [ ] Conclusão da entrega atualiza a timeline do munícipe em tempo real.
+  - [x] Entregador só consegue finalizar a entrega se digitar o PIN exato daquela SubOrder.
+  - [x] Tentativa com PIN errado exibe alerta de erro claro e mantém a entrega aberta.
+  - [x] Conclusão da entrega atualiza a timeline do munícipe em tempo real.
 
 ---
 

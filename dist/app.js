@@ -256,11 +256,11 @@
         }
       }
       return {
-        citizens: [...INITIAL_CITIZENS],
+        citizens: JSON.parse(JSON.stringify(INITIAL_CITIZENS)),
         currentCitizenId: INITIAL_CITIZENS[0].id,
-        medications: [...INITIAL_MEDICATIONS],
-        couriers: [...INITIAL_COURIERS],
-        orders: [...INITIAL_ORDERS]
+        medications: JSON.parse(JSON.stringify(INITIAL_MEDICATIONS)),
+        couriers: JSON.parse(JSON.stringify(INITIAL_COURIERS)),
+        orders: JSON.parse(JSON.stringify(INITIAL_ORDERS))
       };
     }
     persistAndNotify() {
@@ -292,11 +292,11 @@
     }
     resetToDefaults() {
       this.data = {
-        citizens: [...INITIAL_CITIZENS],
+        citizens: JSON.parse(JSON.stringify(INITIAL_CITIZENS)),
         currentCitizenId: INITIAL_CITIZENS[0].id,
-        medications: [...INITIAL_MEDICATIONS],
-        couriers: [...INITIAL_COURIERS],
-        orders: [...INITIAL_ORDERS]
+        medications: JSON.parse(JSON.stringify(INITIAL_MEDICATIONS)),
+        couriers: JSON.parse(JSON.stringify(INITIAL_COURIERS)),
+        orders: JSON.parse(JSON.stringify(INITIAL_ORDERS))
       };
       this.persistAndNotify();
     }
@@ -541,6 +541,262 @@
     }
   };
 
+  // src/modules/farmacia/fleetMapService.ts
+  var INDAIATUBA_CENTER = {
+    lat: -23.0903,
+    lng: -47.2181,
+    zoom: 14
+  };
+  var activeMapInstance = null;
+  var currentContainerId = null;
+  var markerObjects = /* @__PURE__ */ new Map();
+  function getFleetMarkersData() {
+    const markers = [];
+    markers.push({
+      id: "pharmacy-central",
+      type: "PHARMACY",
+      title: "Farm\xE1cia Central de Indaiatuba",
+      subtitle: "Prefeitura Municipal \u2022 Ponto Central de Distribui\xE7\xE3o",
+      lat: INDAIATUBA_CENTER.lat,
+      lng: INDAIATUBA_CENTER.lng,
+      statusText: "Operacional",
+      popupHtml: `
+      <div class="p-2 space-y-1 font-sans">
+        <div class="flex items-center gap-1.5 text-emerald-800 font-extrabold text-sm">
+          <i class="fa-solid fa-hospital"></i> Farm\xE1cia Central de Indaiatuba
+        </div>
+        <p class="text-xs text-gray-600 font-medium">Ponto Central de Distribui\xE7\xE3o RENAME</p>
+        <p class="text-[11px] text-gray-500">Rua Candel\xE1ria, 800 - Centro, Indaiatuba - SP</p>
+        <span class="inline-block bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full mt-1">
+          Ponto de Origem da Frota
+        </span>
+      </div>
+    `
+    });
+    const couriers = store.getState().couriers;
+    const orders = store.getOrders();
+    couriers.forEach((courier) => {
+      let activeDeliveryInfo = null;
+      for (const order of orders) {
+        const activeSub = order.subOrders.find(
+          (s) => s.assignedCourierId === courier.id && s.status === "SAIU_PARA_ENTREGA"
+        );
+        if (activeSub) {
+          activeDeliveryInfo = {
+            citizenName: order.citizenName,
+            address: `${order.deliveryAddress.street}, ${order.deliveryAddress.number} - ${order.deliveryAddress.neighborhood}`
+          };
+          break;
+        }
+      }
+      const lat = courier.currentLocation?.lat ?? INDAIATUBA_CENTER.lat;
+      const lng = courier.currentLocation?.lng ?? INDAIATUBA_CENTER.lng;
+      const statusBadge = activeDeliveryInfo ? `<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Em Rota de Entrega</span>` : `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Dispon\xEDvel / Livre</span>`;
+      const deliveryText = activeDeliveryInfo ? `<div class="mt-1 text-xs text-blue-900 bg-blue-50 p-2 rounded-lg border border-blue-200">
+           <p class="font-bold"><i class="fa-solid fa-user"></i> Destino: ${activeDeliveryInfo.citizenName}</p>
+           <p class="text-[11px] text-gray-600">${activeDeliveryInfo.address}</p>
+         </div>` : `<p class="text-xs text-gray-500 italic mt-1">Aguardando atribui\xE7\xE3o de nova corrida.</p>`;
+      markers.push({
+        id: courier.id,
+        type: "COURIER",
+        title: courier.name,
+        subtitle: `Ve\xEDculo: ${courier.vehicle} (${courier.plate})`,
+        lat,
+        lng,
+        vehicleInfo: `${courier.vehicle} - ${courier.plate}`,
+        statusText: activeDeliveryInfo ? "Em Rota" : "Livre",
+        popupHtml: `
+        <div class="p-2 space-y-1 font-sans">
+          <div class="flex items-center justify-between gap-2 border-b pb-1">
+            <h4 class="font-bold text-sm text-gray-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-motorcycle text-emerald-600"></i> ${courier.name}
+            </h4>
+            ${statusBadge}
+          </div>
+          <p class="text-xs text-gray-600"><b>Placa/Ve\xEDculo:</b> ${courier.plate} (${courier.vehicle})</p>
+          <p class="text-xs text-gray-600"><b>Contato:</b> ${courier.phone}</p>
+          ${deliveryText}
+        </div>
+      `
+      });
+    });
+    return markers;
+  }
+  function initFleetMap(containerId = "map-gerencial") {
+    if (typeof window === "undefined" || !window.L) {
+      currentContainerId = containerId;
+      const mockMap = {
+        isMock: true,
+        invalidateSize: () => true,
+        remove: () => true,
+        setView: () => true
+      };
+      activeMapInstance = mockMap;
+      return mockMap;
+    }
+    const L = window.L;
+    const container = document.getElementById(containerId);
+    if (!container) return null;
+    if (activeMapInstance) {
+      try {
+        activeMapInstance.remove();
+      } catch (e) {
+      }
+      activeMapInstance = null;
+      markerObjects.clear();
+    }
+    currentContainerId = containerId;
+    const map = L.map(containerId).setView(
+      [INDAIATUBA_CENTER.lat, INDAIATUBA_CENTER.lng],
+      INDAIATUBA_CENTER.zoom
+    );
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; Prefeitura de Indaiatuba / OpenStreetMap"
+    }).addTo(map);
+    activeMapInstance = map;
+    renderMapMarkers();
+    setTimeout(() => {
+      invalidateMapSize();
+    }, 100);
+    return map;
+  }
+  function renderMapMarkers() {
+    if (!activeMapInstance || typeof window === "undefined" || !window.L) {
+      return;
+    }
+    const L = window.L;
+    markerObjects.forEach((m) => {
+      try {
+        activeMapInstance.removeLayer(m);
+      } catch (e) {
+      }
+    });
+    markerObjects.clear();
+    const markersData = getFleetMarkersData();
+    markersData.forEach((data) => {
+      let icon;
+      if (data.type === "PHARMACY") {
+        icon = L.divIcon({
+          className: "custom-pharmacy-icon",
+          html: `
+          <div style="background-color: #059669; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);">
+            <i class="fa-solid fa-hospital" style="font-size: 16px;"></i>
+          </div>
+        `,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+          popupAnchor: [0, -18]
+        });
+      } else {
+        const isRoute = data.statusText === "Em Rota";
+        const bgColor = isRoute ? "#0284c7" : "#059669";
+        icon = L.divIcon({
+          className: "custom-courier-icon",
+          html: `
+          <div style="background-color: ${bgColor}; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2.5px solid white; box-shadow: 0 3px 5px -1px rgba(0,0,0,0.3);">
+            <i class="fa-solid fa-motorcycle" style="font-size: 14px;"></i>
+          </div>
+        `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+          popupAnchor: [0, -16]
+        });
+      }
+      const marker = L.marker([data.lat, data.lng], { icon }).addTo(activeMapInstance).bindPopup(data.popupHtml);
+      markerObjects.set(data.id, marker);
+    });
+  }
+  function invalidateMapSize() {
+    if (!activeMapInstance) return false;
+    try {
+      if (typeof activeMapInstance.invalidateSize === "function") {
+        activeMapInstance.invalidateSize();
+        return true;
+      }
+    } catch (e) {
+      console.warn("Erro ao invocar invalidateSize no mapa:", e);
+    }
+    return false;
+  }
+
+  // src/modules/entregador/entregadorService.ts
+  function formatPhoneForWhatsApp(phone) {
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length === 10 || digits.length === 11) {
+      return `55${digits}`;
+    }
+    return digits;
+  }
+  function getWhatsAppLink(phone, subOrderCode, citizenName) {
+    const cleanPhone = formatPhoneForWhatsApp(phone);
+    const nameGreeting = citizenName ? ` ${citizenName}` : "";
+    const message = `Ol\xE1${nameGreeting}! Sou da equipe de entregas da Farm\xE1cia Municipal de Indaiatuba. Estou referente ao seu pedido de medicamentos (${subOrderCode}). Por favor, tenha em m\xE3os o seu c\xF3digo PIN de 4 d\xEDgitos para a valida\xE7\xE3o do recebimento.`;
+    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+  }
+  function getCourierDeliveries(courierId) {
+    const allOrders = store.getOrders();
+    const deliveries = [];
+    for (const order of allOrders) {
+      for (const sub of order.subOrders) {
+        if (sub.status === "SAIU_PARA_ENTREGA" || sub.status === "AGUARDANDO_COLETA" || sub.status === "EM_SEPARACAO" || sub.status === "ENTREGUE") {
+          if (!courierId || !sub.courierId || sub.courierId === courierId) {
+            const addr = order.deliveryAddress;
+            const formattedAddr = `${addr.street}, ${addr.number}${addr.complement ? ` (${addr.complement})` : ""} - ${addr.neighborhood}, ${addr.city}`;
+            deliveries.push({
+              subOrderId: sub.id,
+              orderId: order.id,
+              orderCode: order.code,
+              subOrderCode: sub.code,
+              subOrderLabel: sub.label,
+              citizenName: order.citizenName,
+              citizenPhone: order.citizenPhone,
+              citizenAddress: formattedAddr,
+              items: sub.items,
+              status: sub.status,
+              pinCode: sub.pinCode,
+              courierId: sub.courierId,
+              courierName: sub.courierName,
+              createdAt: sub.createdAt,
+              updatedAt: sub.updatedAt,
+              deliveredAt: sub.deliveredAt
+            });
+          }
+        }
+      }
+    }
+    return deliveries;
+  }
+  function validateAndCompleteDelivery(subOrderId, pinInput) {
+    if (!pinInput || pinInput.trim() === "") {
+      return {
+        success: false,
+        message: "Por favor, informe o c\xF3digo PIN de 4 d\xEDgitos fornecido pelo mun\xEDcipe."
+      };
+    }
+    const result = store.completeDelivery(subOrderId, pinInput.trim());
+    if (!result.success) {
+      return {
+        success: false,
+        message: result.message
+      };
+    }
+    const orders = store.getOrders();
+    let updatedSubOrder;
+    for (const o of orders) {
+      const sub = o.subOrders.find((s) => s.id === subOrderId);
+      if (sub) {
+        updatedSubOrder = sub;
+        break;
+      }
+    }
+    return {
+      success: true,
+      message: result.message,
+      subOrder: updatedSubOrder
+    };
+  }
+
   // src/app.ts
   var navManager = new NavigationManager("cidadao");
   function announceToScreenReader(message) {
@@ -601,14 +857,40 @@
       });
     });
   }
+  navManager.onFarmaciaActivated(() => {
+    setTimeout(() => {
+      invalidateMapSize();
+      renderMapMarkers();
+    }, 100);
+  });
+  store.subscribe(() => {
+    renderMapMarkers();
+  });
   if (typeof window !== "undefined") {
     window.MinhaFarmacia = {
       store,
       navManager,
       switchRole,
-      announceToScreenReader
+      announceToScreenReader,
+      initFleetMap,
+      invalidateMapSize,
+      renderMapMarkers,
+      getFleetMarkersData,
+      INDAIATUBA_CENTER,
+      getCourierDeliveries,
+      getWhatsAppLink,
+      validateAndCompleteDelivery,
+      formatPhoneForWhatsApp
     };
     window.switchRole = switchRole;
+    window.initMap = () => {
+      initFleetMap("map-gerencial");
+    };
+    window.initFleetMap = initFleetMap;
+    window.invalidateMapSize = invalidateMapSize;
+    window.getCourierDeliveries = getCourierDeliveries;
+    window.getWhatsAppLink = getWhatsAppLink;
+    window.validateAndCompleteDelivery = validateAndCompleteDelivery;
     navManager.onAnnouncement((msg) => {
       announceToScreenReader(msg);
     });
