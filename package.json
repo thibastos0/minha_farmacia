@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test --experimental-strip-types tests/**/*.test.ts",
+    "build": "npx esbuild src/app.ts --bundle --outfile=dist/app.js --format=iife --target=es2020",
     "start": "python3 -m http.server 3000"
   },
   "keywords": [

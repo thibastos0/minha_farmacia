@@ -8,7 +8,7 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 ## 🎯 Quadro de Progresso
 
 - [x] **Task 1: Core Domain, State Store Reativo e Motor de Desmembramento (`splitEngine`)**
-- [ ] **Task 2: Design System "Minha Indaiatuba" e Shell Acessível (WCAG AA)**
+- [x] **Task 2: Design System "Minha Indaiatuba" e Shell Acessível (WCAG AA)**
 - [ ] **Task 3: Módulo do Cidadão (`/cidadao`) — Upload, Timeline e PIN Independente**
 - [ ] **Task 4: Módulo da Farmácia (`/farmacia`) — Triagem e Desmembramento 1:N**
 - [ ] **Task 5: Módulo da Farmácia (`/farmacia`) — CRUD de Catálogo e Reabastecimento Reativo**
@@ -41,9 +41,9 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - Componentes com área de toque mínima de **48px x 48px** e contraste AAA/AA.
   - Header acessível com seletor de perfil e tags ARIA (`aria-label`, `aria-selected`).
 - **Critérios de Aceitação:**
-  - [ ] Elementos clicáveis com no mínimo 48px de área de toque.
-  - [ ] Navegação funcional por teclado (`Tab`, `Enter`, `Space`) com anéis de foco visíveis.
-  - [ ] Transição fluida entre os 3 módulos (/cidadao, /farmacia, /entregador).
+  - [x] Elementos clicáveis com no mínimo 48px de área de toque.
+  - [x] Navegação funcional por teclado (`Tab`, `Enter`, `Space`) com anéis de foco visíveis.
+  - [x] Transição fluida entre os 3 módulos (/cidadao, /farmacia, /entregador).
 
 ---
 

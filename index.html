@@ -1,50 +1,90 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Farmácia - Prefeitura de Indaiatuba</title>
+    <title>Minha Farmácia — Prefeitura Municipal de Indaiatuba</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        indaiatuba: {
+                            bg: '#f8fafc',
+                            green: '#059669',
+                            greenDark: '#047857',
+                            greenDeep: '#064e3b',
+                            blue: '#0284c7',
+                            blueDark: '#0369a1'
+                        }
+                    },
+                    borderRadius: {
+                        '3xl': '1.5rem',
+                        '4xl': '2rem'
+                    }
+                }
+            }
+        }
+    </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Leaflet.js (Mapas) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- App Orchestrator Bundle -->
+    <script src="dist/app.js"></script>
     <style>
         .badge-pulse { animation: pulse 2s infinite; }
-        #map-gerencial { height: 480px; width: 100%; border-radius: 1rem; z-index: 1; }
+        #map-gerencial { height: 480px; width: 100%; border-radius: 1.5rem; z-index: 1; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans text-gray-900 min-h-screen flex flex-col">
+<body class="bg-[#f8fafc] font-sans text-slate-800 min-h-screen flex flex-col antialiased">
 
-    <!-- HEADER PRINCIPAL / SELETOR DE MÓDULOS -->
-    <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-prescription-bottle-medical text-3xl text-emerald-300"></i>
+    <!-- Link Acessível para Pular Navegação (WCAG 2.1 AA) -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-emerald-950 focus:text-white focus:px-5 focus:py-3.5 focus:rounded-2xl focus:shadow-2xl focus:ring-4 focus:ring-emerald-400 font-bold text-sm">
+        Pular para o conteúdo principal
+    </a>
+
+    <!-- Região de Anúncios Acessíveis para Leitores de Tela -->
+    <div id="a11y-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- HEADER INSTITUCIONAL: PREFEITURA DE INDAIATUBA -->
+    <header class="bg-[#064e3b] text-white shadow-md sticky top-0 z-50 border-b border-emerald-800/80">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-11 h-11 bg-emerald-800/80 rounded-2xl flex items-center justify-center text-emerald-200 border border-emerald-700/60 shadow-inner">
+                    <i class="fa-solid fa-prescription-bottle-medical text-2xl" aria-hidden="true"></i>
+                </div>
                 <div>
-                    <h1 class="text-xl font-black leading-tight">Minha Farmácia</h1>
-                    <p class="text-xs text-emerald-200">Prefeitura Municipal de Indaiatuba</p>
+                    <h1 class="text-xl font-black leading-tight tracking-tight flex items-center gap-2">
+                        Minha Farmácia
+                        <span class="text-[10px] uppercase font-extrabold tracking-widest bg-emerald-800 text-emerald-200 px-2 py-0.5 rounded-full border border-emerald-700/70">MVP</span>
+                    </h1>
+                    <p class="text-xs text-emerald-200 font-medium">Prefeitura Municipal de Indaiatuba • Minha Indaiatuba</p>
                 </div>
             </div>
 
-            <!-- Navegação de Perfis -->
-            <nav class="flex items-center gap-1.5 bg-emerald-900/60 p-1.5 rounded-2xl border border-emerald-700/50 text-xs font-bold">
-                <button onclick="switchRole('cliente')" id="btn-role-cliente" class="role-btn px-3.5 py-2 rounded-xl bg-white text-emerald-900 shadow">
-                    <i class="fa-solid fa-user mr-1"></i> Área do Cidadão
+            <!-- Navegação de Módulos Desacoplados (WCAG Tablist) -->
+            <nav role="tablist" aria-label="Seleção de módulo do sistema Minha Farmácia" class="flex items-center gap-1.5 bg-emerald-950/70 p-1.5 rounded-2xl border border-emerald-800/80">
+                <button type="button" role="tab" id="btn-role-cidadao" aria-selected="true" aria-controls="portal-cliente" aria-label="Acessar Módulo do Cidadão e Acompanhamento de Pedidos" onclick="switchRole('cidadao')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl bg-white text-emerald-950 font-black text-sm shadow-md flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
+                    <i class="fa-solid fa-user text-emerald-700" aria-hidden="true"></i>
+                    <span>Área do Cidadão</span>
                 </button>
-                <button onclick="switchRole('funcionario')" id="btn-role-funcionario" class="role-btn px-3.5 py-2 rounded-xl hover:bg-emerald-800 text-white">
-                    <i class="fa-solid fa-user-doctor mr-1"></i> Painel do Funcionário
+                <button type="button" role="tab" id="btn-role-farmacia" aria-selected="false" aria-controls="portal-funcionario" aria-label="Acessar Painel da Farmácia e Gestão de Estoque" onclick="switchRole('farmacia')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
+                    <i class="fa-solid fa-user-doctor" aria-hidden="true"></i>
+                    <span>Farmácia & Gestão</span>
                 </button>
-                <button onclick="switchRole('motoboy')" id="btn-role-motoboy" class="role-btn px-3.5 py-2 rounded-xl hover:bg-emerald-800 text-white">
-                    <i class="fa-solid fa-motorcycle mr-1"></i> Painel Motoboy
+                <button type="button" role="tab" id="btn-role-entregador" aria-selected="false" aria-controls="portal-motoboy" aria-label="Acessar Painel do Entregador e Corridas" onclick="switchRole('entregador')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
+                    <i class="fa-solid fa-motorcycle" aria-hidden="true"></i>
+                    <span>Entregador</span>
                 </button>
             </nav>
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+    <main id="main-content" tabindex="-1" class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 outline-none focus:outline-none">
 
         <!-- ================================================================= -->
         <!-- 1. PORTAL DO CIDADÃO / CLIENTE (SEM RE-CADASTRO & ACESSIBILIDADE)  -->
@@ -898,5 +938,31 @@
             });
         }
     </script>
+
+    <!-- RODAPÉ INSTITUCIONAL COM ACESSIBILIDADE WCAG AA -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-8 text-slate-600 text-xs">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3 text-left">
+                <div class="w-9 h-9 bg-emerald-100 text-emerald-800 rounded-xl flex items-center justify-center font-black">
+                    MI
+                </div>
+                <div>
+                    <p class="font-extrabold text-slate-800 text-sm">Minha Indaiatuba — Minha Farmácia</p>
+                    <p class="text-slate-500">Secretaria de Ciência, Tecnologia e Inovação • Prefeitura Municipal de Indaiatuba</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 text-xs">
+                    <i class="fa-solid fa-universal-access text-emerald-600" aria-hidden="true"></i> WCAG 2.1 AA Acessível
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 text-sky-800 font-bold border border-sky-200 text-xs">
+                    <i class="fa-solid fa-shield-halved text-sky-600" aria-hidden="true"></i> LGPD & ANVISA
+                </span>
+                <button type="button" aria-label="Restaurar dados de teste e pedidos para valores padrão" onclick="if(window.MinhaFarmacia){ window.MinhaFarmacia.store.resetToDefaults(); location.reload(); }" class="min-h-[48px] px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition border border-slate-300 flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-emerald-500">
+                    <i class="fa-solid fa-rotate-left"></i> Restaurar Dados Demonstrativos
+                </button>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
