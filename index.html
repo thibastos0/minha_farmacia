@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Farmácia - Prefeitura de Indaiatuba</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet.js (Mapas) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .badge-pulse { animation: pulse 2s infinite; }
+        #map-gerencial { height: 480px; width: 100%; border-radius: 1rem; z-index: 1; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-900 min-h-screen flex flex-col">
+
+    <!-- HEADER PRINCIPAL / SELETOR DE MÓDULOS -->
+    <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-prescription-bottle-medical text-3xl text-emerald-300"></i>
+                <div>
+                    <h1 class="text-xl font-black leading-tight">Minha Farmácia</h1>
+                    <p class="text-xs text-emerald-200">Prefeitura Municipal de Indaiatuba</p>
+                </div>
+            </div>
+
+            <!-- Navegação de Perfis -->
+            <nav class="flex items-center gap-1.5 bg-emerald-900/60 p-1.5 rounded-2xl border border-emerald-700/50 text-xs font-bold">
+                <button onclick="switchRole('cliente')" id="btn-role-cliente" class="role-btn px-3.5 py-2 rounded-xl bg-white text-emerald-900 shadow">
+                    <i class="fa-solid fa-user mr-1"></i> Área do Cidadão
+                </button>
+                <button onclick="switchRole('funcionario')" id="btn-role-funcionario" class="role-btn px-3.5 py-2 rounded-xl hover:bg-emerald-800 text-white">
+                    <i class="fa-solid fa-user-doctor mr-1"></i> Painel do Funcionário
+                </button>
+                <button onclick="switchRole('motoboy')" id="btn-role-motoboy" class="role-btn px-3.5 py-2 rounded-xl hover:bg-emerald-800 text-white">
+                    <i class="fa-solid fa-motorcycle mr-1"></i> Painel Motoboy
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+
+        <!-- ================================================================= -->
+        <!-- 1. PORTAL DO CIDADÃO / CLIENTE (SEM RE-CADASTRO & ACESSIBILIDADE)  -->
+        <!-- ================================================================= -->
+        <section id="portal-cliente" class="space-y-6">
+            
+            <!-- HOME DO CLIENTE: ACESSIBILIDADE TOTAL E BOTÕES GRANDES -->
+            <div id="cliente-home" class="space-y-6">
+                <!-- Cartão de Identificação do Cidadão Logado -->
+                <div class="bg-white p-5 rounded-3xl border shadow-sm flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-2xl flex items-center justify-center font-black text-xl">
+                            TS
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-extrabold text-emerald-700 uppercase tracking-wider">Cidadão Cadastrado</span>
+                            <h2 class="text-lg font-black text-gray-900">Thiago Silva</h2>
+                            <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i> Rua das Prímulas, 450 - Morada do Sol, Indaiatuba</p>
+                        </div>
+                    </div>
+                    <span class="hidden sm:inline-block bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Cadastro Validado
+                    </span>
+                </div>
+
+                <!-- Botões Acessíveis de Ação -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <button onclick="showClienteScreen('solicitar')" class="bg-white border-4 border-emerald-600 hover:bg-emerald-50 text-emerald-900 p-8 rounded-3xl shadow-md hover:shadow-xl transition text-left flex flex-col justify-between group">
+                        <div class="flex items-center justify-between w-full mb-6">
+                            <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-file-prescription"></i>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-2xl text-emerald-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-black text-gray-900 mb-1">Pedir Remédio</h3>
+                            <p class="text-base text-gray-600 font-medium">Anexe a imagem da sua receita médica e envie diretamente para a farmácia.</p>
+                        </div>
+                    </button>
+
+                    <button onclick="showClienteScreen('acompanhar')" class="bg-white border-4 border-blue-600 hover:bg-blue-50 text-blue-900 p-8 rounded-3xl shadow-md hover:shadow-xl transition text-left flex flex-col justify-between group">
+                        <div class="flex items-center justify-between w-full mb-6">
+                            <div class="w-16 h-16 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-truck-fast"></i>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-2xl text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-black text-gray-900 mb-1">Acompanhar Meus Pedidos</h3>
+                            <p class="text-base text-gray-600 font-medium">Veja o status do seu pedido e consulte o código PIN de entrega.</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TELA DE ENVIO SIMPLIFICADO DA RECEITA (SEM CRM / SEM DADOS CADASTRAIS) -->
+            <div id="cliente-solicitar" class="hidden bg-white p-6 md:p-8 rounded-3xl border-2 border-emerald-200 shadow-md max-w-2xl mx-auto space-y-6">
+                <div class="flex items-center justify-between border-b pb-4">
+                    <h3 class="text-2xl font-black text-gray-900 flex items-center gap-2">
+                        <i class="fa-solid fa-camera text-emerald-600"></i> Enviar Receita Médica
+                    </h3>
+                    <button onclick="showClienteScreen('home')" class="text-sm font-bold text-gray-500 hover:text-gray-800 bg-gray-100 px-3 py-1.5 rounded-xl">
+                        <i class="fa-solid fa-arrow-left"></i> Voltar
+                    </button>
+                </div>
+
+                <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                    <p class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i> Entrega programada para o endereço cadastrado:</p>
+                    <p class="text-sm font-black">Rua das Prímulas, 450 - Morada do Sol, Indaiatuba</p>
+                </div>
+
+                <form onsubmit="handleClientOrder(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-base font-bold text-gray-800 mb-2">Selecione a Foto/Arquivo da Receita (Obrigatório)</label>
+                        <div class="border-4 border-dashed border-emerald-300 rounded-3xl p-8 text-center bg-emerald-50/40 hover:bg-emerald-50 transition">
+                            <i class="fa-solid fa-cloud-arrow-up text-5xl text-emerald-600 mb-3"></i>
+                            <p class="text-base font-bold text-gray-800">Clique para selecionar a imagem da receita</p>
+                            <p class="text-xs text-gray-500 mb-4">Formats suportados: JPG, PNG, PDF</p>
+                            <input type="file" id="cli-file" required accept="image/*,.pdf" class="hidden" onchange="updateClientFileName(this)">
+                            <label for="cli-file" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-6 py-3.5 rounded-2xl text-base cursor-pointer inline-block shadow-md">
+                                <i class="fa-solid fa-camera mr-2"></i> Selecionar Imagem
+                            </label>
+                            <p id="cli-file-name" class="text-sm font-black text-emerald-700 mt-3"></p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-5 rounded-2xl text-xl shadow-lg transition flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-paper-plane"></i> Confirmar e Enviar para Farmácia
+                    </button>
+                </form>
+            </div>
+
+            <!-- TELA DE ACOMPANHAMENTO DE PEDIDOS DO CLIENTE -->
+            <div id="cliente-acompanhar" class="hidden bg-white p-6 md:p-8 rounded-3xl border shadow-md max-w-2xl mx-auto space-y-6">
+                <div class="flex items-center justify-between border-b pb-4">
+                    <div>
+                        <h3 class="text-xl font-black text-gray-900">Acompanhar Pedido</h3>
+                        <p class="text-xs text-gray-500">Número: <span id="track-id" class="font-bold text-gray-800">#IND-8941</span></p>
+                    </div>
+                    <button onclick="showClienteScreen('home')" class="text-sm font-bold text-gray-500 hover:text-gray-800 bg-gray-100 px-3 py-1.5 rounded-xl">
+                        <i class="fa-solid fa-arrow-left"></i> Voltar
+                    </button>
+                </div>
+
+                <div id="track-timeline" class="space-y-6 border-l-4 border-emerald-500 ml-4 pl-6 py-2">
+                    <!-- Gerado dinamicamente via JS -->
+                </div>
+
+                <!-- Código PIN do Cliente -->
+                <div class="p-6 bg-blue-50 border-2 border-blue-400 rounded-3xl text-center space-y-2">
+                    <p class="text-xs font-extrabold text-blue-900 uppercase tracking-widest">Seu Código PIN de Confirmação</p>
+                    <p id="track-pin" class="text-4xl font-black text-blue-700 tracking-widest">4892</p>
+                    <p class="text-xs text-blue-800 font-medium">Informe este código ao motoboy no ato da entrega.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================================================================= -->
+        <!-- 2. PAINEL DO FUNCIONÁRIO (DIVIDIDO EM SUB-SISTEMAS/ABAS)          -->
+        <!-- ================================================================= -->
+        <section id="portal-funcionario" class="space-y-6 hidden">
+            
+            <!-- SUB-NAVEGAÇÃO DO FUNCIONÁRIO -->
+            <div class="bg-white p-3 rounded-2xl border shadow-sm flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                    <h2 class="font-bold text-gray-800 text-base">Central de Atendimento & Farmácia Municipal</h2>
+                </div>
+                <div class="flex items-center gap-1.5 bg-gray-100 p-1 rounded-xl text-xs font-bold">
+                    <button onclick="switchFuncTab('dash')" id="ftab-dash" class="ftab-btn px-3 py-2 rounded-lg bg-white shadow text-emerald-800">
+                        <i class="fa-solid fa-chart-pie mr-1"></i> Dashboard
+                    </button>
+                    <button onclick="switchFuncTab('pedidos')" id="ftab-pedidos" class="ftab-btn px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-list-check mr-1"></i> Fila de Pedidos
+                    </button>
+                    <button onclick="switchFuncTab('mapa')" id="ftab-mapa" class="ftab-btn px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-map-location-dot mr-1"></i> Geolocalização em Tempo Real
+                    </button>
+                    <button onclick="switchFuncTab('estoque')" id="ftab-estoque" class="ftab-btn px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-boxes-stacked mr-1"></i> Catálogo / Estoque
+                    </button>
+                </div>
+            </div>
+
+            <!-- SUB-TELA 1: DASHBOARD DE INDICADORES -->
+            <div id="func-sub-dash" class="space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase">Aguardando Validação</p>
+                            <h3 id="dash-count-pending" class="text-3xl font-black text-amber-600 mt-1">1</h3>
+                        </div>
+                        <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase">Em Rota de Entrega</p>
+                            <h3 id="dash-count-route" class="text-3xl font-black text-blue-600 mt-1">1</h3>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-motorcycle"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase">Entregas Concluídas</p>
+                            <h3 id="dash-count-done" class="text-3xl font-black text-emerald-600 mt-1">12</h3>
+                        </div>
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase">Entregadores Ativos</p>
+                            <h3 class="text-3xl font-black text-purple-600 mt-1">2</h3>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-3">
+                    <h3 class="font-bold text-gray-800 text-sm uppercase tracking-wider">Avisos e Status do Sistema</h3>
+                    <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-3">
+                        <i class="fa-solid fa-shield-halved text-2xl text-emerald-600"></i>
+                        <div>
+                            <p class="font-bold">Validação de Receita Ativa</p>
+                            <p>O catálogo permanece restrito aos funcionários para evitar erros de dosagem por parte dos cidadãos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-TELA 2: FILA DE PEDIDOS E VALIDAÇÃO DE RECEITAS -->
+            <div id="func-sub-pedidos" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b font-bold text-xs text-gray-600 uppercase tracking-wider flex justify-between items-center">
+                    <span>Fila Geral de Solicitações</span>
+                    <span class="text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg text-[11px]">Indaiatuba - SP</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-100 text-gray-600 text-xs font-bold uppercase border-b">
+                            <tr>
+                                <th class="p-3">ID / Cidadão</th>
+                                <th class="p-3">Endereço</th>
+                                <th class="p-3">Receita Enviada</th>
+                                <th class="p-3">Medicamentos Incluídos</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Ações do Farmacêutico</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-funcionario-body" class="divide-y">
+                            <!-- Inserido dinamicamente via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SUB-TELA 3: MAPA DE GEOLOCALIZAÇÃO DA FROTA EM TEMPO REAL -->
+            <div id="func-sub-mapa" class="hidden bg-white p-5 rounded-2xl border shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-800 flex items-center gap-2 text-base">
+                            <i class="fa-solid fa-map-location-dot text-emerald-600"></i> Monitoramento Geográfico da Frota
+                        </h3>
+                        <p class="text-xs text-gray-500">Exibe todos os entregadores em rota, posições atuais e endereços de destino.</p>
+                    </div>
+                    <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 badge-pulse"></span> GPS Conectado
+                    </span>
+                </div>
+                <div id="map-gerencial"></div>
+            </div>
+
+            <!-- SUB-TELA 4: CATÁLOGO & GERENCIAMENTO DE ESTOQUE (EXCLUSIVO FUNCIONÁRIO) -->
+            <div id="func-sub-estoque" class="hidden bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="font-bold text-gray-800 text-base">Catálogo Municipal de Medicamentos (Estoque)</h3>
+                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-lg text-gray-600 font-bold">Acesso Restrito à Equipe Técnica</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="inventory-grid">
+                    <!-- Inserido via JS -->
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ================================================================= -->
+        <!-- 3. PORTAL DO MOTOBOY / ENTREGADOR (PAINEL DE ROTA & VALIDAR PIN)   -->
+        <!-- ================================================================= -->
+        <section id="portal-motoboy" class="space-y-6 hidden">
+            <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center font-bold text-xl">
+                        <i class="fa-solid fa-motorcycle"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">Painel do Entregador</h2>
+                        <p class="text-xs text-gray-500">Entregador Responsável: <b class="text-gray-800">Carlos Silva (Motoboy 01)</b></p>
+                    </div>
+                </div>
+                <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-xl">
+                    Sua Frota: Ativa
+                </span>
+            </div>
+
+            <div class="space-y-4 max-w-2xl mx-auto">
+                <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Entregas Sob Sua Responsabilidade</h3>
+                <div id="motoboy-orders-list" class="space-y-4">
+                    <!-- Inserido dinamicamente via JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- ================================================================= -->
+    <!-- MODAL 1: FARMACÊUTICO CONFERE RECEITA E SELECIONA NO CATÁLOGO    -->
+    <!-- ================================================================= -->
+    <div id="modal-validacao" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-6">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-stethoscope text-emerald-600"></i> Validação da Receita & Seleção do Medicamento
+                </h3>
+                <button onclick="closeModalValidacao()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Coluna Esquerda: Receita enviada pelo Cidadão -->
+                <div class="bg-gray-50 p-4 rounded-2xl border space-y-3">
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Receita Anexada pelo Cidadão</span>
+                    <div class="bg-white border rounded-xl p-4 text-center min-h-[220px] flex flex-col items-center justify-center">
+                        <i class="fa-solid fa-file-prescription text-6xl text-emerald-600 mb-2"></i>
+                        <p id="val-filename" class="text-xs font-bold text-gray-700">receita_thiago.jpg</p>
+                        <p class="text-[11px] text-gray-400 mt-1">Conferência de dosagem e validade obrigatórias</p>
+                    </div>
+                    <div class="text-xs space-y-1 text-gray-600">
+                        <p><b>Cidadão:</b> <span id="val-cliente-nome">Thiago Silva</span></p>
+                        <p><b>Endereço:</b> <span id="val-cliente-end">Rua das Prímulas, 450 - Indaiatuba</span></p>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita: Catálogo Reservado do Funcionário -->
+                <div class="space-y-3">
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Selecione os Medicamentos Prescritos</span>
+                    
+                    <input type="text" id="cat-search" onkeyup="filterCatalog()" placeholder="Buscar no catálogo/estoque..." class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+
+                    <div id="catalog-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Itens do Catálogo inseridos via JS -->
+                    </div>
+
+                    <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2">
+                        <span class="text-xs font-bold text-emerald-800 uppercase block">Medicamentos Selecionados para Entrega:</span>
+                        <div id="val-selected-meds" class="space-y-1">
+                            <p class="text-xs text-gray-400 italic">Nenhum item selecionado do catálogo ainda.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sugestão Inteligente de Entregador -->
+            <div class="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-route"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-blue-900">Sugestão Automática de Entregador</p>
+                        <p id="suggested-motoboy-text" class="text-xs text-blue-700">Identificando o motoboy livre mais próximo...</p>
+                    </div>
+                </div>
+                <span class="text-[11px] bg-blue-200 text-blue-900 px-3 py-1 rounded-lg font-bold">Roteamento Otimizado</span>
+            </div>
+
+            <div class="flex justify-end gap-2 border-t pt-4">
+                <button onclick="closeModalValidacao()" class="px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button onclick="confirmApproval()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">
+                    <i class="fa-solid fa-check mr-1"></i> Aprovar e Atribuir Entrega
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================================================================= -->
+    <!-- MODAL 2: JUSTIFICATIVA OBRIGATÓRIA DE REPROVAÇÃO                  -->
+    <!-- ================================================================= -->
+    <div id="modal-recusa" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-bold text-red-600 flex items-center gap-2">
+                <i class="fa-solid fa-circle-xmark"></i> Reprovar Pedido
+            </h3>
+            <p class="text-xs text-gray-600">É obrigatório registrar a justificativa técnica para o indeferimento da receita médica:</p>
+            <textarea id="reason-text" rows="3" placeholder="Ex: Receita sem assinatura médica, vencida ou ilegível..." class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"></textarea>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeModalRecusa()" class="px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button onclick="confirmRecusa()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold">Confirmar Reprovação</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- LOGICA E SCRIPTS JavaScript -->
+    <script>
+        // BASE DE ESTOQUE / CATÁLOGO (SOMENTE ACESSÍVEL PELO FUNCIONÁRIO)
+        const estoqueMedicamentos = [
+            { id: 1, nome: 'Paracetamol 500mg', desc: 'Cx 20 comprimidos', qtd: 150 },
+            { id: 2, nome: 'Amoxicilina 500mg', desc: 'Cx 21 cápsulas', qtd: 80 },
+            { id: 3, nome: 'Ibuprofeno 600mg', desc: 'Cx 10 comprimidos', qtd: 120 },
+            { id: 4, nome: 'Losartana Potássica 50mg', desc: 'Cx 30 comprimidos', qtd: 200 },
+            { id: 5, nome: 'Metformina 850mg', desc: 'Cx 60 comprimidos', qtd: 90 }
+        ];
+
+        // MOTOBOYS E GEOLOCALIZAÇÃO
+        const motoboys = [
+            { id: 'mb1', nome: 'Carlos Silva', status: 'Em Rota', dist: '0.8 km', lat: -23.0950, lng: -47.2120, destLat: -23.1020, destLng: -47.2050, clienteDestino: 'Thiago Silva' },
+            { id: 'mb2', nome: 'Ana Oliveira', status: 'Livre', dist: '1.2 km', lat: -23.0820, lng: -47.2250, destLat: null, destLng: null, clienteDestino: null }
+        ];
+
+        // DADOS DOS PEDIDOS
+        let pedidos = [
+            {
+                id: 'IND-8941',
+                cliente: 'Thiago Silva',
+                endereco: 'Rua das Prímulas, 450 - Indaiatuba',
+                telefone: '5519987654321',
+                arquivo: 'receita_thiago.jpg',
+                medicamentos: ['Paracetamol 500mg'],
+                status: 'Em Rota', // 'Aguardando Validação', 'Em Rota', 'Entregue', 'Recusado'
+                motoboy: 'Carlos Silva',
+                codigoPIN: '4892',
+                justificativa: ''
+            }
+        ];
+
+        let selectedOrderId = null;
+        let selectedMedsForOrder = [];
+        let mapInstance = null;
+
+        // INICIALIZAÇÃO APLICAÇÃO
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFuncionarioTable();
+            renderMotoboyOrders();
+            renderCatalogList(estoqueMedicamentos);
+            renderInventoryGrid();
+            updateDashboardCounts();
+        });
+
+        // TROCA DE MÓDULOS PRINCIPAIS
+        function switchRole(role) {
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.role-btn').forEach(b => {
+                b.classList.remove('bg-white', 'text-emerald-900', 'shadow');
+                b.classList.add('hover:bg-emerald-800', 'text-white');
+            });
+
+            document.getElementById(`portal-${role}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-role-${role}`);
+            activeBtn.classList.add('bg-white', 'text-emerald-900', 'shadow');
+            activeBtn.classList.remove('hover:bg-emerald-800', 'text-white');
+
+            if (role === 'funcionario') {
+                switchFuncTab('dash');
+            }
+        }
+
+        // SUB-ABAS DO PAINEL DO FUNCIONÁRIO
+        function switchFuncTab(tab) {
+            document.querySelectorAll('#portal-funcionario > div[id^="func-sub-"]').forEach(d => d.classList.add('hidden'));
+            document.querySelectorAll('.ftab-btn').forEach(b => {
+                b.classList.remove('bg-white', 'shadow', 'text-emerald-800');
+                b.classList.add('text-gray-600');
+            });
+
+            document.getElementById(`func-sub-${tab}`).classList.remove('hidden');
+            const btn = document.getElementById(`ftab-${tab}`);
+            btn.classList.add('bg-white', 'shadow', 'text-emerald-800');
+            btn.classList.remove('text-gray-600');
+
+            if (tab === 'mapa') {
+                setTimeout(initMap, 150);
+            }
+        }
+
+        // CONTROLADOR DE TELAS DO CLIENTE
+        function showClienteScreen(screen) {
+            document.getElementById('cliente-home').classList.add('hidden');
+            document.getElementById('cliente-solicitar').classList.add('hidden');
+            document.getElementById('cliente-acompanhar').classList.add('hidden');
+
+            document.getElementById(`cliente-${screen}`).classList.remove('hidden');
+            if (screen === 'acompanhar') {
+                renderClientTimeline();
+            }
+        }
+
+        function updateClientFileName(input) {
+            const f = input.files[0];
+            document.getElementById('cli-file-name').innerText = f ? `Arquivo Selecionado: ${f.name}` : '';
+        }
+
+        // CLIENTE ENVIA PEDIDO (RECEITA ANEXADA)
+        function handleClientOrder(e) {
+            e.preventDefault();
+            const newId = `IND-${Math.floor(1000 + Math.random() * 9000)}`;
+            const fileInput = document.getElementById('cli-file');
+
+            const newOrder = {
+                id: newId,
+                cliente: 'Thiago Silva', // Cadastro Pré-existente
+                endereco: 'Rua das Prímulas, 450 - Indaiatuba',
+                telefone: '5519987654321',
+                arquivo: fileInput.files[0] ? fileInput.files[0].name : 'receita_anexa.jpg',
+                medicamentos: [], // Será preenchido exclusivamente pelo funcionário
+                status: 'Aguardando Validação',
+                motoboy: '-',
+                codigoPIN: Math.floor(1000 + Math.random() * 9000).toString(),
+                justificativa: ''
+            };
+
+            pedidos.unshift(newOrder);
+            alert(`Sua receita foi enviada com sucesso! Código do Pedido: ${newId}`);
+            
+            document.getElementById('track-id').innerText = `#${newId}`;
+            document.getElementById('track-pin').innerText = newOrder.codigoPIN;
+            
+            renderFuncionarioTable();
+            updateDashboardCounts();
+            showClienteScreen('acompanhar');
+        }
+
+        // LINHA DO TEMPO DO CLIENTE
+        function renderClientTimeline() {
+            const ped = pedidos[0];
+            const container = document.getElementById('track-timeline');
+            
+            let html = `
+                <div class="relative">
+                    <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">✓</div>
+                    <h4 class="text-sm font-bold text-gray-800">Solicitação Enviada</h4>
+                    <p class="text-xs text-gray-500">Receita recebida pela Central da Farmácia Municipal</p>
+                </div>
+            `;
+
+            if (ped.status === 'Recusado') {
+                html += `
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px]">✕</div>
+                        <h4 class="text-sm font-bold text-red-600">Solicitação Reprovada</h4>
+                        <p class="text-xs text-red-600 font-semibold mt-1">Justificativa da Farmácia: ${ped.justificativa}</p>
+                    </div>
+                `;
+            } else {
+                const isValidated = ped.status === 'Em Rota' || ped.status === 'Entregue';
+                const isDelivered = ped.status === 'Entregue';
+
+                html += `
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full ${isValidated ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-white'} flex items-center justify-center text-[10px]">${isValidated ? '✓' : '2'}</div>
+                        <h4 class="text-sm font-bold ${isValidated ? 'text-gray-800' : 'text-gray-400'}">Validação da Receita & Separação</h4>
+                        <p class="text-xs text-gray-500">${isValidated ? `Medicamentos Selecionados: ${ped.medicamentos.join(', ')}` : 'Aguardando validação do farmacêutico'}</p>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full ${isValidated ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-white'} flex items-center justify-center text-[10px]">${isValidated ? '✓' : '3'}</div>
+                        <h4 class="text-sm font-bold ${isValidated ? 'text-gray-800' : 'text-gray-400'}">Saiu para Entrega</h4>
+                        <p class="text-xs text-gray-500">${isValidated ? `Entregador: ${ped.motoboy}` : 'Aguardando despacho'}</p>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full ${isDelivered ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-white'} flex items-center justify-center text-[10px]">${isDelivered ? '✓' : '4'}</div>
+                        <h4 class="text-sm font-bold ${isDelivered ? 'text-gray-800' : 'text-gray-400'}">Entrega Realizada</h4>
+                        <p class="text-xs text-gray-500">${isDelivered ? 'Medicamentos entregues ao cidadão com validação de PIN.' : 'Informe seu PIN ao motoboy no ato da entrega'}</p>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // TABELA DA FILA DE PEDIDOS DO FUNCIONÁRIO
+        function renderFuncionarioTable() {
+            const tbody = document.getElementById('table-funcionario-body');
+            tbody.innerHTML = '';
+
+            pedidos.forEach(p => {
+                const statusColors = {
+                    'Aguardando Validação': 'bg-amber-100 text-amber-800',
+                    'Em Rota': 'bg-blue-100 text-blue-800',
+                    'Entregue': 'bg-emerald-100 text-emerald-800',
+                    'Recusado': 'bg-red-100 text-red-800'
+                };
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-3">
+                            <b class="text-gray-800 block">${p.id}</b>
+                            <span class="text-xs text-gray-500">${p.cliente}</span>
+                        </td>
+                        <td class="p-3 text-xs text-gray-600">${p.endereco}</td>
+                        <td class="p-3 text-xs text-blue-600 font-bold underline cursor-pointer">
+                            <i class="fa-solid fa-file-image mr-1"></i> ${p.arquivo}
+                        </td>
+                        <td class="p-3 text-xs font-semibold text-emerald-700">
+                            ${p.medicamentos.length > 0 ? p.medicamentos.join(', ') : '<i class="text-gray-400">Aguardando Seleção</i>'}
+                        </td>
+                        <td class="p-3">
+                            <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full ${statusColors[p.status]}">
+                                ${p.status}
+                            </span>
+                        </td>
+                        <td class="p-3 text-right space-x-1">
+                            ${p.status === 'Aguardando Validação' ? `
+                                <button onclick="openModalValidacao('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">
+                                    <i class="fa-solid fa-stethoscope"></i> Validar Receita
+                                </button>
+                                <button onclick="openModalRecusa('${p.id}')" class="bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold">
+                                    Reprovar
+                                </button>
+                            ` : ''}
+                            <button onclick="openWhatsAppChat('${p.telefone}', '${p.id}')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Conversar com o Cidadão via WhatsApp">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> Chat
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ATUALIZAR INDICADORES DO DASHBOARD
+        function updateDashboardCounts() {
+            const pending = pedidos.filter(p => p.status === 'Aguardando Validação').length;
+            const inRoute = pedidos.filter(p => p.status === 'Em Rota').length;
+            const done = pedidos.filter(p => p.status === 'Entregue').length;
+
+            document.getElementById('dash-count-pending').innerText = pending;
+            document.getElementById('dash-count-route').innerText = inRoute;
+            document.getElementById('dash-count-done').innerText = 12 + done;
+        }
+
+        // CATÁLOGO DENTRO DO MODAL
+        function renderCatalogList(list) {
+            const container = document.getElementById('catalog-list');
+            container.innerHTML = '';
+            list.forEach(m => {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-2 bg-white border rounded-xl hover:bg-gray-50 text-xs">
+                        <div>
+                            <p class="font-bold text-gray-800">${m.nome}</p>
+                            <p class="text-[10px] text-gray-400">${m.desc} • Estoque: ${m.qtd}</p>
+                        </div>
+                        <button type="button" onclick="addMedToOrder('${m.nome}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold hover:bg-emerald-700">
+                            + Selecionar
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // GRID DO ESTOQUE
+        function renderInventoryGrid() {
+            const container = document.getElementById('inventory-grid');
+            container.innerHTML = '';
+            estoqueMedicamentos.forEach(m => {
+                container.innerHTML += `
+                    <div class="p-4 bg-gray-50 border rounded-2xl space-y-2">
+                        <div class="flex justify-between items-start">
+                            <p class="font-bold text-gray-800 text-sm">${m.nome}</p>
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${m.qtd} un</span>
+                        </div>
+                        <p class="text-xs text-gray-500">${m.desc}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function filterCatalog() {
+            const q = document.getElementById('cat-search').value.toLowerCase();
+            const res = estoqueMedicamentos.filter(m => m.nome.toLowerCase().includes(q));
+            renderCatalogList(res);
+        }
+
+        function addMedToOrder(medName) {
+            if (!selectedMedsForOrder.includes(medName)) {
+                selectedMedsForOrder.push(medName);
+            }
+            updateSelectedMedsUI();
+        }
+
+        function removeMedFromOrder(medName) {
+            selectedMedsForOrder = selectedMedsForOrder.filter(m => m !== medName);
+            updateSelectedMedsUI();
+        }
+
+        function updateSelectedMedsUI() {
+            const container = document.getElementById('val-selected-meds');
+            container.innerHTML = '';
+            if (selectedMedsForOrder.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 italic">Nenhum item selecionado do catálogo ainda.</p>`;
+                return;
+            }
+            selectedMedsForOrder.forEach(m => {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between bg-white p-2 rounded-lg border text-xs">
+                        <span class="font-bold text-emerald-800"><i class="fa-solid fa-check text-emerald-600 mr-1"></i> ${m}</span>
+                        <button type="button" onclick="removeMedFromOrder('${m}')" class="text-red-500 font-bold hover:underline">Remover</button>
+                    </div>
+                `;
+            });
+        }
+
+        // ABRIR MODAL VALIDAÇÃO
+        function openModalValidacao(orderId) {
+            selectedOrderId = orderId;
+            selectedMedsForOrder = [];
+            const ped = pedidos.find(p => p.id === orderId);
+
+            document.getElementById('val-filename').innerText = ped.arquivo;
+            document.getElementById('val-cliente-nome').innerText = ped.cliente;
+            document.getElementById('val-cliente-end').innerText = ped.endereco;
+            updateSelectedMedsUI();
+
+            const livre = motoboys.find(m => m.status === 'Livre') || motoboys[0];
+            document.getElementById('suggested-motoboy-text').innerHTML = `Sugerido pelo sistema: <b>${livre.nome}</b> (${livre.dist} de distância - Status: ${livre.status})`;
+
+            document.getElementById('modal-validacao').classList.remove('hidden');
+        }
+
+        function closeModalValidacao() {
+            document.getElementById('modal-validacao').classList.add('hidden');
+        }
+
+        function confirmApproval() {
+            if (selectedMedsForOrder.length === 0) {
+                alert('Selecione ao menos um medicamento do catálogo correspondente à receita!');
+                return;
+            }
+
+            const ped = pedidos.find(p => p.id === selectedOrderId);
+            const motoboyOtimizado = motoboys.find(m => m.status === 'Livre') || motoboys[0];
+
+            ped.status = 'Em Rota';
+            ped.medicamentos = [...selectedMedsForOrder];
+            ped.motoboy = motoboyOtimizado.nome;
+
+            alert(`Pedido ${ped.id} aprovado! Medicamentos atrelados e entrega designada para ${ped.motoboy}.`);
+            closeModalValidacao();
+            renderFuncionarioTable();
+            renderMotoboyOrders();
+            updateDashboardCounts();
+        }
+
+        // REPROVAÇÃO COM JUSTIFICATIVA
+        function openModalRecusa(orderId) {
+            selectedOrderId = orderId;
+            document.getElementById('modal-recusa').classList.remove('hidden');
+        }
+
+        function closeModalRecusa() {
+            document.getElementById('modal-recusa').classList.add('hidden');
+        }
+
+        function confirmRecusa() {
+            const reason = document.getElementById('reason-text').value;
+            if (!reason) {
+                alert('Obrigatório preencher a justificativa da reprovação!');
+                return;
+            }
+            const ped = pedidos.find(p => p.id === selectedOrderId);
+            ped.status = 'Recusado';
+            ped.justificativa = reason;
+
+            alert(`Pedido ${ped.id} reprovado com justificativa emitida.`);
+            closeModalRecusa();
+            renderFuncionarioTable();
+            updateDashboardCounts();
+        }
+
+        // BOTÃO WHATSAPP / CHAT
+        function openWhatsAppChat(phone, orderId) {
+            const msg = encodeURIComponent(`Olá! Sou da Central da Farmácia Municipal de Indaiatuba referente ao seu pedido #${orderId}.`);
+            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+        }
+
+        // PAINEL MOTOBOY
+        function renderMotoboyOrders() {
+            const container = document.getElementById('motoboy-orders-list');
+            container.innerHTML = '';
+
+            const minhasEntregas = pedidos.filter(p => p.status === 'Em Rota');
+
+            if (minhasEntregas.length === 0) {
+                container.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center text-xs text-gray-400">Nenhuma entrega atribuída no momento.</div>`;
+                return;
+            }
+
+            minhasEntregas.forEach(p => {
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl border-2 border-blue-200 shadow-sm space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">Entrega Pendente</span>
+                                <h4 class="text-base font-black text-gray-800 mt-1">${p.cliente}</h4>
+                                <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i> ${p.endereco}</p>
+                            </div>
+                            <button onclick="openWhatsAppChat('${p.telefone}', '${p.id}')" class="bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1">
+                                <i class="fa-brands fa-whatsapp"></i> Chat
+                            </button>
+                        </div>
+
+                        <div class="p-3 bg-gray-50 rounded-xl text-xs space-y-1">
+                            <p class="font-bold text-gray-700">Itens para entrega:</p>
+                            <p class="text-emerald-700 font-semibold">${p.medicamentos.join(', ')}</p>
+                        </div>
+
+                        <!-- Confirmação com PIN -->
+                        <div class="pt-2 border-t flex items-center gap-2">
+                            <input type="text" id="pin-input-${p.id}" placeholder="PIN (4 dígitos)" class="p-2 border rounded-xl text-xs w-32 font-mono text-center font-bold">
+                            <button onclick="confirmDelivery('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex-grow shadow-sm">
+                                Confirmar Entrega
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function confirmDelivery(orderId) {
+            const input = document.getElementById(`pin-input-${orderId}`);
+            const ped = pedidos.find(p => p.id === orderId);
+
+            if (input && input.value === ped.codigoPIN) {
+                ped.status = 'Entregue';
+                alert(`Entrega do pedido ${orderId} concluída com sucesso!`);
+                renderMotoboyOrders();
+                renderFuncionarioTable();
+                updateDashboardCounts();
+            } else {
+                alert('PIN de confirmação incorreto!');
+            }
+        }
+
+        // MAPA DE GEOLOCALIZAÇÃO
+        function initMap() {
+            if (mapInstance) return;
+
+            const indaiatubaCoords = [-23.0903, -47.2181];
+            mapInstance = L.map('map-gerencial').setView(indaiatubaCoords, 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© Prefeitura de Indaiatuba'
+            }).addTo(mapInstance);
+
+            L.marker(indaiatubaCoords).addTo(mapInstance)
+                .bindPopup('<b>Farmácia Central - Indaiatuba</b><br>Ponto de Distribuição Municipal.')
+                .openPopup();
+
+            const motoboyIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
+                iconSize: [36, 36]
+            });
+
+            const destIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+                iconSize: [30, 30]
+            });
+
+            motoboys.forEach(m => {
+                L.marker([m.lat, m.lng], { icon: motoboyIcon }).addTo(mapInstance)
+                    .bindPopup(`<b>${m.nome}</b><br>Status: ${m.status}`);
+
+                if (m.destLat && m.destLng) {
+                    L.marker([m.destLat, m.destLng], { icon: destIcon }).addTo(mapInstance)
+                        .bindPopup(`<b>Destino da Entrega</b><br>Cliente: ${m.clienteDestino}`);
+
+                    L.polyline([
+                        [m.lat, m.lng],
+                        [m.destLat, m.destLng]
+                    ], { color: '#2563eb', weight: 4, dashArray: '6, 8' }).addTo(mapInstance);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
