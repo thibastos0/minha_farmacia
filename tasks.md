@@ -14,7 +14,7 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 - [x] **Task 5: Módulo da Farmácia (`/farmacia`) — CRUD de Catálogo e Reabastecimento Reativo**
 - [x] **Task 6: Módulo da Farmácia (`/farmacia`) — Mapa da Frota Leaflet.js com `invalidateSize()`**
 - [x] **Task 7: Módulo do Entregador (`/entregador`) — Fila, Contato WhatsApp e Baixa por PIN**
-- [ ] **Task 8: Integração Global End-to-End, Auditoria WCAG e Validação Final**
+- [x] **Task 8: Integração Global End-to-End, Auditoria WCAG e Validação Final**
 
 ---
 
@@ -123,6 +123,6 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - Auditoria de acessibilidade (tamanhos de clique de 48px, contraste de cores, tags ARIA).
   - Documentação final atualizada e commits sincronizados.
 - **Critérios de Aceitação:**
-  - [ ] Fluxo 1:N completo validado com sucesso.
-  - [ ] Todos os módulos operam com reatividade compartilhada e persistência.
-  - [ ] Conformidade com a identidade visual "Minha Indaiatuba".
+  - [x] Fluxo 1:N completo validado com sucesso.
+  - [x] Todos os módulos operam com reatividade compartilhada e persistência.
+  - [x] Conformidade com a identidade visual "Minha Indaiatuba".
