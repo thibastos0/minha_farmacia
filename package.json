@@ -1,0 +1,21 @@
+{
+  "name": "minha-farmacia-indaiatuba",
+  "version": "1.0.0",
+  "description": "Solução oficial de entrega e desmembramento de medicamentos para a Prefeitura Municipal de Indaiatuba - Hackathon Fatec 2026",
+  "type": "module",
+  "scripts": {
+    "test": "node --test --experimental-strip-types tests/**/*.test.ts",
+    "start": "python3 -m http.server 3000"
+  },
+  "keywords": [
+    "indaiatuba",
+    "saude-publica",
+    "minha-farmacia",
+    "order-splitting",
+    "wcag-aa",
+    "superpowers",
+    "spec-driven"
+  ],
+  "author": "Prefeitura Municipal de Indaiatuba / Fatec Indaiatuba",
+  "license": "MIT"
+}

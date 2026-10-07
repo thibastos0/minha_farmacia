@@ -1,0 +1,334 @@
+/**
+ * Store Reativo Central com Sincronização e Pub/Sub
+ * Prefeitura Municipal de Indaiatuba - Hackathon Fatec 2026
+ * Conforme especificado em .spec/01_architecture_and_design.md e .spec/02_data_models_and_split.md
+ */
+
+import type {
+  Order,
+  SubOrder,
+  Medication,
+  Citizen,
+  Courier,
+  TriageDecision,
+  SplitResult
+} from './types.ts';
+import { evaluateAndSplitOrder } from './splitEngine.ts';
+import {
+  INITIAL_CITIZENS,
+  INITIAL_MEDICATIONS,
+  INITIAL_COURIERS,
+  INITIAL_ORDERS
+} from './seedData.ts';
+
+export interface StateData {
+  citizens: Citizen[];
+  currentCitizenId: string;
+  medications: Medication[];
+  couriers: Courier[];
+  orders: Order[];
+}
+
+export type StoreListener = (state: StateData) => void;
+
+class StateStore {
+  private data: StateData;
+  private listeners: Set<StoreListener> = new Set();
+  private storageKey = 'minha_farmacia_state_v1';
+
+  constructor() {
+    this.data = this.loadInitialData();
+  }
+
+  private isBrowser(): boolean {
+    return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+  }
+
+  private loadInitialData(): StateData {
+    if (this.isBrowser()) {
+      try {
+        const saved = window.localStorage.getItem(this.storageKey);
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (e) {
+        console.warn('Erro ao ler localStorage, utilizando dados iniciais', e);
+      }
+    }
+
+    return {
+      citizens: [...INITIAL_CITIZENS],
+      currentCitizenId: INITIAL_CITIZENS[0].id,
+      medications: [...INITIAL_MEDICATIONS],
+      couriers: [...INITIAL_COURIERS],
+      orders: [...INITIAL_ORDERS]
+    };
+  }
+
+  private persistAndNotify(): void {
+    if (this.isBrowser()) {
+      try {
+        window.localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+      } catch (e) {
+        console.warn('Erro ao salvar no localStorage', e);
+      }
+    }
+    const snapshot = this.getState();
+    this.listeners.forEach((listener) => {
+      try {
+        listener(snapshot);
+      } catch (e) {
+        console.error('Erro em listener do store:', e);
+      }
+    });
+  }
+
+  public subscribe(listener: StoreListener): () => void {
+    this.listeners.add(listener);
+    // Notifica o novo listener imediatamente com o estado atual
+    listener(this.getState());
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  public getState(): StateData {
+    return JSON.parse(JSON.stringify(this.data));
+  }
+
+  public resetToDefaults(): void {
+    this.data = {
+      citizens: [...INITIAL_CITIZENS],
+      currentCitizenId: INITIAL_CITIZENS[0].id,
+      medications: [...INITIAL_MEDICATIONS],
+      couriers: [...INITIAL_COURIERS],
+      orders: [...INITIAL_ORDERS]
+    };
+    this.persistAndNotify();
+  }
+
+  // === MÉTODOS DE CIDADÃO ===
+  public getCurrentCitizen(): Citizen {
+    const cit = this.data.citizens.find((c) => c.id === this.data.currentCitizenId);
+    return cit || this.data.citizens[0];
+  }
+
+  public setCurrentCitizen(citizenId: string): void {
+    if (this.data.citizens.some((c) => c.id === citizenId)) {
+      this.data.currentCitizenId = citizenId;
+      this.persistAndNotify();
+    }
+  }
+
+  // === MÉTODOS DE MEDICAMENTOS (CRUD) ===
+  public getMedications(): Medication[] {
+    return [...this.data.medications];
+  }
+
+  public addMedication(med: Omit<Medication, 'id'>): Medication {
+    const newMed: Medication = {
+      ...med,
+      id: `med-${Date.now()}`
+    };
+    this.data.medications.push(newMed);
+    this.persistAndNotify();
+    return newMed;
+  }
+
+  public updateMedication(id: string, updates: Partial<Medication>): boolean {
+    const index = this.data.medications.findIndex((m) => m.id === id);
+    if (index === -1) return false;
+
+    this.data.medications[index] = {
+      ...this.data.medications[index],
+      ...updates
+    };
+
+    // Se houve acréscimo de estoque, aciona a reavaliação de subpedidos aguardando reposição
+    if (typeof updates.stockQuantity === 'number') {
+      this.checkAndPromoteAwaitingOrders(id);
+    }
+
+    this.persistAndNotify();
+    return true;
+  }
+
+  public adjustStock(id: string, delta: number): boolean {
+    const med = this.data.medications.find((m) => m.id === id);
+    if (!med) return false;
+
+    med.stockQuantity = Math.max(0, med.stockQuantity + delta);
+
+    if (delta > 0) {
+      this.checkAndPromoteAwaitingOrders(id);
+    }
+
+    this.persistAndNotify();
+    return true;
+  }
+
+  public toggleMedicationActive(id: string): boolean {
+    const med = this.data.medications.find((m) => m.id === id);
+    if (!med) return false;
+    med.active = !med.active;
+    this.persistAndNotify();
+    return true;
+  }
+
+  // === MÉTODOS DE PEDIDOS & MOTOR 1:N ===
+  public getOrders(): Order[] {
+    return [...this.data.orders];
+  }
+
+  public getOrderById(orderId: string): Order | undefined {
+    return this.data.orders.find((o) => o.id === orderId);
+  }
+
+  public createOrder(params: {
+    citizenId: string;
+    prescriptionImageUrl: string;
+    notes?: string;
+  }): Order {
+    const citizen = this.data.citizens.find((c) => c.id === params.citizenId) || this.getCurrentCitizen();
+    const count = this.data.orders.length + 1;
+    const code = `PED-2026-${String(count).padStart(3, '0')}`;
+
+    const newOrder: Order = {
+      id: `ord-${Date.now()}`,
+      code,
+      citizenId: citizen.id,
+      citizenName: citizen.name,
+      citizenCpf: citizen.cpf,
+      citizenPhone: citizen.phone,
+      deliveryAddress: citizen.address,
+      prescriptionImageUrl: params.prescriptionImageUrl,
+      status: 'PENDENTE_TRIAGEM',
+      isSplit: false,
+      subOrders: [],
+      createdAt: new Date().toISOString()
+    };
+
+    this.data.orders.unshift(newOrder);
+    this.persistAndNotify();
+    return newOrder;
+  }
+
+  /**
+   * Executa a triagem com desmembramento inteligente 1:N
+   */
+  public performTriage(
+    orderId: string,
+    decisions: TriageDecision[],
+    pharmacistId: string = 'farm-central'
+  ): { success: boolean; result?: SplitResult; error?: string } {
+    const order = this.data.orders.find((o) => o.id === orderId);
+    if (!order) return { success: false, error: 'Pedido não encontrado.' };
+
+    const splitResult = evaluateAndSplitOrder(order, decisions, this.data.medications);
+
+    if (splitResult.subOrders.length === 0) {
+      return { success: false, error: 'Nenhum medicamento válido selecionado.' };
+    }
+
+    // Deduz estoque dos itens disponíveis
+    for (const deduction of splitResult.stockDeductions) {
+      const med = this.data.medications.find((m) => m.id === deduction.medicationId);
+      if (med) {
+        med.stockQuantity = Math.max(0, med.stockQuantity - deduction.quantity);
+      }
+    }
+
+    // Atualiza o pedido com os SubOrders
+    order.isSplit = splitResult.isSplit;
+    order.status = 'EM_PROCESSAMENTO';
+    order.subOrders = splitResult.subOrders;
+    order.reviewedByPharmacistId = pharmacistId;
+    order.reviewedAt = new Date().toISOString();
+
+    if (splitResult.isSplit) {
+      order.splitReason = 'Pedido desmembrado: Remessa A imediata e Remessa B aguardando reposição.';
+    }
+
+    this.persistAndNotify();
+    return { success: true, result: splitResult };
+  }
+
+  /**
+   * Reabastecimento reativo: promove SubOrders em AGUARDANDO_REPOSICAO para EM_SEPARACAO
+   */
+  private checkAndPromoteAwaitingOrders(medicationId: string): void {
+    const med = this.data.medications.find((m) => m.id === medicationId);
+    if (!med || med.stockQuantity <= 0) return;
+
+    for (const order of this.data.orders) {
+      for (const subOrder of order.subOrders) {
+        if (subOrder.status === 'AGUARDANDO_REPOSICAO') {
+          const item = subOrder.items.find((i) => i.medicationId === medicationId && !i.isAvailable);
+          if (item && med.stockQuantity >= item.quantityRequested) {
+            med.stockQuantity -= item.quantityRequested;
+            item.isAvailable = true;
+            item.quantityApproved = item.quantityRequested;
+            subOrder.status = 'EM_SEPARACAO';
+            subOrder.updatedAt = new Date().toISOString();
+            subOrder.notes = 'Lote reabastecido pela Farmácia Central de Indaiatuba. Liberado para separação.';
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Validação de PIN e finalização da entrega do SubOrder
+   */
+  public completeDelivery(
+    subOrderId: string,
+    pinInput: string
+  ): { success: boolean; message: string } {
+    let targetSubOrder: SubOrder | undefined;
+    let parentOrder: Order | undefined;
+
+    for (const order of this.data.orders) {
+      const sub = order.subOrders.find((s) => s.id === subOrderId);
+      if (sub) {
+        targetSubOrder = sub;
+        parentOrder = order;
+        break;
+      }
+    }
+
+    if (!targetSubOrder || !parentOrder) {
+      return { success: false, message: 'Subpedido de entrega não encontrado.' };
+    }
+
+    if (targetSubOrder.status === 'ENTREGUE') {
+      return { success: false, message: 'Esta remessa já foi entregue anteriormente.' };
+    }
+
+    // Validação estrita do PIN
+    if (targetSubOrder.pinCode.trim() !== pinInput.trim()) {
+      return {
+        success: false,
+        message: 'Código PIN incorreto. Peça ao munícipe o código de 4 dígitos do app Minha Farmácia.'
+      };
+    }
+
+    // Sucesso: Baixa na entrega
+    targetSubOrder.status = 'ENTREGUE';
+    targetSubOrder.deliveredAt = new Date().toISOString();
+    targetSubOrder.updatedAt = new Date().toISOString();
+
+    // Se todos os subpedidos do pedido foram entregues, finaliza o pedido pai
+    const allDelivered = parentOrder.subOrders.every((s) => s.status === 'ENTREGUE');
+    if (allDelivered) {
+      parentOrder.status = 'FINALIZADO';
+    }
+
+    this.persistAndNotify();
+    return {
+      success: true,
+      message: `Remessa ${targetSubOrder.code} entregue e confirmada com sucesso!`
+    };
+  }
+}
+
+export const store = new StateStore();
