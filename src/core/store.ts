@@ -57,11 +57,11 @@ class StateStore {
     }
 
     return {
-      citizens: [...INITIAL_CITIZENS],
+      citizens: JSON.parse(JSON.stringify(INITIAL_CITIZENS)),
       currentCitizenId: INITIAL_CITIZENS[0].id,
-      medications: [...INITIAL_MEDICATIONS],
-      couriers: [...INITIAL_COURIERS],
-      orders: [...INITIAL_ORDERS]
+      medications: JSON.parse(JSON.stringify(INITIAL_MEDICATIONS)),
+      couriers: JSON.parse(JSON.stringify(INITIAL_COURIERS)),
+      orders: JSON.parse(JSON.stringify(INITIAL_ORDERS))
     };
   }
 
@@ -98,11 +98,11 @@ class StateStore {
 
   public resetToDefaults(): void {
     this.data = {
-      citizens: [...INITIAL_CITIZENS],
+      citizens: JSON.parse(JSON.stringify(INITIAL_CITIZENS)),
       currentCitizenId: INITIAL_CITIZENS[0].id,
-      medications: [...INITIAL_MEDICATIONS],
-      couriers: [...INITIAL_COURIERS],
-      orders: [...INITIAL_ORDERS]
+      medications: JSON.parse(JSON.stringify(INITIAL_MEDICATIONS)),
+      couriers: JSON.parse(JSON.stringify(INITIAL_COURIERS)),
+      orders: JSON.parse(JSON.stringify(INITIAL_ORDERS))
     };
     this.persistAndNotify();
   }

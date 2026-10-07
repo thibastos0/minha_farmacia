@@ -10,8 +10,8 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 - [x] **Task 1: Core Domain, State Store Reativo e Motor de Desmembramento (`splitEngine`)**
 - [x] **Task 2: Design System "Minha Indaiatuba" e Shell Acessível (WCAG AA)**
 - [x] **Task 3: Módulo do Cidadão (`/cidadao`) — Upload, Timeline e PIN Independente**
-- [ ] **Task 4: Módulo da Farmácia (`/farmacia`) — Triagem e Desmembramento 1:N**
-- [ ] **Task 5: Módulo da Farmácia (`/farmacia`) — CRUD de Catálogo e Reabastecimento Reativo**
+- [x] **Task 4: Módulo da Farmácia (`/farmacia`) — Triagem e Desmembramento 1:N**
+- [x] **Task 5: Módulo da Farmácia (`/farmacia`) — CRUD de Catálogo e Reabastecimento Reativo**
 - [ ] **Task 6: Módulo da Farmácia (`/farmacia`) — Mapa da Frota Leaflet.js com `invalidateSize()`**
 - [ ] **Task 7: Módulo do Entregador (`/entregador`) — Fila, Contato WhatsApp e Baixa por PIN**
 - [ ] **Task 8: Integração Global End-to-End, Auditoria WCAG e Validação Final**
@@ -69,9 +69,9 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - Ação de "Aprovar com Desmembramento (1:N)" gerando remessa imediata e remessa em espera.
   - Dashboard inicial de contadores (pedidos pendentes, em rota, aguardando reposição).
 - **Critérios de Aceitação:**
-  - [ ] Farmacêutico consegue selecionar itens e visualizar impacto no saldo de estoque.
-  - [ ] Acionamento do botão de desmembramento separa o pedido em 2 SubOrders no store reativo.
-  - [ ] Pedidos aprovados refletem imediatamente no portal do cidadão e no painel do entregador.
+  - [x] Farmacêutico consegue selecionar itens e visualizar impacto no saldo de estoque.
+  - [x] Acionamento do botão de desmembramento separa o pedido em 2 SubOrders no store reativo.
+  - [x] Pedidos aprovados refletem imediatamente no portal do cidadão e no painel do entregador.
 
 ---
 
@@ -84,9 +84,9 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - Inativação lógica (soft delete) com preservação de histórico.
   - Gatilho reativo: reabastecer estoque de item em falta promove automaticamente SubOrders de `AGUARDANDO_REPOSICAO` para `EM_SEPARACAO`.
 - **Critérios de Aceitação:**
-  - [ ] CRUD funcional: criar, buscar por texto/categoria, editar e inativar medicamentos.
-  - [ ] Ao adicionar estoque de um item em falta, pedidos aguardando reposição são promovidos para separação.
-  - [ ] Badges visuais de estoque crítico (< minStockAlert).
+  - [x] CRUD funcional: criar, buscar por texto/categoria, editar e inativar medicamentos.
+  - [x] Ao adicionar estoque de um item em falta, pedidos aguardando reposição são promovidos para separação.
+  - [x] Badges visuais de estoque crítico (< minStockAlert).
 
 ---
 
