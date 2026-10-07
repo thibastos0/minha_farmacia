@@ -9,7 +9,7 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 
 - [x] **Task 1: Core Domain, State Store Reativo e Motor de Desmembramento (`splitEngine`)**
 - [x] **Task 2: Design System "Minha Indaiatuba" e Shell Acessível (WCAG AA)**
-- [ ] **Task 3: Módulo do Cidadão (`/cidadao`) — Upload, Timeline e PIN Independente**
+- [x] **Task 3: Módulo do Cidadão (`/cidadao`) — Upload, Timeline e PIN Independente**
 - [ ] **Task 4: Módulo da Farmácia (`/farmacia`) — Triagem e Desmembramento 1:N**
 - [ ] **Task 5: Módulo da Farmácia (`/farmacia`) — CRUD de Catálogo e Reabastecimento Reativo**
 - [ ] **Task 6: Módulo da Farmácia (`/farmacia`) — Mapa da Frota Leaflet.js com `invalidateSize()`**
@@ -55,9 +55,9 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - Timeline de status por SubOrder com exibição em alto contraste do código PIN de 4 dígitos.
   - Banner explicativo de desmembramento (notificando divisão em Remessa A imediata e Remessa B posterior).
 - **Critérios de Aceitação:**
-  - [ ] Upload da receita médica gera novo pedido no status `PENDENTE_TRIAGEM`.
-  - [ ] Pedidos desmembrados exibem visualmente duas remessas separadas com seus respectivos PINs e status.
-  - [ ] Avisos acessíveis via `aria-live` para leitores de tela.
+  - [x] Upload da receita médica gera novo pedido no status `PENDENTE_TRIAGEM`.
+  - [x] Pedidos desmembrados exibem visualmente duas remessas separadas com seus respectivos PINs e status.
+  - [x] Avisos acessíveis via `aria-live` para leitores de tela.
 
 ---
 
