@@ -41,6 +41,21 @@ export interface Citizen {
 
 export type MedicationCategory = 'BASICO' | 'CONTROLADO' | 'CONTINUO' | 'ANTIBIOTICO';
 
+export type UBSUnit =
+  | 'Farmácia Central'
+  | 'UBS Morada do Sol'
+  | 'UBS Itaici'
+  | 'UBS Cecap'
+  | 'UBS Parque Corolla';
+
+export const INDAIATUBA_UBS_UNITS: UBSUnit[] = [
+  'Farmácia Central',
+  'UBS Morada do Sol',
+  'UBS Itaici',
+  'UBS Cecap',
+  'UBS Parque Corolla'
+];
+
 export interface Medication {
   id: string;
   name: string;
@@ -50,6 +65,7 @@ export interface Medication {
   minStockAlert: number;
   active: boolean;
   category: MedicationCategory;
+  estoquePorUnidade?: Record<UBSUnit, number>;
 }
 
 export interface OrderItem {

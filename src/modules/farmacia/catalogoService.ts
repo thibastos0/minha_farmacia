@@ -10,7 +10,7 @@
  */
 
 import { store } from '../../core/store.ts';
-import type { Medication, MedicationCategory } from '../../core/types.ts';
+import type { Medication, MedicationCategory, UBSUnit } from '../../core/types.ts';
 
 // ======================================================================
 // TIPOS PÚBLICOS DA CAMADA DE VIEW
@@ -37,6 +37,7 @@ export interface AddMedicationParams {
   stockQuantity: number;
   minStockAlert: number;
   category: MedicationCategory;
+  estoquePorUnidade?: Record<UBSUnit, number>;
 }
 
 /** Resultado de operações de criação/edição */
@@ -199,6 +200,7 @@ export function addMedication(params: AddMedicationParams): MedicationMutationRe
     stockQuantity: params.stockQuantity,
     minStockAlert: params.minStockAlert,
     category: params.category,
+    estoquePorUnidade: params.estoquePorUnidade,
     active: true
   });
 
@@ -264,6 +266,33 @@ export function adjustMedicationStock(id: string, delta: number): StockAdjustRes
 
   const newMed = store.getMedications().find((m) => m.id === id)!;
   return { success: true, newStock: newMed.stockQuantity };
+}
+
+/**
+ * Ajusta o saldo de estoque de um medicamento em uma UBS específica de Indaiatuba.
+ * Ao adicionar estoque em uma unidade zerada, dispara a promoção reativa das SubOrders pendentes.
+ */
+export function adjustMedicationStockUnit(
+  id: string,
+  ubs: UBSUnit,
+  delta: number
+): StockAdjustResult & { estoquePorUnidade?: Record<UBSUnit, number> } {
+  const existing = store.getMedications().find((m) => m.id === id);
+  if (!existing) {
+    return { success: false, error: `Medicamento ${id} não encontrado no catálogo.` };
+  }
+
+  const updated = store.adjustStockUnit(id, ubs, delta);
+  if (!updated) {
+    return { success: false, error: `Falha ao ajustar estoque na unidade ${ubs}.` };
+  }
+
+  const newMed = store.getMedications().find((m) => m.id === id)!;
+  return {
+    success: true,
+    newStock: newMed.stockQuantity,
+    estoquePorUnidade: newMed.estoquePorUnidade
+  };
 }
 
 /**

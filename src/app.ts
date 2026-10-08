@@ -41,6 +41,7 @@ import {
   addMedication,
   editMedication,
   adjustMedicationStock,
+  adjustMedicationStockUnit,
   toggleMedicationStatus,
   getLowStockBadges
 } from './modules/farmacia/catalogoService.ts';
@@ -334,6 +335,7 @@ if (typeof window !== 'undefined') {
     addMedication,
     editMedication,
     adjustMedicationStock,
+    adjustMedicationStockUnit,
     toggleMedicationStatus,
     getLowStockBadges,
     // Motor 1:N
@@ -383,6 +385,7 @@ if (typeof window !== 'undefined') {
   (window as any).searchCatalog = searchCatalog;
   (window as any).addMedication = addMedication;
   (window as any).adjustMedicationStock = adjustMedicationStock;
+  (window as any).adjustMedicationStockUnit = adjustMedicationStockUnit;
   (window as any).toggleMedicationStatus = toggleMedicationStatus;
 
   navManager.onAnnouncement((msg) => {

@@ -11,7 +11,8 @@ import type {
   Citizen,
   Courier,
   TriageDecision,
-  SplitResult
+  SplitResult,
+  UBSUnit
 } from './types.ts';
 import { evaluateAndSplitOrder } from './splitEngine.ts';
 import {
@@ -171,8 +172,16 @@ export class StateStore {
   }
 
   public addMedication(med: Omit<Medication, 'id'>): Medication {
+    const estoquePorUnidade = med.estoquePorUnidade || {
+      'Farmácia Central': med.stockQuantity,
+      'UBS Morada do Sol': 0,
+      'UBS Itaici': 0,
+      'UBS Cecap': 0,
+      'UBS Parque Corolla': 0
+    };
     const newMed: Medication = {
       ...med,
+      estoquePorUnidade,
       id: `med-${Date.now()}`
     };
     this.data.medications.push(newMed);
@@ -202,8 +211,72 @@ export class StateStore {
     const med = this.data.medications.find((m) => m.id === id);
     if (!med) return false;
 
-    med.stockQuantity = Math.max(0, med.stockQuantity + delta);
+    if (!med.estoquePorUnidade) {
+      med.estoquePorUnidade = {
+        'Farmácia Central': med.stockQuantity,
+        'UBS Morada do Sol': 0,
+        'UBS Itaici': 0,
+        'UBS Cecap': 0,
+        'UBS Parque Corolla': 0
+      };
+    }
 
+    if (delta >= 0) {
+      med.estoquePorUnidade['Farmácia Central'] = (med.estoquePorUnidade['Farmácia Central'] || 0) + delta;
+    } else {
+      let toRemove = Math.abs(delta);
+      // Primeiro tenta remover da Farmácia Central
+      const centralCurrent = med.estoquePorUnidade['Farmácia Central'] || 0;
+      const removeCentral = Math.min(centralCurrent, toRemove);
+      med.estoquePorUnidade['Farmácia Central'] = centralCurrent - removeCentral;
+      toRemove -= removeCentral;
+
+      // Se ainda restou a remover, remove das outras unidades
+      if (toRemove > 0) {
+        const otherUnits = (Object.keys(med.estoquePorUnidade) as UBSUnit[]).filter(u => u !== 'Farmácia Central');
+        for (const u of otherUnits) {
+          if (toRemove <= 0) break;
+          const uCurrent = med.estoquePorUnidade[u] || 0;
+          const take = Math.min(uCurrent, toRemove);
+          med.estoquePorUnidade[u] = uCurrent - take;
+          toRemove -= take;
+        }
+      }
+    }
+
+    // Recalcula total a partir das unidades
+    med.stockQuantity = Object.values(med.estoquePorUnidade).reduce((acc, val) => acc + val, 0);
+
+    if (delta > 0) {
+      this.checkAndPromoteAwaitingOrders(id);
+    }
+
+    this.persistAndNotify();
+    return true;
+  }
+
+  public adjustStockUnit(id: string, ubs: UBSUnit, delta: number): boolean {
+    const med = this.data.medications.find((m) => m.id === id);
+    if (!med) return false;
+
+    if (!med.estoquePorUnidade) {
+      med.estoquePorUnidade = {
+        'Farmácia Central': med.stockQuantity,
+        'UBS Morada do Sol': 0,
+        'UBS Itaici': 0,
+        'UBS Cecap': 0,
+        'UBS Parque Corolla': 0
+      };
+    }
+
+    const currentVal = med.estoquePorUnidade[ubs] ?? 0;
+    const newVal = Math.max(0, currentVal + delta);
+    med.estoquePorUnidade[ubs] = newVal;
+
+    // Atualiza stockQuantity geral como soma de todas as unidades
+    med.stockQuantity = (Object.values(med.estoquePorUnidade) as number[]).reduce((acc, val) => acc + val, 0);
+
+    // Se adicionou estoque, aciona promoção reativa de SubOrders pendentes
     if (delta > 0) {
       this.checkAndPromoteAwaitingOrders(id);
     }
@@ -280,6 +353,17 @@ export class StateStore {
       const med = this.data.medications.find((m) => m.id === deduction.medicationId);
       if (med) {
         med.stockQuantity = Math.max(0, med.stockQuantity - deduction.quantity);
+        if (med.estoquePorUnidade) {
+          let rem = deduction.quantity;
+          const ubsKeys = Object.keys(med.estoquePorUnidade) as UBSUnit[];
+          for (const ubs of ubsKeys) {
+            if (rem <= 0) break;
+            const current = med.estoquePorUnidade[ubs] || 0;
+            const take = Math.min(current, rem);
+            med.estoquePorUnidade[ubs] = current - take;
+            rem -= take;
+          }
+        }
       }
     }
 
@@ -311,6 +395,17 @@ export class StateStore {
           const item = subOrder.items.find((i) => i.medicationId === medicationId && !i.isAvailable);
           if (item && med.stockQuantity >= item.quantityRequested) {
             med.stockQuantity -= item.quantityRequested;
+            if (med.estoquePorUnidade) {
+              let rem = item.quantityRequested;
+              const ubsKeys = Object.keys(med.estoquePorUnidade) as UBSUnit[];
+              for (const ubs of ubsKeys) {
+                if (rem <= 0) break;
+                const current = med.estoquePorUnidade[ubs] || 0;
+                const take = Math.min(current, rem);
+                med.estoquePorUnidade[ubs] = current - take;
+                rem -= take;
+              }
+            }
             item.isAvailable = true;
             item.quantityApproved = item.quantityRequested;
             subOrder.status = 'EM_SEPARACAO';

@@ -236,4 +236,28 @@ describe('Módulo da Farmácia: Dashboard de Contadores', () => {
 
     assert.equal(counters.totalOrders, allOrders.length);
   });
+
+  test('Deve calcular métricas de SLA, Top 5 Medicamentos e Rupturas por UBS', () => {
+    store.resetToDefaults();
+    const counters = getPharmacyDashboardCounters();
+
+    // SLAs operacionais
+    assert.ok(counters.slas, 'Deve conter indicadores de SLA');
+    assert.equal(counters.slas.avgTriageMinutes, 14);
+    assert.equal(counters.slas.avgSeparationMinutes, 22);
+    assert.equal(counters.slas.avgDeliveryMinutes, 35);
+
+    // Top 5 Medicamentos
+    assert.ok(Array.isArray(counters.topMedications), 'Top medicamentos deve ser array');
+    assert.ok(counters.topMedications.length <= 5, 'Deve ter até 5 medicamentos');
+    assert.ok(counters.topMedications.some(m => m.name.includes('Amoxicilina')));
+    assert.ok(counters.topMedications.some(m => m.name.includes('Dipirona')));
+
+    // Painel de Rupturas
+    assert.ok(Array.isArray(counters.ruptures), 'Rupturas deve ser array');
+    assert.ok(counters.ruptures.length > 0, 'Deve identificar medicamentos com estoque zerado em UBSs');
+    const amoxRupture = counters.ruptures.find(r => r.name.includes('Amoxicilina'));
+    assert.ok(amoxRupture, 'Amoxicilina deve ser identificada em ruptura');
+  });
 });
+

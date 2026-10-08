@@ -50,7 +50,14 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     stockQuantity: 120,
     minStockAlert: 20,
     active: true,
-    category: 'CONTINUO'
+    category: 'CONTINUO',
+    estoquePorUnidade: {
+      'Farmácia Central': 60,
+      'UBS Morada do Sol': 25,
+      'UBS Itaici': 15,
+      'UBS Cecap': 10,
+      'UBS Parque Corolla': 10
+    }
   },
   {
     id: 'med-02',
@@ -60,7 +67,14 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     stockQuantity: 85,
     minStockAlert: 15,
     active: true,
-    category: 'BASICO'
+    category: 'BASICO',
+    estoquePorUnidade: {
+      'Farmácia Central': 40,
+      'UBS Morada do Sol': 20,
+      'UBS Itaici': 10,
+      'UBS Cecap': 10,
+      'UBS Parque Corolla': 5
+    }
   },
   {
     id: 'med-03',
@@ -70,7 +84,14 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     stockQuantity: 0, // Estoque Zerado intencionalmente para teste do Split
     minStockAlert: 10,
     active: true,
-    category: 'ANTIBIOTICO'
+    category: 'ANTIBIOTICO',
+    estoquePorUnidade: {
+      'Farmácia Central': 0,
+      'UBS Morada do Sol': 0,
+      'UBS Itaici': 0,
+      'UBS Cecap': 0,
+      'UBS Parque Corolla': 0
+    }
   },
   {
     id: 'med-04',
@@ -80,7 +101,14 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     stockQuantity: 60,
     minStockAlert: 15,
     active: true,
-    category: 'CONTINUO'
+    category: 'CONTINUO',
+    estoquePorUnidade: {
+      'Farmácia Central': 30,
+      'UBS Morada do Sol': 15,
+      'UBS Itaici': 5,
+      'UBS Cecap': 5,
+      'UBS Parque Corolla': 5
+    }
   },
   {
     id: 'med-05',
@@ -90,7 +118,14 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     stockQuantity: 4, // Estoque Baixo / Alerta
     minStockAlert: 10,
     active: true,
-    category: 'BASICO'
+    category: 'BASICO',
+    estoquePorUnidade: {
+      'Farmácia Central': 4,
+      'UBS Morada do Sol': 0,
+      'UBS Itaici': 0,
+      'UBS Cecap': 0,
+      'UBS Parque Corolla': 0
+    }
   },
   {
     id: 'med-06',
@@ -100,7 +135,14 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     stockQuantity: 35,
     minStockAlert: 10,
     active: true,
-    category: 'CONTROLADO'
+    category: 'CONTROLADO',
+    estoquePorUnidade: {
+      'Farmácia Central': 20,
+      'UBS Morada do Sol': 5,
+      'UBS Itaici': 5,
+      'UBS Cecap': 5,
+      'UBS Parque Corolla': 0
+    }
   }
 ];
 

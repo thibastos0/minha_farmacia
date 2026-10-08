@@ -307,15 +307,99 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-3">
-                    <h3 class="font-bold text-gray-800 text-sm uppercase tracking-wider">Avisos e Status do Sistema</h3>
-                    <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-3">
-                        <i class="fa-solid fa-shield-halved text-2xl text-emerald-600"></i>
-                        <div>
-                            <p class="font-bold">Validação de Receita Ativa</p>
-                            <p>O catálogo permanece restrito aos funcionários para evitar erros de dosagem por parte dos cidadãos.</p>
+                <!-- PAINEL DE SLAS E TEMPOS MÉDIOS DE OPERAÇÃO (MÉTRICAS DE QUALIDADE INDAIATUBA) -->
+                <div class="space-y-3">
+                    <h3 class="font-black text-gray-800 text-sm uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-gauge-high text-emerald-600"></i> SLAs & Tempos Médios de Operação Municipal (Qualidade RDC 44)
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-500 uppercase">Análise de Receita</p>
+                                <div class="flex items-baseline gap-1 mt-1">
+                                    <h4 id="sla-triage-val" class="text-3xl font-black text-emerald-700">14</h4>
+                                    <span class="text-xs font-bold text-gray-400">minutos</span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md inline-block mt-1">Meta SUS: < 20 min</span>
+                            </div>
+                            <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-user-doctor"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-500 uppercase">Separação / Embalagem</p>
+                                <div class="flex items-baseline gap-1 mt-1">
+                                    <h4 id="sla-separation-val" class="text-3xl font-black text-blue-700">22</h4>
+                                    <span class="text-xs font-bold text-gray-400">minutos</span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md inline-block mt-1">Meta Central: < 30 min</span>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-box-open"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-500 uppercase">Despacho e Entrega</p>
+                                <div class="flex items-baseline gap-1 mt-1">
+                                    <h4 id="sla-delivery-val" class="text-3xl font-black text-purple-700">35</h4>
+                                    <span class="text-xs font-bold text-gray-400">minutos</span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md inline-block mt-1">Meta Rápida: < 45 min</span>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-truck-fast"></i>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- GRÁFICO DE MEDICAMENTOS MAIS SOLICITADOS & PAINEL DE RUPTURA / ESTOQUE ZERADO -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Coluna 1: Top 5 Medicamentos Mais Solicitados (CSS Progress Bar) -->
+                    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b pb-3">
+                            <h3 class="font-black text-gray-800 text-sm uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-chart-bar text-emerald-600"></i> Medicamentos Mais Solicitados na Rede
+                            </h3>
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">Top 5 Demanda</span>
+                        </div>
+                        <div id="dash-top-meds-list" class="space-y-3">
+                            <!-- Inserido dinamicamente via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Coluna 2: Painel de Itens Indisponíveis / Ruptura nas UBSs -->
+                    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b pb-3">
+                            <h3 class="font-black text-gray-800 text-sm uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Alerta de Ruptura / Estoque Zerado
+                            </h3>
+                            <span id="dash-rupture-count-badge" class="text-xs font-bold text-red-700 bg-red-100 px-2.5 py-1 rounded-lg animate-pulse">0 em Ruptura</span>
+                        </div>
+                        <p class="text-xs text-gray-500">Unidades Básicas de Saúde (UBSs) com estoque zerado demandando remanejamento ou compras:</p>
+                        <div id="dash-ruptures-list" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                            <!-- Inserido dinamicamente via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAPEAMENTO DA FROTA & STATUS DOS ENTREGADORES -->
+                <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-gray-800 text-sm uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-emerald-600"></i> Garantia de Qualidade RDC 44/2009 & Rastreabilidade
+                        </h3>
+                        <span class="text-xs text-emerald-800 bg-emerald-50 font-bold px-3 py-1 rounded-xl border border-emerald-200">
+                            Central Municipal Operando
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">
+                        Todos os medicamentos controlados e antibióticos passam por dupla checagem pela Responsável Técnica <b>Dra. Camila S. Rocha (CRF-SP 45.892)</b> antes do desmembramento e despacho para os entregadores da rede municipal de Indaiatuba.
+                    </p>
                 </div>
             </div>
 
@@ -644,43 +728,112 @@
     <!-- ================================================================= -->
     <!-- MODAL 1: FARMACÊUTICO CONFERE RECEITA E SELECIONA NO CATÁLOGO    -->
     <!-- ================================================================= -->
-    <div id="modal-validacao" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-6">
+    <!-- MODAL 1: INSPEÇÃO SANITÁRIA RDC 44/2009 & VALIDAÇÃO DE RECEITA    -->
+    <!-- ================================================================= -->
+    <div id="modal-validacao" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-5 my-auto">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fa-solid fa-stethoscope text-emerald-600"></i> Validação da Receita & Seleção do Medicamento
-                </h3>
-                <button onclick="closeModalValidacao()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-file-medical text-emerald-600"></i> Inspeção Sanitária RDC 44/2009 & Validação de Receita
+                    </h3>
+                    <p class="text-xs text-slate-500 font-medium">Prefeitura Municipal de Indaiatuba • Triagem Farmacêutica Oficial</p>
+                </div>
+                <button onclick="closeModalValidacao()" class="text-gray-400 hover:text-gray-600 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Coluna Esquerda: Receita enviada pelo Cidadão -->
-                <div class="bg-gray-50 p-4 rounded-2xl border space-y-3">
-                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Receita Anexada pelo Cidadão</span>
-                    <div class="bg-white border rounded-xl p-4 text-center min-h-[220px] flex flex-col items-center justify-center">
-                        <i class="fa-solid fa-file-prescription text-6xl text-emerald-600 mb-2"></i>
-                        <p id="val-filename" class="text-xs font-bold text-gray-700">receita_thiago.jpg</p>
-                        <p class="text-[11px] text-gray-400 mt-1">Conferência de dosagem e validade obrigatórias</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <!-- Coluna Esquerda: SIMULAÇÃO VISUAL DA RECEITA MÉDICA DO SUS / INDAIATUBA -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-stamp text-emerald-600"></i> Receituário Oficial SUS / Indaiatuba
+                        </span>
+                        <span class="text-[10px] bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full">Validado Gov.br</span>
                     </div>
-                    <div class="text-xs space-y-1 text-gray-600">
-                        <p><b>Cidadão:</b> <span id="val-cliente-nome">Thiago Silva</span></p>
-                        <p><b>Endereço:</b> <span id="val-cliente-end">Rua das Prímulas, 450 - Indaiatuba</span></p>
+
+                    <!-- Folha da Receita Médica Simulação Visual -->
+                    <div class="bg-amber-50/40 border-2 border-slate-300 rounded-2xl p-4 shadow-inner space-y-3 font-serif text-slate-800 relative overflow-hidden">
+                        <!-- Timbre Oficial -->
+                        <div class="border-b border-slate-300 pb-2 text-center space-y-0.5">
+                            <div class="flex items-center justify-center gap-2 font-sans font-black text-xs text-emerald-950 uppercase tracking-tight">
+                                <i class="fa-solid fa-hospital text-emerald-700"></i>
+                                Prefeitura Municipal de Indaiatuba
+                            </div>
+                            <p class="text-[10px] font-sans text-slate-600 uppercase font-semibold">Secretaria Municipal de Saúde • Sistema Único de Saúde (SUS)</p>
+                            <p class="text-[9px] font-sans text-slate-400">UBS Morada do Sol • CNES: 2078341</p>
+                        </div>
+
+                        <!-- Dados do Paciente e Médico -->
+                        <div class="font-sans text-xs space-y-1 bg-white/70 p-2.5 rounded-xl border border-slate-200">
+                            <p><b>Paciente:</b> <span id="val-cliente-nome" class="font-semibold text-slate-900">Dona Maria de Lourdes Silva</span></p>
+                            <p><b>Cartão SUS:</b> <span class="font-mono text-[11px] text-slate-700">7000.1234.5678.9012</span> | <b>CPF:</b> <span class="font-mono text-[11px]">123.456.789-00</span></p>
+                            <p><b>Endereço:</b> <span id="val-cliente-end" class="text-slate-600">Rua das Acácias, 142 - Jd. Morada do Sol</span></p>
+                            <div class="pt-1 border-t border-slate-200 flex justify-between text-[11px] text-slate-600">
+                                <span><b>Médico:</b> Dr. Eduardo F. Lima</span>
+                                <span class="font-mono"><b>CRM-SP:</b> 142.890</span>
+                                <span><b>Data:</b> <span class="text-emerald-800 font-bold">Hoje</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Prescrição de Medicamentos -->
+                        <div class="space-y-1.5 py-1">
+                            <span class="text-[11px] font-sans font-black text-slate-700 uppercase tracking-wider block">Uso Oral / Posologia Prescrita:</span>
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 font-sans text-xs space-y-1.5">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="font-bold text-slate-900">1. Losartana Potássica 50mg</p>
+                                        <p class="text-[11px] text-slate-500 italic">Tomar 1 comprimido pela manhã em jejum (Contínuo) - 10 cx</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">RENAME</span>
+                                </div>
+                                <div class="flex justify-between items-start pt-1 border-t border-slate-100">
+                                    <div>
+                                        <p class="font-bold text-slate-900">2. Amoxicilina + Clavulanato 500/125mg</p>
+                                        <p class="text-[11px] text-slate-500 italic">Tomar 1 comprimido de 8/8h por 7 dias (Antibiótico) - 5 cx</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">RDC 20</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Assinatura Médica Digital -->
+                        <div class="pt-2 border-t border-slate-300 flex items-center justify-between font-sans text-[10px] text-slate-500">
+                            <div>
+                                <i class="fa-solid fa-signature text-slate-400 mr-1"></i> Assinatura Digital ICP-Brasil
+                            </div>
+                            <span class="font-mono text-emerald-700 font-bold">Hash: IND-9A82F1-SUS</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Coluna Direita: Catálogo Reservado do Funcionário -->
+                <!-- Coluna Direita: Catálogo Reservado do Funcionário & Multi-Inclusão -->
                 <div class="space-y-3">
-                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Selecione os Medicamentos Prescritos</span>
-                    
-                    <input type="text" id="cat-search" onkeyup="filterCatalog()" placeholder="Buscar no catálogo/estoque..." class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-700 uppercase tracking-wider block">
+                            Triagem Farmacêutica RENAME
+                        </span>
+                        <span class="text-[10px] text-slate-500 font-medium">Multi-inclusão habilitada</span>
+                    </div>
 
-                    <div id="catalog-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <div class="relative">
+                        <input type="text" id="cat-search" onkeyup="filterCatalog()" placeholder="Buscar no catálogo/estoque..." class="w-full p-2.5 pl-9 border rounded-2xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                    </div>
+
+                    <div id="catalog-list" class="space-y-2 max-h-40 overflow-y-auto pr-1">
                         <!-- Itens do Catálogo inseridos via JS -->
                     </div>
 
-                    <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2">
-                        <span class="text-xs font-bold text-emerald-800 uppercase block">Medicamentos Selecionados para Entrega:</span>
-                        <div id="val-selected-meds" class="space-y-1">
+                    <!-- Lista de Medicamentos Selecionados para Entrega (Permite repetições) -->
+                    <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black text-emerald-900 uppercase block">
+                                Medicamentos na Triagem de Entrega:
+                            </span>
+                            <span class="text-[10px] font-bold text-emerald-700">Multi-Inclusão Ativa</span>
+                        </div>
+                        <div id="val-selected-meds" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                             <p class="text-xs text-gray-400 italic">Nenhum item selecionado do catálogo ainda.</p>
                         </div>
                     </div>
@@ -695,24 +848,41 @@
                 <p id="val-split-preview-text">Itens em quantidade insuficiente no estoque municipal. A aprovação gerará automaticamente a Remessa A (imediata) e a Remessa B (aguardando reposição).</p>
             </div>
 
-            <!-- Sugestão Inteligente de Entregador -->
-            <div class="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3">
+            <!-- CHANCELA OFICIAL DA FARMACÊUTICA RESPONSÁVEL TÉCNICA (RDC 44) -->
+            <div class="p-4 bg-emerald-50/70 border-2 border-emerald-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-route"></i>
+                    <div class="w-11 h-11 bg-emerald-700 text-white rounded-2xl flex items-center justify-center text-xl shadow-sm shrink-0">
+                        <i class="fa-solid fa-user-doctor"></i>
                     </div>
                     <div>
-                        <p class="text-xs font-bold text-blue-900">Sugestão Automática de Entregador</p>
-                        <p id="suggested-motoboy-text" class="text-xs text-blue-700">Identificando o motoboy livre mais próximo...</p>
+                        <p class="text-xs font-black text-emerald-950">
+                            Chancela da Responsável Técnica (RDC 44/2009 - ANVISA):
+                        </p>
+                        <p class="text-xs font-bold text-emerald-800">
+                            Dra. Camila S. Rocha — CRF-SP 45.892
+                        </p>
+                        <p class="text-[10px] text-emerald-600">
+                            Farmácia Central Municipal de Indaiatuba • Licença Sanitária: 3520501-471
+                        </p>
                     </div>
                 </div>
-                <span class="text-[11px] bg-blue-200 text-blue-900 px-3 py-1 rounded-lg font-bold">Roteamento Otimizado</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] bg-emerald-200 text-emerald-950 px-2.5 py-1 rounded-xl font-bold border border-emerald-300">
+                        <i class="fa-solid fa-check-double mr-1"></i> Apto para Dispensação
+                    </span>
+                </div>
             </div>
 
-            <div class="flex justify-end gap-2 border-t pt-4">
-                <button onclick="closeModalValidacao()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
-                <button onclick="confirmApproval()" class="min-h-[48px] px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">
-                    <i class="fa-solid fa-check mr-1"></i> Aprovar e Atribuir Entrega
+            <!-- Botões de Ação do Farmacêutico -->
+            <div class="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4">
+                <button type="button" onclick="closeModalValidacao()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition">
+                    Fechar
+                </button>
+                <button type="button" onclick="openModalRecusa(selectedOrderId)" class="min-h-[48px] px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-ban"></i> Recusar Receita
+                </button>
+                <button type="button" onclick="confirmApproval()" class="min-h-[48px] px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Aprovar Prescrição (Disparar Split)
                 </button>
             </div>
         </div>
@@ -750,8 +920,25 @@
             </div>
             <form onsubmit="handleNovoMedicamento(event)" class="space-y-4">
                 <div>
-                    <label for="novo-med-nome" class="block text-xs font-bold text-gray-700 mb-1">Nome do Medicamento *</label>
-                    <input type="text" id="novo-med-nome" required placeholder="Ex: Paracetamol" class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <label for="novo-med-nome" class="block text-xs font-bold text-gray-700 mb-1">Nome do Medicamento (Catálogo RENAME / ANVISA) *</label>
+                    <input type="text" id="novo-med-nome" list="rename-anvisa-list" oninput="handleRenameAutocomplete(this.value)" required placeholder="Digite ou selecione da lista RENAME..." class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <datalist id="rename-anvisa-list">
+                        <option value="Amoxicilina + Clavulanato de Potássio" data-dosagem="500mg/125mg" data-apres="Comprimido Revestido (Caixa com 21)" data-cat="ANTIBIOTICO">
+                        <option value="Azitromicina Di-hidratada" data-dosagem="500mg" data-apres="Comprimido Revestido (Caixa com 3)" data-cat="ANTIBIOTICO">
+                        <option value="Captopril" data-dosagem="25mg" data-apres="Comprimido (Caixa com 30)" data-cat="CONTINUO">
+                        <option value="Clonazepam" data-dosagem="2mg" data-apres="Comprimido (Caixa com 30)" data-cat="CONTROLADO">
+                        <option value="Dipirona Monoidratada" data-dosagem="500mg" data-apres="Comprimido (Cartela com 10)" data-cat="BASICO">
+                        <option value="Glibenclamida" data-dosagem="5mg" data-apres="Comprimido (Caixa com 30)" data-cat="CONTINUO">
+                        <option value="Hidroclorotiazida" data-dosagem="25mg" data-apres="Comprimido (Caixa com 30)" data-cat="CONTINUO">
+                        <option value="Ibuprofeno" data-dosagem="600mg" data-apres="Comprimido (Caixa com 20)" data-cat="BASICO">
+                        <option value="Losartana Potássica" data-dosagem="50mg" data-apres="Comprimido Revestido (Caixa com 30)" data-cat="CONTINUO">
+                        <option value="Metformina Cloridrato" data-dosagem="850mg" data-apres="Comprimido (Caixa com 30)" data-cat="CONTINUO">
+                        <option value="Omeprazol Magnésico" data-dosagem="20mg" data-apres="Cápsula (Frasco com 28)" data-cat="BASICO">
+                        <option value="Paracetamol" data-dosagem="750mg" data-apres="Comprimido (Cartela com 20)" data-cat="BASICO">
+                        <option value="Sinvastatina" data-dosagem="20mg" data-apres="Comprimido Revestido (Caixa com 30)" data-cat="CONTINUO">
+                        <option value="Sulfato Ferroso" data-dosagem="40mg Fe" data-apres="Comprimido (Frasco com 50)" data-cat="BASICO">
+                    </datalist>
+                    <p class="text-[10px] text-gray-400 mt-1">Alimentado pela Relação Nacional de Medicamentos Essenciais (RENAME / SUS).</p>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -819,6 +1006,56 @@
                 <button type="button" onclick="closeModalDespacho()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
                 <button type="button" onclick="confirmDespacho()" class="min-h-[48px] px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2">
                     <i class="fa-solid fa-paper-plane"></i> Confirmar Despacho
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 4: DETALHES DA SOLICITAÇÃO ESTILO MERCADO LIVRE             -->
+    <!-- ================================================================= -->
+    <div id="modal-detalhes-ml" role="dialog" aria-modal="true" aria-labelledby="modal-detalhes-title" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-slate-50 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 p-5 sm:p-7 space-y-6 my-auto">
+            <!-- Cabeçalho Estilo E-commerce Municipal -->
+            <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+                <div>
+                    <span class="text-[11px] font-black text-emerald-800 uppercase tracking-wider block">
+                        Portal do Cidadão • Entrega Municipal
+                    </span>
+                    <h3 id="modal-detalhes-title" class="text-xl font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-packing text-emerald-600"></i> Detalhes da Solicitação
+                    </h3>
+                </div>
+                <button type="button" onclick="closeModalDetalhesML()" aria-label="Fechar detalhes" class="min-h-[48px] min-w-[48px] text-slate-400 hover:text-slate-700 rounded-xl flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Dados Gerais do Pedido -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div>
+                    <span class="text-slate-400 font-bold block text-[10px] uppercase">Código da Solicitação</span>
+                    <h4 id="ml-order-code" class="text-base font-black text-slate-900 font-mono">PED-2026-001</h4>
+                </div>
+                <div>
+                    <span class="text-slate-400 font-bold block text-[10px] uppercase">Data do Pedido</span>
+                    <span id="ml-order-date" class="font-semibold text-slate-700">-</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 font-bold block text-[10px] uppercase">Destino</span>
+                    <span id="ml-order-address" class="font-semibold text-slate-700">-</span>
+                </div>
+            </div>
+
+            <!-- Container de Cards dos Pacotes Mercado Livre -->
+            <div id="ml-packages-container" class="space-y-5">
+                <!-- Renderizado dinamicamente via JS -->
+            </div>
+
+            <!-- Rodapé do Modal -->
+            <div class="flex justify-end pt-3 border-t border-slate-200">
+                <button type="button" onclick="closeModalDetalhesML()" class="min-h-[48px] px-6 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-2xl font-bold text-xs transition">
+                    Fechar Detalhes
                 </button>
             </div>
         </div>
@@ -1329,6 +1566,16 @@
                                 </span>
                             </div>
 
+                            <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+                                <button type="button" onclick="openModalDetalhesML('${order.id}')" class="min-h-[48px] px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-2xl text-xs font-black shadow-sm flex items-center gap-2 transition" title="Ver pacotes desmembrados estilo Mercado Livre">
+                                    <i class="fa-solid fa-box-open text-emerald-600"></i>
+                                    <span>Ver Detalhes da Solicitação (Estilo Mercado Livre)</span>
+                                </button>
+                                <span class="text-[11px] text-slate-500 font-medium">
+                                    ${order.subOrders ? order.subOrders.length : 0} pacote(s) associado(s)
+                                </span>
+                            </div>
+
                             ${splitBannerHtml}
                             ${subOrdersHtml}
                         </div>
@@ -1368,8 +1615,200 @@
             }
         }
 
-        // Helper para badge de status das subOrders
-        function getSubOrderStatusBadge(status, courierName) {
+        // =====================================================================
+        // DETALHES DA SOLICITAÇÃO ESTILO MERCADO LIVRE (MODAL DO CIDADÃO)
+        // =====================================================================
+        function openModalDetalhesML(orderId) {
+            let order = null;
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                order = window.MinhaFarmacia.store.getOrderById(orderId);
+            }
+            if (!order) return;
+
+            const modal = document.getElementById('modal-detalhes-ml');
+            const codeEl = document.getElementById('ml-order-code');
+            const dateEl = document.getElementById('ml-order-date');
+            const addrEl = document.getElementById('ml-order-address');
+            const container = document.getElementById('ml-packages-container');
+
+            if (codeEl) codeEl.innerText = `#${order.code}`;
+            if (dateEl) dateEl.innerText = `${new Date(order.createdAt).toLocaleDateString('pt-BR')} às ${new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            if (addrEl) addrEl.innerText = order.deliveryAddress ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number} - ${order.deliveryAddress.neighborhood}` : 'Indaiatuba - SP';
+
+            if (!container) return;
+            container.innerHTML = '';
+
+            const subOrders = order.subOrders || [];
+            if (subOrders.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-2">
+                        <i class="fa-solid fa-hourglass-half text-amber-500 text-3xl"></i>
+                        <h4 class="font-bold text-slate-800 text-sm">Receita em Processamento</h4>
+                        <p class="text-xs text-slate-500">Sua solicitação está na fila da Farmácia Central para análise pela Responsável Técnica (RDC 44).</p>
+                    </div>
+                `;
+            } else {
+                const totalPackages = subOrders.length;
+                subOrders.forEach((sub, index) => {
+                    const packageNumber = index + 1;
+                    const isAwaitingRestock = sub.status === 'AGUARDANDO_REPOSICAO';
+                    const courierDisplayName = sub.courierName || 'Frota Municipal de Indaiatuba';
+
+                    let activeStep = 0;
+                    if (sub.status === 'EM_SEPARACAO') activeStep = 1;
+                    else if (sub.status === 'AGUARDANDO_RETIRADA' || sub.status === 'AGUARDANDO_COLETA') activeStep = 2;
+                    else if (sub.status === 'SAIU_PARA_ENTREGA') activeStep = 3;
+                    else if (sub.status === 'ENTREGUE') activeStep = 4;
+
+                    if (isAwaitingRestock) {
+                        // Card "Pacote X de Y - Aguardando Reposição" (Estilo Mercado Livre)
+                        container.innerHTML += `
+                            <div class="bg-white rounded-3xl border-2 border-amber-200 shadow-sm p-5 sm:p-6 space-y-4">
+                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-sm">
+                                            <i class="fa-solid fa-clock-rotate-left"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-black uppercase text-amber-700 tracking-wider">Envio Pendente de Reposição</span>
+                                            <h4 class="text-base font-black text-slate-900">Pacote ${packageNumber} de ${totalPackages} — Aguardando Reposição</h4>
+                                        </div>
+                                    </div>
+                                    <span class="bg-amber-100 text-amber-900 font-extrabold text-xs px-3 py-1 rounded-full uppercase">
+                                        Em Reposição
+                                    </span>
+                                </div>
+
+                                <!-- Banner explicativo Mercado Livre -->
+                                <div class="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-start gap-3 text-xs text-amber-950 shadow-inner">
+                                    <i class="fa-solid fa-circle-info text-amber-600 text-lg mt-0.5 shrink-0"></i>
+                                    <p class="font-bold leading-relaxed">
+                                        Item em reposição na rede municipal. Entrega garantida assim que o estoque for abastecido.
+                                    </p>
+                                </div>
+
+                                <!-- Lista de Itens Pendentes -->
+                                <div class="space-y-2">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Itens deste pacote:</span>
+                                    <div class="space-y-2">
+                                        ${sub.items.map(item => `
+                                            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
+                                                <div class="flex items-center gap-2.5">
+                                                    <i class="fa-solid fa-pills text-amber-600"></i>
+                                                    <div>
+                                                        <span class="font-bold text-slate-900">${item.medicationName}</span>
+                                                        <span class="text-slate-500 block text-[11px]">${item.dosage}</span>
+                                                    </div>
+                                                </div>
+                                                <span class="font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded-lg">
+                                                    Qtd: ${item.quantityRequested || item.approvedQty || 1} un
+                                                </span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Card "Pacote X de Y - Remessa Prioritária Municipal" (Estilo Mercado Livre)
+                        container.innerHTML += `
+                            <div class="bg-white rounded-3xl border-2 border-emerald-200 shadow-sm p-5 sm:p-6 space-y-4">
+                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-sm">
+                                            <i class="fa-solid fa-bolt"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-black uppercase text-emerald-700 tracking-wider">Envio Rápido Municipal</span>
+                                            <h4 class="text-base font-black text-slate-900">Pacote ${packageNumber} de ${totalPackages} — Remessa Prioritária Municipal</h4>
+                                        </div>
+                                    </div>
+                                    <span class="bg-emerald-100 text-emerald-900 font-extrabold text-xs px-3 py-1 rounded-full uppercase">
+                                        ${sub.status === 'ENTREGUE' ? 'Entregue' : (sub.status === 'SAIU_PARA_ENTREGA' ? 'A Caminho' : 'Em Preparação')}
+                                    </span>
+                                </div>
+
+                                <!-- Lista Exata dos Itens Autorizados -->
+                                <div class="space-y-2">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Itens autorizados para envio imediato:</span>
+                                    <div class="space-y-2">
+                                        ${sub.items.map(item => `
+                                            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
+                                                <div class="flex items-center gap-2.5">
+                                                    <i class="fa-solid fa-capsules text-emerald-600"></i>
+                                                    <div>
+                                                        <span class="font-bold text-slate-900">${item.medicationName}</span>
+                                                        <span class="text-slate-500 block text-[11px]">${item.dosage}</span>
+                                                    </div>
+                                                </div>
+                                                <span class="font-bold text-emerald-800 bg-emerald-100 px-2 py-1 rounded-lg">
+                                                    Qtd: ${item.quantityApproved || item.quantityRequested || 1} un
+                                                </span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+
+                                <!-- Timeline de Rastreamento Mercado Livre -->
+                                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Linha do Tempo de Rastreio:</span>
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                        <div class="p-2.5 rounded-xl flex items-center gap-2 ${activeStep >= 1 ? 'bg-emerald-100 text-emerald-950 font-bold border border-emerald-300' : 'bg-white text-slate-400 border'}">
+                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${activeStep > 1 ? 'bg-emerald-600 text-white' : (activeStep === 1 ? 'bg-emerald-500 text-white animate-pulse' : 'bg-slate-200 text-slate-500')}">
+                                                ${activeStep > 1 ? '✓' : '1'}
+                                            </span>
+                                            <span>Em Separação</span>
+                                        </div>
+                                        <div class="p-2.5 rounded-xl flex items-center gap-2 ${activeStep >= 2 ? 'bg-purple-100 text-purple-950 font-bold border border-purple-300' : 'bg-white text-slate-400 border'}">
+                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${activeStep > 2 ? 'bg-purple-600 text-white' : (activeStep === 2 ? 'bg-purple-500 text-white animate-pulse' : 'bg-slate-200 text-slate-500')}">
+                                                ${activeStep > 2 ? '✓' : '2'}
+                                            </span>
+                                            <span>Aguardando Coleta</span>
+                                        </div>
+                                        <div class="p-2.5 rounded-xl flex items-center gap-2 ${activeStep >= 3 ? 'bg-blue-100 text-blue-950 font-bold border border-blue-300' : 'bg-white text-slate-400 border'}">
+                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${activeStep > 3 ? 'bg-blue-600 text-white' : (activeStep === 3 ? 'bg-blue-500 text-white animate-pulse' : 'bg-slate-200 text-slate-500')}">
+                                                ${activeStep > 3 ? '✓' : '3'}
+                                            </span>
+                                            <span>Saiu para Entrega</span>
+                                        </div>
+                                        <div class="p-2.5 rounded-xl flex items-center gap-2 ${activeStep === 4 ? 'bg-emerald-100 text-emerald-950 font-bold border border-emerald-300' : 'bg-white text-slate-400 border'}">
+                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${activeStep === 4 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'}">
+                                                ${activeStep === 4 ? '✓' : '4'}
+                                            </span>
+                                            <span>Entregue</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dados do Entregador e Código PIN de 4 dígitos em Destaque -->
+                                <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div class="space-y-1 text-center sm:text-left">
+                                        <span class="text-[10px] uppercase font-black text-emerald-900 tracking-wider block">Dados da Entrega</span>
+                                        <p class="text-xs font-bold text-slate-800">
+                                            <i class="fa-solid fa-motorcycle text-emerald-600 mr-1"></i> Entregador: <b>${courierDisplayName}</b>
+                                        </p>
+                                        <p class="text-[11px] text-slate-500">Informe o PIN abaixo somente no momento da entrega.</p>
+                                    </div>
+                                    <div class="flex flex-col items-center sm:items-end">
+                                        <span class="text-[10px] uppercase font-black text-emerald-800 block mb-1">CÓDIGO PIN DE 4 DÍGITOS</span>
+                                        <div class="text-3xl font-black font-mono tracking-widest text-emerald-800 bg-white px-4 py-2 rounded-2xl border-2 border-emerald-400 shadow-md">
+                                            ${sub.pinCode || '----'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModalDetalhesML() {
+            const modal = document.getElementById('modal-detalhes-ml');
+            if (modal) modal.classList.add('hidden');
+        }
             const courierSuffix = courierName ? ` [${courierName}]` : ' [Frota Geral]';
             const map = {
                 'EM_SEPARACAO': '<span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-boxes-packing mr-1"></i> Em Separação</span>',
@@ -1515,21 +1954,30 @@
                 meds = window.MinhaFarmacia.store.getMedications();
             }
 
-            selectedTriageDecisions.forEach(dec => {
+            selectedTriageDecisions.forEach((dec, idx) => {
                 const med = meds.find(m => m.id === dec.medicationId);
                 const name = med ? `${med.name} (${med.dosage})` : dec.medicationId;
                 const stock = med ? med.stockQuantity : 0;
                 const isInsufficient = stock < dec.approvedQty;
+                const entryId = dec.entryId || `entry-${idx}`;
+                dec.entryId = entryId;
 
                 container.innerHTML += `
-                    <div class="flex items-center justify-between bg-white p-2.5 rounded-lg border text-xs">
-                        <div>
+                    <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border text-xs gap-2">
+                        <div class="flex-grow">
                             <span class="font-bold text-gray-800"><i class="fa-solid fa-check text-emerald-600 mr-1"></i> ${name}</span>
-                            <span class="text-[10px] ml-2 ${isInsufficient ? 'text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded' : 'text-emerald-700'}">
-                                Qtd: ${dec.approvedQty} • Saldo em estoque: ${stock}
-                            </span>
+                            <div class="text-[10px] mt-0.5 ${isInsufficient ? 'text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded inline-block' : 'text-emerald-700'}">
+                                Qtd: <b>${dec.approvedQty}</b> cx • Saldo Central: ${stock}
+                            </div>
                         </div>
-                        <button type="button" onclick="removeMedFromTriage('${dec.medicationId}')" class="text-red-500 font-bold hover:underline">Remover</button>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" onclick="updateTriageQty('${entryId}', -1)" class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 font-black text-slate-700 flex items-center justify-center">-</button>
+                            <span class="font-mono font-bold text-xs px-1">${dec.approvedQty}</span>
+                            <button type="button" onclick="updateTriageQty('${entryId}', 1)" class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 font-black text-slate-700 flex items-center justify-center">+</button>
+                            <button type="button" onclick="removeMedFromTriage('${entryId}')" class="text-red-500 hover:text-red-700 text-xs font-bold ml-1" title="Remover item">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             });
@@ -1579,16 +2027,29 @@
             });
         }
 
+        // TRIAGEM FLEXÍVEL RDC 44: Permite adicionar O MESMO MEDICAMENTO MAIS DE UMA VEZ
         function addMedToTriage(medId) {
-            if (!selectedTriageDecisions.some(d => d.medicationId === medId)) {
-                selectedTriageDecisions.push({ medicationId: medId, approvedQty: 1 });
+            const entryId = `entry-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+            selectedTriageDecisions.push({
+                entryId,
+                medicationId: medId,
+                approvedQty: 1
+            });
+            updateSelectedMedsUI();
+            checkTriageSplitPreview();
+        }
+
+        function updateTriageQty(entryId, delta) {
+            const entry = selectedTriageDecisions.find(d => (d.entryId || d.medicationId) === entryId);
+            if (entry) {
+                entry.approvedQty = Math.max(1, entry.approvedQty + delta);
                 updateSelectedMedsUI();
                 checkTriageSplitPreview();
             }
         }
 
-        function removeMedFromTriage(medId) {
-            selectedTriageDecisions = selectedTriageDecisions.filter(d => d.medicationId !== medId);
+        function removeMedFromTriage(entryId) {
+            selectedTriageDecisions = selectedTriageDecisions.filter(d => (d.entryId || d.medicationId) !== entryId);
             updateSelectedMedsUI();
             checkTriageSplitPreview();
         }
@@ -1721,9 +2182,42 @@
 
                         <p class="text-xs text-gray-500">${m.presentation} • Alerta: ${m.minStockAlert} un</p>
 
-                        <!-- Botões de Ajuste Rápido de Estoque (+10, -10, +1, -1) -->
+                        <!-- Saldo de Estoque Distribuído por UBSs de Indaiatuba -->
                         <div class="pt-2 border-t space-y-2">
-                            <span class="text-[10px] font-bold text-gray-400 uppercase block">Ajuste Rápido de Saldo:</span>
+                            <div class="flex items-center justify-between cursor-pointer" onclick="toggleUbsAccordion('${m.id}')">
+                                <span class="text-[10px] font-black text-emerald-800 uppercase flex items-center gap-1">
+                                    <i class="fa-solid fa-hospital text-emerald-600"></i> Estoque por Unidade / UBSs
+                                </span>
+                                <span id="ubs-toggle-icon-${m.id}" class="text-[11px] text-emerald-700 font-bold hover:underline">
+                                    Ver Saldo por UBS <i class="fa-solid fa-chevron-down text-[10px] ml-0.5"></i>
+                                </span>
+                            </div>
+
+                            <div id="ubs-details-${m.id}" class="hidden space-y-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                                ${['Farmácia Central', 'UBS Morada do Sol', 'UBS Itaici', 'UBS Cecap', 'UBS Parque Corolla'].map(ubs => {
+                                    const ubsQty = (m.estoquePorUnidade && typeof m.estoquePorUnidade[ubs] === 'number') ? m.estoquePorUnidade[ubs] : (ubs === 'Farmácia Central' ? m.stockQuantity : 0);
+                                    const isZero = ubsQty === 0;
+                                    return `
+                                        <div class="flex items-center justify-between text-xs py-1 border-b border-slate-200/60 last:border-b-0">
+                                            <div class="flex flex-col">
+                                                <span class="font-bold text-gray-800 text-[11px]">${ubs}</span>
+                                                <span class="text-[10px] ${isZero ? 'text-red-600 font-bold' : 'text-emerald-700'}">
+                                                    ${isZero ? 'Zerado (Ruptura)' : `${ubsQty} un disponíveis`}
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center gap-1">
+                                                <button type="button" onclick="quickAdjustStockUnit('${m.id}', '${ubs}', -5)" class="min-h-[48px] min-w-[48px] px-2 py-1 bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg transition" title="Subtrair 5 em ${ubs}">-5</button>
+                                                <button type="button" onclick="quickAdjustStockUnit('${m.id}', '${ubs}', 5)" class="min-h-[48px] min-w-[48px] px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg shadow-sm transition" title="Adicionar 5 em ${ubs} (dispara promoção reativa)">+5</button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ajuste Rápido de Estoque Geral (+10, -10, +1, -1) -->
+                        <div class="pt-2 border-t space-y-2">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase block">Ajuste Rápido na Central:</span>
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <button type="button" onclick="quickAdjustStock('${m.id}', -10)" class="min-h-[48px] min-w-[48px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black rounded-lg transition" title="Subtrair 10 unidades">-10</button>
                                 <button type="button" onclick="quickAdjustStock('${m.id}', -1)" class="min-h-[48px] min-w-[48px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black rounded-lg transition" title="Subtrair 1 unidade">-1</button>
@@ -1744,6 +2238,33 @@
             });
         }
 
+        function toggleUbsAccordion(medId) {
+            const el = document.getElementById(`ubs-details-${medId}`);
+            const icon = document.getElementById(`ubs-toggle-icon-${medId}`);
+            if (el) {
+                el.classList.toggle('hidden');
+                if (icon) {
+                    if (el.classList.contains('hidden')) {
+                        icon.innerHTML = `Ver Saldo por UBS <i class="fa-solid fa-chevron-down text-[10px] ml-0.5"></i>`;
+                    } else {
+                        icon.innerHTML = `Ocultar Saldo <i class="fa-solid fa-chevron-up text-[10px] ml-0.5"></i>`;
+                    }
+                }
+            }
+        }
+
+        // Ajuste individual por UBS com gatilho reativo automático
+        function quickAdjustStockUnit(medId, ubs, delta) {
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.adjustMedicationStockUnit === 'function') {
+                const res = window.MinhaFarmacia.adjustMedicationStockUnit(medId, ubs, delta);
+                if (!res.success) {
+                    alert(res.error || 'Erro ao ajustar estoque da UBS.');
+                    return;
+                }
+            }
+            renderAllViews();
+        }
+
         // Ajuste rápido de estoque com gatilho reativo automático
         function quickAdjustStock(medId, delta) {
             if (window.MinhaFarmacia && typeof window.MinhaFarmacia.adjustMedicationStock === 'function') {
@@ -1762,6 +2283,21 @@
                 window.MinhaFarmacia.toggleMedicationStatus(medId);
             }
             renderAllViews();
+        }
+
+        function handleRenameAutocomplete(val) {
+            const list = document.getElementById('rename-anvisa-list');
+            if (!list) return;
+            const options = Array.from(list.options);
+            const match = options.find(opt => opt.value.toLowerCase() === val.toLowerCase());
+            if (match) {
+                const dosagemInput = document.getElementById('novo-med-dosagem');
+                const apresInput = document.getElementById('novo-med-apresentacao');
+                const catInput = document.getElementById('novo-med-categoria');
+                if (dosagemInput && match.dataset.dosagem) dosagemInput.value = match.dataset.dosagem;
+                if (apresInput && match.dataset.apres) apresInput.value = match.dataset.apres;
+                if (catInput && match.dataset.cat) catInput.value = match.dataset.cat;
+            }
         }
 
         // Modal de Novo Medicamento
@@ -1817,6 +2353,66 @@
                 if (pEl) pEl.innerText = counters.pendingTriage;
                 if (rEl) rEl.innerText = counters.inRoute + counters.inSeparation;
                 if (dEl) dEl.innerText = 12 + counters.readyForPickup;
+
+                // Renderiza SLAs
+                if (counters.slas) {
+                    const st = document.getElementById('sla-triage-val');
+                    const ss = document.getElementById('sla-separation-val');
+                    const sd = document.getElementById('sla-delivery-val');
+                    if (st) st.innerText = counters.slas.avgTriageMinutes;
+                    if (ss) ss.innerText = counters.slas.avgSeparationMinutes;
+                    if (sd) sd.innerText = counters.slas.avgDeliveryMinutes;
+                }
+
+                // Renderiza Gráfico de Top Medicamentos Mais Solicitados
+                const topMedsEl = document.getElementById('dash-top-meds-list');
+                if (topMedsEl && counters.topMedications) {
+                    topMedsEl.innerHTML = counters.topMedications.map((item, idx) => `
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-gray-800">
+                                    <span class="text-emerald-700 font-mono mr-1">#${idx + 1}</span> ${item.name}
+                                </span>
+                                <span class="font-extrabold text-emerald-800">${item.count} prescrições</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 h-2.5 rounded-full transition-all duration-500" style="width: ${item.percentage}%"></div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Renderiza Painel de Ruptura / Estoque Zerado nas UBSs
+                const rupturesEl = document.getElementById('dash-ruptures-list');
+                const ruptureBadge = document.getElementById('dash-rupture-count-badge');
+                if (rupturesEl && counters.ruptures) {
+                    if (ruptureBadge) {
+                        ruptureBadge.innerText = `${counters.ruptures.length} em Ruptura`;
+                    }
+                    if (counters.ruptures.length === 0) {
+                        rupturesEl.innerHTML = `
+                            <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i> Nenhum medicamento com estoque zerado no momento.
+                            </div>
+                        `;
+                    } else {
+                        rupturesEl.innerHTML = counters.ruptures.map(r => `
+                            <div class="p-3 bg-red-50/70 border border-red-200 rounded-xl flex items-start justify-between gap-3 text-xs">
+                                <div>
+                                    <h5 class="font-black text-red-950 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-circle-exclamation text-red-600"></i> ${r.name} (${r.dosage})
+                                    </h5>
+                                    <p class="text-[11px] text-red-700 mt-0.5">
+                                        <b>UBSs Zeradas:</b> ${r.ruptureLocations.join(', ')}
+                                    </p>
+                                </div>
+                                <span class="text-[10px] font-black bg-red-200 text-red-950 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                    Total: ${r.totalStock} un
+                                </span>
+                            </div>
+                        `).join('');
+                    }
+                }
             }
 
             // Atualiza badge de pacotes aguardando retirada no menu superior e no módulo do entregador
@@ -2147,7 +2743,10 @@
                 </div>
                 <div>
                     <p class="font-extrabold text-slate-800 text-sm">Minha Indaiatuba — Minha Farmácia</p>
-                    <p class="text-slate-500">Secretaria de Ciência, Tecnologia e Inovação • Prefeitura Municipal de Indaiatuba</p>
+                    <p class="text-slate-500">Secretaria de Saúde • Secretaria de Ciência, Tecnologia e Inovação • Prefeitura Municipal de Indaiatuba</p>
+                    <p class="text-[11px] font-semibold text-emerald-800 mt-0.5">
+                        <i class="fa-solid fa-hospital-user mr-1 text-emerald-600"></i> Farmácia Central Municipal de Indaiatuba • Responsável Técnico: Dra. Camila S. Rocha - CRF-SP 45.892 • Licença Sanitária: 3520501-471
+                    </p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-3">

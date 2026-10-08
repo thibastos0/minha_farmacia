@@ -17,6 +17,7 @@ import {
   addMedication,
   editMedication,
   adjustMedicationStock,
+  adjustMedicationStockUnit,
   toggleMedicationStatus,
   getLowStockBadges
 } from '../src/modules/farmacia/catalogoService.ts';
@@ -386,3 +387,63 @@ describe('Catálogo de Medicamentos: Reabastecimento Reativo', () => {
     );
   });
 });
+
+// ======================================================================
+// SUITE 5: Gestão de Estoque Distribuído por Unidades Básicas de Saúde (UBSs)
+// ======================================================================
+describe('Catálogo de Medicamentos: Estoque por UBSs e Reabastecimento Reativo', () => {
+  test('Deve estruturar saldo individual por UBS para medicamentos da rede', () => {
+    store.resetToDefaults();
+    const meds = store.getMedications();
+    const losartana = meds.find(m => m.id === 'med-01')!;
+
+    assert.ok(losartana.estoquePorUnidade, 'Deve possuir estoque distribuído por unidade');
+    assert.equal(losartana.estoquePorUnidade['Farmácia Central'], 60);
+    assert.equal(losartana.estoquePorUnidade['UBS Morada do Sol'], 25);
+    assert.equal(losartana.estoquePorUnidade['UBS Itaici'], 15);
+    assert.equal(losartana.estoquePorUnidade['UBS Cecap'], 10);
+    assert.equal(losartana.estoquePorUnidade['UBS Parque Corolla'], 10);
+
+    const sum = Object.values(losartana.estoquePorUnidade).reduce((acc, v) => acc + v, 0);
+    assert.equal(sum, losartana.stockQuantity, 'A soma das UBSs deve corresponder ao saldo total');
+  });
+
+  test('Deve permitir ajustar estoque de UBS específica e recalcular saldo geral', () => {
+    store.resetToDefaults();
+    // Adiciona +10 na UBS Morada do Sol para Losartana (original: 25)
+    const res = adjustMedicationStockUnit('med-01', 'UBS Morada do Sol', 10);
+    assert.equal(res.success, true);
+    assert.equal(res.newStock, 130);
+    assert.equal(res.estoquePorUnidade!['UBS Morada do Sol'], 35);
+  });
+
+  test('Deve disparar promoção reativa de SubOrders pendentes ao abastecer UBS zerada', () => {
+    store.resetToDefaults();
+    const currentCitizen = store.getCurrentCitizen();
+
+    // 1. Cria pedido com Amoxicilina (estoque inicial zerado)
+    const order = store.createOrder({
+      citizenId: currentCitizen.id,
+      prescriptionImageUrl: 'receita-teste-ubs.jpg'
+    });
+
+    store.performTriage(order.id, [
+      { medicationId: 'med-01', approvedQty: 5 }, // disponível
+      { medicationId: 'med-03', approvedQty: 10 } // zerado
+    ]);
+
+    const orderBefore = store.getOrderById(order.id)!;
+    const subB = orderBefore.subOrders.find(s => s.status === 'AGUARDANDO_REPOSICAO')!;
+    assert.ok(subB, 'Deve existir subordem AGUARDANDO_REPOSICAO');
+
+    // 2. Abastece a Amoxicilina diretamente na UBS Morada do Sol (+20)
+    const res = adjustMedicationStockUnit('med-03', 'UBS Morada do Sol', 20);
+    assert.equal(res.success, true);
+
+    // 3. SubOrder deve ser promovida para EM_SEPARACAO
+    const orderAfter = store.getOrderById(order.id)!;
+    const subBAfter = orderAfter.subOrders.find(s => s.id === subB.id)!;
+    assert.equal(subBAfter.status, 'EM_SEPARACAO', 'SubOrder deve ser promovida reativamente para EM_SEPARACAO');
+  });
+});
+

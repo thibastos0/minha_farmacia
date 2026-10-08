@@ -125,7 +125,14 @@
       stockQuantity: 120,
       minStockAlert: 20,
       active: true,
-      category: "CONTINUO"
+      category: "CONTINUO",
+      estoquePorUnidade: {
+        "Farm\xE1cia Central": 60,
+        "UBS Morada do Sol": 25,
+        "UBS Itaici": 15,
+        "UBS Cecap": 10,
+        "UBS Parque Corolla": 10
+      }
     },
     {
       id: "med-02",
@@ -135,7 +142,14 @@
       stockQuantity: 85,
       minStockAlert: 15,
       active: true,
-      category: "BASICO"
+      category: "BASICO",
+      estoquePorUnidade: {
+        "Farm\xE1cia Central": 40,
+        "UBS Morada do Sol": 20,
+        "UBS Itaici": 10,
+        "UBS Cecap": 10,
+        "UBS Parque Corolla": 5
+      }
     },
     {
       id: "med-03",
@@ -146,7 +160,14 @@
       // Estoque Zerado intencionalmente para teste do Split
       minStockAlert: 10,
       active: true,
-      category: "ANTIBIOTICO"
+      category: "ANTIBIOTICO",
+      estoquePorUnidade: {
+        "Farm\xE1cia Central": 0,
+        "UBS Morada do Sol": 0,
+        "UBS Itaici": 0,
+        "UBS Cecap": 0,
+        "UBS Parque Corolla": 0
+      }
     },
     {
       id: "med-04",
@@ -156,7 +177,14 @@
       stockQuantity: 60,
       minStockAlert: 15,
       active: true,
-      category: "CONTINUO"
+      category: "CONTINUO",
+      estoquePorUnidade: {
+        "Farm\xE1cia Central": 30,
+        "UBS Morada do Sol": 15,
+        "UBS Itaici": 5,
+        "UBS Cecap": 5,
+        "UBS Parque Corolla": 5
+      }
     },
     {
       id: "med-05",
@@ -167,7 +195,14 @@
       // Estoque Baixo / Alerta
       minStockAlert: 10,
       active: true,
-      category: "BASICO"
+      category: "BASICO",
+      estoquePorUnidade: {
+        "Farm\xE1cia Central": 4,
+        "UBS Morada do Sol": 0,
+        "UBS Itaici": 0,
+        "UBS Cecap": 0,
+        "UBS Parque Corolla": 0
+      }
     },
     {
       id: "med-06",
@@ -177,7 +212,14 @@
       stockQuantity: 35,
       minStockAlert: 10,
       active: true,
-      category: "CONTROLADO"
+      category: "CONTROLADO",
+      estoquePorUnidade: {
+        "Farm\xE1cia Central": 20,
+        "UBS Morada do Sol": 5,
+        "UBS Itaici": 5,
+        "UBS Cecap": 5,
+        "UBS Parque Corolla": 0
+      }
     }
   ];
   var INITIAL_COURIERS = [
@@ -343,8 +385,16 @@
       return [...this.data.medications];
     }
     addMedication(med) {
+      const estoquePorUnidade = med.estoquePorUnidade || {
+        "Farm\xE1cia Central": med.stockQuantity,
+        "UBS Morada do Sol": 0,
+        "UBS Itaici": 0,
+        "UBS Cecap": 0,
+        "UBS Parque Corolla": 0
+      };
       const newMed = {
         ...med,
+        estoquePorUnidade,
         id: `med-${Date.now()}`
       };
       this.data.medications.push(newMed);
@@ -367,7 +417,57 @@
     adjustStock(id, delta) {
       const med = this.data.medications.find((m) => m.id === id);
       if (!med) return false;
-      med.stockQuantity = Math.max(0, med.stockQuantity + delta);
+      if (!med.estoquePorUnidade) {
+        med.estoquePorUnidade = {
+          "Farm\xE1cia Central": med.stockQuantity,
+          "UBS Morada do Sol": 0,
+          "UBS Itaici": 0,
+          "UBS Cecap": 0,
+          "UBS Parque Corolla": 0
+        };
+      }
+      if (delta >= 0) {
+        med.estoquePorUnidade["Farm\xE1cia Central"] = (med.estoquePorUnidade["Farm\xE1cia Central"] || 0) + delta;
+      } else {
+        let toRemove = Math.abs(delta);
+        const centralCurrent = med.estoquePorUnidade["Farm\xE1cia Central"] || 0;
+        const removeCentral = Math.min(centralCurrent, toRemove);
+        med.estoquePorUnidade["Farm\xE1cia Central"] = centralCurrent - removeCentral;
+        toRemove -= removeCentral;
+        if (toRemove > 0) {
+          const otherUnits = Object.keys(med.estoquePorUnidade).filter((u) => u !== "Farm\xE1cia Central");
+          for (const u of otherUnits) {
+            if (toRemove <= 0) break;
+            const uCurrent = med.estoquePorUnidade[u] || 0;
+            const take = Math.min(uCurrent, toRemove);
+            med.estoquePorUnidade[u] = uCurrent - take;
+            toRemove -= take;
+          }
+        }
+      }
+      med.stockQuantity = Object.values(med.estoquePorUnidade).reduce((acc, val) => acc + val, 0);
+      if (delta > 0) {
+        this.checkAndPromoteAwaitingOrders(id);
+      }
+      this.persistAndNotify();
+      return true;
+    }
+    adjustStockUnit(id, ubs, delta) {
+      const med = this.data.medications.find((m) => m.id === id);
+      if (!med) return false;
+      if (!med.estoquePorUnidade) {
+        med.estoquePorUnidade = {
+          "Farm\xE1cia Central": med.stockQuantity,
+          "UBS Morada do Sol": 0,
+          "UBS Itaici": 0,
+          "UBS Cecap": 0,
+          "UBS Parque Corolla": 0
+        };
+      }
+      const currentVal = med.estoquePorUnidade[ubs] ?? 0;
+      const newVal = Math.max(0, currentVal + delta);
+      med.estoquePorUnidade[ubs] = newVal;
+      med.stockQuantity = Object.values(med.estoquePorUnidade).reduce((acc, val) => acc + val, 0);
       if (delta > 0) {
         this.checkAndPromoteAwaitingOrders(id);
       }
@@ -424,6 +524,17 @@
         const med = this.data.medications.find((m) => m.id === deduction.medicationId);
         if (med) {
           med.stockQuantity = Math.max(0, med.stockQuantity - deduction.quantity);
+          if (med.estoquePorUnidade) {
+            let rem = deduction.quantity;
+            const ubsKeys = Object.keys(med.estoquePorUnidade);
+            for (const ubs of ubsKeys) {
+              if (rem <= 0) break;
+              const current = med.estoquePorUnidade[ubs] || 0;
+              const take = Math.min(current, rem);
+              med.estoquePorUnidade[ubs] = current - take;
+              rem -= take;
+            }
+          }
         }
       }
       order.isSplit = splitResult.isSplit;
@@ -449,6 +560,17 @@
             const item = subOrder.items.find((i) => i.medicationId === medicationId && !i.isAvailable);
             if (item && med.stockQuantity >= item.quantityRequested) {
               med.stockQuantity -= item.quantityRequested;
+              if (med.estoquePorUnidade) {
+                let rem = item.quantityRequested;
+                const ubsKeys = Object.keys(med.estoquePorUnidade);
+                for (const ubs of ubsKeys) {
+                  if (rem <= 0) break;
+                  const current = med.estoquePorUnidade[ubs] || 0;
+                  const take = Math.min(current, rem);
+                  med.estoquePorUnidade[ubs] = current - take;
+                  rem -= take;
+                }
+              }
               item.isAvailable = true;
               item.quantityApproved = item.quantityRequested;
               subOrder.status = "EM_SEPARACAO";
@@ -1197,13 +1319,66 @@
         }
       }
     }
+    const medDemandMap = {
+      "Amoxicilina + Clavulanato": 42,
+      "Dipirona Monoidratada": 38,
+      "Losartana Pot\xE1ssica": 35,
+      "Metformina Cloridrato": 28,
+      "Omeprazol": 21
+    };
+    for (const order of allOrders) {
+      for (const sub of order.subOrders) {
+        for (const item of sub.items) {
+          medDemandMap[item.medicationName] = (medDemandMap[item.medicationName] || 0) + (item.quantityRequested || 1);
+        }
+      }
+    }
+    const sortedDemand = Object.entries(medDemandMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const maxVal = sortedDemand.length > 0 ? sortedDemand[0][1] : 1;
+    const topMedications = sortedDemand.map(([name, count]) => ({
+      name,
+      count,
+      percentage: Math.round(count / maxVal * 100)
+    }));
+    const meds = store.getMedications();
+    const ruptures = [];
+    for (const m of meds) {
+      if (!m.active) continue;
+      const unitMap = m.estoquePorUnidade || { "Farm\xE1cia Central": m.stockQuantity };
+      const zeroUnits = [];
+      let allZero = true;
+      for (const [ubs, qty] of Object.entries(unitMap)) {
+        if (qty === 0) {
+          zeroUnits.push(ubs);
+        } else {
+          allZero = false;
+        }
+      }
+      if (zeroUnits.length > 0) {
+        ruptures.push({
+          id: m.id,
+          name: m.name,
+          dosage: m.dosage,
+          totalStock: m.stockQuantity,
+          ruptureLocations: allZero ? ["Rede Zerada (Todas as Unidades)"] : zeroUnits
+        });
+      }
+    }
+    const slas = {
+      avgTriageMinutes: 14,
+      avgSeparationMinutes: 22,
+      avgDeliveryMinutes: 35
+    };
     return {
       pendingTriage,
       inRoute,
       awaitingRestock,
       readyForPickup,
       inSeparation,
-      totalOrders: allOrders.length
+      totalOrders: allOrders.length,
+      topMedications,
+      ruptures,
+      slas
     };
   }
   function dispatchOrderForPickup(subOrderId, courierId) {
@@ -1275,6 +1450,7 @@
       stockQuantity: params.stockQuantity,
       minStockAlert: params.minStockAlert,
       category: params.category,
+      estoquePorUnidade: params.estoquePorUnidade,
       active: true
     });
     return { success: true, medication: toMedicationView(newMed) };
@@ -1311,6 +1487,22 @@
     }
     const newMed = store.getMedications().find((m) => m.id === id);
     return { success: true, newStock: newMed.stockQuantity };
+  }
+  function adjustMedicationStockUnit(id, ubs, delta) {
+    const existing = store.getMedications().find((m) => m.id === id);
+    if (!existing) {
+      return { success: false, error: `Medicamento ${id} n\xE3o encontrado no cat\xE1logo.` };
+    }
+    const updated = store.adjustStockUnit(id, ubs, delta);
+    if (!updated) {
+      return { success: false, error: `Falha ao ajustar estoque na unidade ${ubs}.` };
+    }
+    const newMed = store.getMedications().find((m) => m.id === id);
+    return {
+      success: true,
+      newStock: newMed.stockQuantity,
+      estoquePorUnidade: newMed.estoquePorUnidade
+    };
   }
   function toggleMedicationStatus(id) {
     const existing = store.getMedications().find((m) => m.id === id);
@@ -1547,6 +1739,7 @@
       addMedication,
       editMedication,
       adjustMedicationStock,
+      adjustMedicationStockUnit,
       toggleMedicationStatus,
       getLowStockBadges,
       // Motor 1:N
@@ -1594,6 +1787,7 @@
     window.searchCatalog = searchCatalog;
     window.addMedication = addMedication;
     window.adjustMedicationStock = adjustMedicationStock;
+    window.adjustMedicationStockUnit = adjustMedicationStockUnit;
     window.toggleMedicationStatus = toggleMedicationStatus;
     navManager.onAnnouncement((msg) => {
       announceToScreenReader(msg);
