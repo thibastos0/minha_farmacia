@@ -543,7 +543,6 @@
             <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-3.5 text-xs flex items-start gap-3 shadow-sm">
                 <i class="fa-solid fa-lightbulb text-amber-600 text-base mt-0.5 shrink-0" aria-hidden="true"></i>
                 <div class="space-y-1">
-                    <p class="font-extrabold text-amber-950">💡 Dica para Avaliação do Hackathon:</p>
                     <p class="text-amber-800 text-[11px] leading-relaxed">
                         Selecione o perfil desejado abaixo para testar os módulos. Os campos aceitam usuário padrão para login imediato.
                     </p>
@@ -633,9 +632,9 @@
                     <i class="fa-solid fa-user-plus text-emerald-600"></i>
                     <span>Cadastre-se / Criar Cidadão ID</span>
                 </button>
-                <button type="button" onclick="closeModalLogin()" class="min-h-[48px] px-3 py-2 text-slate-400 hover:text-slate-600 font-semibold focus:outline-none rounded-xl">
+                <!--<button type="button" onclick="closeModalLogin()" class="min-h-[48px] px-3 py-2 text-slate-400 hover:text-slate-600 font-semibold focus:outline-none rounded-xl">
                     Explorar sem login
-                </button>
+                </button>-->
             </div>
         </div>
     </div>
@@ -715,102 +714,223 @@
 
 
     <!-- ================================================================= -->
-    <!-- MODAL 1: FARMACÊUTICO CONFERE RECEITA E SELECIONA NO CATÁLOGO    -->
+    <!-- MODAL 1: INSPEÇÃO SANITÁRIA RDC 44/2009 & RECEITA MÉDICA DO SUS   -->
     <!-- ================================================================= -->
-    <!-- MODAL 1: INSPEÇÃO SANITÁRIA RDC 44/2009 & VALIDAÇÃO DE RECEITA    -->
-    <!-- ================================================================= -->
-    <div id="modal-validacao" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-5 my-auto">
+    <div id="modal-validacao" role="dialog" aria-modal="true" aria-labelledby="modal-val-title" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 my-auto border border-slate-100">
+            <!-- Modal Header -->
             <div class="flex justify-between items-center border-b pb-3">
                 <div>
-                    <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-file-medical text-emerald-600"></i> Inspeção Sanitária & Validação de Receita
+                    <h3 id="modal-val-title" class="text-lg font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-file-medical text-emerald-600"></i> Inspeção Sanitária RDC 44/2009 & Validação de Receita
                     </h3>
                     <p class="text-xs text-slate-500 font-medium">Prefeitura Municipal de Indaiatuba • Triagem Farmacêutica Oficial</p>
                 </div>
-                <button onclick="closeModalValidacao()" class="text-gray-400 hover:text-gray-600 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="closeModalValidacao()" class="text-gray-400 hover:text-gray-600 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl transition" title="Fechar Janela">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <!-- Coluna Esquerda: SIMULAÇÃO VISUAL DA RECEITA MÉDICA DO SUS / INDAIATUBA -->
-                <div class="space-y-3">
+            <!-- CARTÃO VISUAL ESTILIZADO: RECEITA MÉDICA OFICIAL DO SUS / PREFEITURA DE INDAIATUBA -->
+            <div class="bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 border-2 border-emerald-800/20 rounded-2xl p-5 sm:p-6 shadow-inner space-y-4 font-serif text-slate-800 relative overflow-hidden">
+                
+                <!-- Tarja Superior / Timbre Oficial com Logo SUS -->
+                <div class="border-b-2 border-emerald-900/20 pb-3 text-center space-y-1">
+                    <div class="flex items-center justify-center gap-2.5 font-sans font-black text-xs sm:text-sm text-emerald-950 uppercase tracking-wide">
+                        <div class="w-8 h-8 bg-emerald-700 text-white rounded-lg flex items-center justify-center text-sm shadow-sm shrink-0">
+                            <i class="fa-solid fa-hospital"></i>
+                        </div>
+                        <span>PREFEITURA MUNICIPAL DE INDAIATUBA • SECRETARIA MUNICIPAL DE SAÚDE</span>
+                    </div>
+                    <p class="text-[11px] font-sans text-slate-700 font-semibold uppercase tracking-wider flex items-center justify-center gap-2">
+                        <span>Sistema Único de Saúde (SUS)</span>
+                        <span>•</span>
+                        <span class="text-emerald-800">Receituário Médico Oficial</span>
+                        <span>•</span>
+                        <span class="text-slate-500">CNES: 2078341</span>
+                    </p>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-100/80 text-blue-900 font-sans text-[10px] font-bold border border-blue-200">
+                        <i class="fa-solid fa-shield-check text-blue-700"></i>
+                        <span id="val-filename">Prescrição Eletrônica Validada Gov.br</span>
+                    </div>
+                </div>
+
+                <!-- DADOS DO PRESCRITOR -->
+                <div class="font-sans text-xs bg-emerald-50/60 border border-emerald-200/80 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <div>
+                        <span class="text-[10px] uppercase font-black text-emerald-900 tracking-wider block">Dados do Prescritor:</span>
+                        <p class="text-xs font-bold text-slate-900">
+                            <span id="val-medico-nome">Dr. Eduardo Lima</span> — Médico Generalista • 
+                            <span class="font-mono">CRM-SP <span id="val-medico-crm">142.890</span></span> • 
+                            <span class="text-emerald-800">UBS Morada do Sol</span>
+                        </p>
+                    </div>
+                    <span class="shrink-0 text-[10px] font-bold bg-white text-emerald-800 px-2.5 py-1 rounded-lg border border-emerald-200 shadow-sm flex items-center gap-1">
+                        <i class="fa-solid fa-user-doctor text-emerald-600"></i> CRM Ativo CREMESP
+                    </span>
+                </div>
+
+                <!-- DADOS DO PACIENTE -->
+                <div class="font-sans text-xs bg-white/90 p-3 rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
+                    <span class="text-[10px] uppercase font-black text-slate-500 tracking-wider block">Dados do Paciente:</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-800">
+                        <p><b>Paciente:</b> <span id="val-cliente-nome" class="font-bold text-slate-900">Dona Maria de Lourdes Silva</span></p>
+                        <p><b>CPF:</b> <span id="val-cliente-cpf" class="font-mono font-bold text-slate-800">123.456.789-00</span></p>
+                        <p><b>Data da Prescrição:</b> <span id="val-prescricao-data" class="font-bold text-emerald-800">Hoje</span></p>
+                        <p><b>Cartão SUS:</b> <span id="val-cliente-sus" class="font-mono text-slate-700">7000.1234.5678.9012</span></p>
+                    </div>
+                    <p class="pt-1 border-t border-slate-100 text-slate-600 text-[11px]">
+                        <b>Endereço:</b> <span id="val-cliente-end">Rua das Acácias, 142 - Jardim Morada do Sol</span>
+                    </p>
+                </div>
+
+                <!-- ANEXO DIGITAL DO MUNÍCIPE (se houver) -->
+                <div id="val-prescription-attachment" class="hidden p-2.5 bg-blue-50/80 border border-blue-200 rounded-xl font-sans text-xs flex items-center justify-between">
+                    <span class="text-blue-950 font-semibold flex items-center gap-1.5 text-[11px]">
+                        <i class="fa-solid fa-paperclip text-blue-600"></i> Anexo da Receita Digitalizada pelo Cidadão
+                    </span>
+                    <a id="val-attachment-link" href="#" target="_blank" class="text-blue-700 underline font-bold text-[11px] hover:text-blue-900">Abrir Documento Original</a>
+                </div>
+
+                <!-- CORPO DA RECEITA (MEDICAMENTOS PRESCRITOS) -->
+                <div class="space-y-2 py-1">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-stamp text-emerald-600"></i> Receituário Oficial SUS / Indaiatuba
+                        <span class="text-[11px] font-sans font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-pills text-emerald-700"></i> Corpo da Receita (Medicamentos Prescritos)
                         </span>
-                        <span class="text-[10px] bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full" id="val-filename">Validado Gov.br</span>
+                        <span class="text-[10px] font-sans font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Uso Oral / Posologia Prescrita</span>
                     </div>
 
-                    <!-- Folha da Receita Médica Simulação Visual -->
-                    <div class="bg-amber-50/40 border-2 border-slate-300 rounded-2xl p-4 shadow-inner space-y-3 font-serif text-slate-800 relative overflow-hidden">
-                        <!-- Timbre Oficial -->
-                        <div class="border-b border-slate-300 pb-2 text-center space-y-0.5">
-                            <div class="flex items-center justify-center gap-2 font-sans font-black text-xs text-emerald-950 uppercase tracking-tight">
-                                <i class="fa-solid fa-hospital text-emerald-700"></i>
-                                Prefeitura Municipal de Indaiatuba
-                            </div>
-                            <p class="text-[10px] font-sans text-slate-600 uppercase font-semibold">Secretaria Municipal de Saúde • Sistema Único de Saúde (SUS)</p>
-                            <p class="text-[9px] font-sans text-slate-400">UBS Morada do Sol • CNES: 2078341</p>
-                        </div>
-
-                        <!-- Dados do Paciente e Médico -->
-                        <div class="font-sans text-xs space-y-1 bg-white/70 p-2.5 rounded-xl border border-slate-200">
-                            <p><b>Paciente:</b> <span id="val-cliente-nome" class="font-semibold text-slate-900">Dona Maria de Lourdes Silva</span></p>
-                            <p><b>Cartão SUS:</b> <span id="val-cliente-sus" class="font-mono text-[11px] text-slate-700">7000.1234.5678.9012</span> | <b>CPF:</b> <span id="val-cliente-cpf" class="font-mono text-[11px]">123.456.789-00</span></p>
-                            <p><b>Endereço:</b> <span id="val-cliente-end" class="text-slate-600">Rua das Acácias, 142 - Jd. Morada do Sol</span></p>
-                            <div class="pt-1 border-t border-slate-200 flex justify-between text-[11px] text-slate-600">
-                                <span><b>Médico:</b> <span id="val-medico-nome">Dr. Eduardo F. Lima</span></span>
-                                <span class="font-mono"><b>CRM-SP:</b> <span id="val-medico-crm">142.890</span></span>
-                                <span><b>Data:</b> <span class="text-emerald-800 font-bold">Hoje</span></span>
-                            </div>
-                        </div>
-
-                        <!-- Anexo da Receita Submetida (se disponível) -->
-                        <div id="val-prescription-attachment" class="hidden p-2 bg-white/90 border border-emerald-200 rounded-xl font-sans text-xs flex items-center justify-between">
-                            <span class="text-emerald-900 font-semibold flex items-center gap-1.5 text-[11px]">
-                                <i class="fa-solid fa-paperclip text-emerald-600"></i> Anexo da Receita do Cidadão
-                            </span>
-                            <a id="val-attachment-link" href="#" target="_blank" class="text-emerald-700 underline font-bold text-[11px] hover:text-emerald-900">Abrir Imagem</a>
-                        </div>
-
-                        <!-- Prescrição de Medicamentos -->
-                        <div class="space-y-1.5 py-1">
-                            <span class="text-[11px] font-sans font-black text-slate-700 uppercase tracking-wider block">Uso Oral / Posologia Prescrita:</span>
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 font-sans text-xs space-y-1.5">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <p class="font-bold text-slate-900">1. Losartana Potássica 50mg</p>
-                                        <p class="text-[11px] text-slate-500 italic">Tomar 1 comprimido pela manhã em jejum (Contínuo) - 10 cx</p>
-                                    </div>
-                                    <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">RENAME</span>
-                                </div>
-                                <div class="flex justify-between items-start pt-1 border-t border-slate-100">
-                                    <div>
-                                        <p class="font-bold text-slate-900">2. Amoxicilina + Clavulanato 500/125mg</p>
-                                        <p class="text-[11px] text-slate-500 italic">Tomar 1 comprimido de 8/8h por 7 dias (Antibiótico) - 5 cx</p>
-                                    </div>
-                                    <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">RDC 20</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Assinatura Médica Digital -->
-                        <div class="pt-2 border-t border-slate-300 flex items-center justify-between font-sans text-[10px] text-slate-500">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 font-sans text-xs space-y-2.5 shadow-sm divide-y divide-slate-100">
+                        <!-- Item 1: Amoxicilina 500mg -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 first:pt-0">
                             <div>
-                                <i class="fa-solid fa-signature text-slate-400 mr-1"></i> Assinatura Digital ICP-Brasil
+                                <p class="font-black text-slate-900 text-sm">1. Amoxicilina 500mg</p>
+                                <p class="text-xs text-slate-600">Tomar 1 comprimido de 8 em 8 horas por 7 dias (2 caixas).</p>
                             </div>
-                            <span class="font-mono text-emerald-700 font-bold">Hash: IND-9A82F1-SUS</span>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <span class="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-200">
+                                    <i class="fa-solid fa-capsules mr-1"></i> RDC 20 / 2 caixas
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Item 2: Losartana Potássica 50mg -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-2">
+                            <div>
+                                <p class="font-black text-slate-900 text-sm">2. Losartana Potássica 50mg</p>
+                                <p class="text-xs text-slate-600">Tomar 1 comprimido ao dia de uso contínuo (1 caixa).</p>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <span class="text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded border border-emerald-200">
+                                    <i class="fa-solid fa-check mr-1"></i> RENAME / 1 caixa
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Item 3: Dipirona 500mg -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-2">
+                            <div>
+                                <p class="font-black text-slate-900 text-sm">3. Dipirona 500mg</p>
+                                <p class="text-xs text-slate-600">Tomar 1 comprimido se houver dor ou febre (1 caixa).</p>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <span class="text-[10px] font-bold bg-blue-100 text-blue-900 px-2 py-0.5 rounded border border-blue-200">
+                                    <i class="fa-solid fa-tablets mr-1"></i> RENAME / 1 caixa
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Coluna Direita: Catálogo Reservado do Funcionário & Multi-Inclusão -->
+                <!-- RODAPÉ DA RECEITA: ASSINATURA, CARIMBO DIGITAL E QR CODE -->
+                <div class="pt-3 border-t-2 border-emerald-900/20 grid grid-cols-1 sm:grid-cols-2 gap-3 items-center font-sans text-xs">
+                    <!-- Assinatura e Carimbo Digital -->
+                    <div class="p-3 bg-white/80 rounded-xl border border-slate-200 space-y-1">
+                        <div class="flex items-center gap-2 text-slate-700">
+                            <i class="fa-solid fa-signature text-emerald-700 text-base"></i>
+                            <span class="font-bold text-[11px] uppercase tracking-wider text-slate-700">Assinatura & Carimbo Digital</span>
+                        </div>
+                        <div class="pl-6 border-l-2 border-emerald-600 space-y-0.5">
+                            <p class="font-bold text-slate-900 text-xs">Dr. Eduardo Lima — CRM-SP 142.890</p>
+                            <p class="text-[10px] text-slate-500">Médico Generalista • Matrícula Municipal 54.129</p>
+                            <p class="text-[9px] font-mono text-emerald-800 font-semibold">Certificado ICP-Brasil • PAdES Válido</p>
+                        </div>
+                    </div>
+
+                    <!-- QR Code de Autenticidade do SUS -->
+                    <div class="p-3 bg-white/80 rounded-xl border border-slate-200 flex items-center gap-3">
+                        <div class="w-14 h-14 bg-slate-900 rounded-lg p-1 shrink-0 flex items-center justify-center text-white shadow-sm" title="QR Code de Autenticidade do SUS">
+                            <!-- SVG QR Code Icon / Matrix -->
+                            <svg class="w-full h-full text-white" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14-2h4v2h-4v-2zm-4 0h2v4h-2v-4zm4 6h4v2h-4v-2zm-4-2h2v4h-2v-4zm-2 2h2v2h-2v-2zm4-4h2v2h-2v-2zm-2-2h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"/>
+                            </svg>
+                        </div>
+                        <div class="space-y-0.5">
+                            <p class="font-bold text-slate-900 text-[11px] flex items-center gap-1">
+                                <i class="fa-solid fa-qrcode text-emerald-600"></i> QR Code de Autenticidade do SUS
+                            </p>
+                            <p class="text-[10px] font-mono text-slate-600 font-bold">Chave: SUS-SP-IND-9A82F1</p>
+                            <p class="text-[9px] text-slate-500">Validação RNDS / Ministério da Saúde • Portaria 467/2020</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- BOTÕES DE AÇÃO NA MODAL DA RECEITA -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 border-t pt-4">
+                <div class="flex items-center gap-2 text-xs text-slate-500">
+                    <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+                    <span>Inspeção RDC 44/2009 ANVISA • Validação Técnica Farmacêutica</span>
+                </div>
+                <div class="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+                    <button type="button" onclick="closeModalValidacao()" class="min-h-[48px] px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                        Fechar
+                    </button>
+                    <button type="button" onclick="openModalRecusa(selectedOrderId)" class="min-h-[48px] px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-ban"></i> Recusar Receita
+                    </button>
+                    <button type="button" id="btn-aprovar-receita" onclick="aprovarESelecionarMedicamentos()" class="min-h-[48px] px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span>Aprovar e Selecionar Medicamentos</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================================================================= -->
+    <!-- MODAL 1B: TRIAGEM FARMACÊUTICA E DESMEMBRAMENTO DE REMESSAS       -->
+    <!-- ================================================================= -->
+    <div id="modal-triagem" role="dialog" aria-modal="true" aria-labelledby="modal-triagem-title" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-5 my-auto border border-slate-100">
+            <!-- Header Triagem -->
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 id="modal-triagem-title" class="text-lg font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-packing text-emerald-600"></i> Triagem Farmacêutica & Desmembramento de Remessas
+                    </h3>
+                    <p class="text-xs text-slate-500 font-medium">
+                        Prefeitura Municipal de Indaiatuba • Seleção de Itens e Conferência de Estoque Municipal
+                        • Solicitação: <b id="triagem-pedido-codigo" class="text-slate-800"></b> (<span id="triagem-cliente-nome"></span>)
+                    </p>
+                </div>
+                <button onclick="closeModalTriagem()" class="text-gray-400 hover:text-gray-600 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl transition" title="Fechar Janela">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Grade: Catálogo RENAME vs Itens Selecionados para Despacho -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <!-- Coluna Esquerda: Catálogo RENAME & Busca -->
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-black text-slate-700 uppercase tracking-wider block">
-                            Triagem Farmacêutica RENAME
+                            Catálogo Farmacêutico RENAME
                         </span>
-                        <span class="text-[10px] text-slate-500 font-medium">Multi-inclusão habilitada</span>
+                        <span class="text-[10px] text-slate-500 font-medium">Farmácia Central Indaiatuba</span>
                     </div>
 
                     <div class="relative">
@@ -818,27 +938,32 @@
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
                     </div>
 
-                    <div id="catalog-list" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    <div id="catalog-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
                         <!-- Itens do Catálogo inseridos via JS -->
                     </div>
+                </div>
 
-                    <!-- Lista de Medicamentos Selecionados para Entrega (Permite repetições) -->
-                    <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-black text-emerald-900 uppercase block">
-                                Medicamentos na Triagem de Entrega:
-                            </span>
-                            <span class="text-[10px] font-bold text-emerald-700">Multi-Inclusão Ativa</span>
-                        </div>
-                        <div id="val-selected-meds" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                <!-- Coluna Direita: Itens Selecionados para Despacho -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-700 uppercase tracking-wider block">
+                            Medicamentos na Triagem de Entrega:
+                        </span>
+                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            Multi-Inclusão Ativa
+                        </span>
+                    </div>
+
+                    <div class="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-2">
+                        <div id="val-selected-meds" class="space-y-2 max-h-48 overflow-y-auto pr-1">
                             <p class="text-xs text-gray-400 italic">Nenhum item selecionado do catálogo ainda.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Alerta Reativo de Entrega Desmembrada Municipal no Modal de Triagem -->
-            <div id="val-split-preview" class="hidden p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-900 text-xs font-bold space-y-1">
+            <!-- Alerta Reativo de Entrega Desmembrada Municipal -->
+            <div id="val-split-preview" class="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-900 text-xs font-bold space-y-1">
                 <p class="flex items-center gap-1.5 text-sm text-amber-950 font-black">
                     <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Entrega Desmembrada Municipal Ativada
                 </p>
@@ -850,7 +975,7 @@
                 <span id="suggested-motoboy-text" class="text-slate-700 font-medium">
                     Sugerido pelo sistema: <b>Marcos Vinicius (Moto 01)</b> (0.8 km de distância - Status: Livre)
                 </span>
-                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Logística Integrada</span>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">Logística Integrada</span>
             </div>
 
             <!-- CHANCELA OFICIAL DA FARMACÊUTICA RESPONSÁVEL TÉCNICA (RDC 44) -->
@@ -878,17 +1003,19 @@
                 </div>
             </div>
 
-            <!-- Botões de Ação do Farmacêutico -->
-            <div class="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4">
-                <button type="button" onclick="closeModalValidacao()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition">
-                    Fechar
+            <!-- Botões de Ação da Triagem -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 border-t pt-4">
+                <button type="button" onclick="voltarParaReceita()" class="min-h-[48px] px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar à Receita Médica
                 </button>
-                <button type="button" onclick="openModalRecusa(selectedOrderId)" class="min-h-[48px] px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-ban"></i> Recusar Receita
-                </button>
-                <button type="button" onclick="confirmApproval()" class="min-h-[48px] px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check"></i> Aprovar Prescrição (Entrega Desmembrada Municipal)
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeModalTriagem()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="confirmApproval()" class="min-h-[48px] px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-truck-ramp-box"></i> Confirmar Despacho e Gerar Remessas
+                    </button>
+                </div>
             </div>
         </div>
     </div>
