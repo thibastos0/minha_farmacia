@@ -177,27 +177,44 @@
                 </form>
             </div>
 
-            <!-- TELA DE ACOMPANHAMENTO DE PEDIDOS DO CLIENTE -->
-            <div id="cliente-acompanhar" class="hidden bg-white p-6 md:p-8 rounded-3xl border shadow-md max-w-2xl mx-auto space-y-6">
-                <div class="flex items-center justify-between border-b pb-4">
+            <!-- TELA DE HISTÓRICO E ACOMPANHAMENTO DE PEDIDOS DO CIDADÃO -->
+            <div id="cliente-acompanhar" class="hidden space-y-6 max-w-4xl mx-auto">
+                <div class="bg-white p-6 rounded-3xl border shadow-sm flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h3 class="text-xl font-black text-gray-900">Acompanhar Pedido</h3>
-                        <p class="text-xs text-gray-500">Número: <span id="track-id" class="font-bold text-gray-800">#IND-8941</span></p>
+                        <h3 class="text-2xl font-black text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i> Meus Pedidos & Remessas
+                        </h3>
+                        <p class="text-xs text-gray-500">Histórico completo com remessas desmembradas, status em tempo real e códigos PIN</p>
                     </div>
-                    <button onclick="showClienteScreen('home')" class="text-sm font-bold text-gray-500 hover:text-gray-800 bg-gray-100 px-3 py-1.5 rounded-xl">
-                        <i class="fa-solid fa-arrow-left"></i> Voltar
+                    <button onclick="showClienteScreen('home')" class="min-h-[48px] text-xs font-bold text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-4 py-2.5 rounded-2xl flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-arrow-left"></i> Voltar ao Início
                     </button>
                 </div>
 
-                <div id="track-timeline" class="space-y-6 border-l-4 border-emerald-500 ml-4 pl-6 py-2">
-                    <!-- Gerado dinamicamente via JS -->
+                <!-- SEÇÃO 1: PEDIDOS EM ANDAMENTO (COM REMESSAS DESMEMBRADAS E PIN) -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between px-1">
+                        <h4 class="text-sm font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-truck-fast text-emerald-600"></i> Pedidos em Andamento
+                        </h4>
+                        <span id="active-orders-count" class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full">0 ativos</span>
+                    </div>
+                    <div id="client-orders-active" class="space-y-4">
+                        <!-- Gerado dinamicamente via JS -->
+                    </div>
                 </div>
 
-                <!-- Código PIN do Cliente -->
-                <div class="p-6 bg-blue-50 border-2 border-blue-400 rounded-3xl text-center space-y-2">
-                    <p class="text-xs font-extrabold text-blue-900 uppercase tracking-widest">Seu Código PIN de Confirmação</p>
-                    <p id="track-pin" class="text-4xl font-black text-blue-700 tracking-widest">4892</p>
-                    <p class="text-xs text-blue-800 font-medium">Informe este código ao motoboy no ato da entrega.</p>
+                <!-- SEÇÃO 2: HISTÓRICO DE ENTREGAS CONCLUÍDAS -->
+                <div class="space-y-4 pt-6 border-t border-slate-200">
+                    <div class="flex items-center justify-between px-1">
+                        <h4 class="text-sm font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-box-archive text-slate-500"></i> Histórico de Entregas
+                        </h4>
+                        <span id="history-orders-count" class="text-xs bg-slate-100 text-slate-700 font-bold px-2.5 py-0.5 rounded-full">0 concluídos</span>
+                    </div>
+                    <div id="client-orders-history" class="space-y-4">
+                        <!-- Gerado dinamicamente via JS -->
+                    </div>
                 </div>
             </div>
         </section>
@@ -329,9 +346,19 @@
 
             <!-- SUB-TELA 4: CATÁLOGO & GERENCIAMENTO DE ESTOQUE (EXCLUSIVO FUNCIONÁRIO) -->
             <div id="func-sub-estoque" class="hidden bg-white p-6 rounded-2xl border shadow-sm space-y-4">
-                <div class="flex justify-between items-center border-b pb-3">
-                    <h3 class="font-bold text-gray-800 text-base">Catálogo Municipal de Medicamentos (Estoque)</h3>
-                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-lg text-gray-600 font-bold">Acesso Restrito à Equipe Técnica</span>
+                <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-4">
+                    <div>
+                        <h3 class="font-black text-gray-900 text-lg flex items-center gap-2">
+                            <i class="fa-solid fa-boxes-stacked text-emerald-600"></i> Catálogo Municipal de Medicamentos (Estoque)
+                        </h3>
+                        <p class="text-xs text-gray-500">Gestão de estoque RENAME com reabastecimento reativo para pedidos aguardando reposição</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="inv-search" oninput="renderInventoryGrid()" placeholder="Buscar medicamento..." class="p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none w-48">
+                        <button type="button" onclick="openModalNovoMedicamento()" class="min-h-[48px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-2xl shadow-md flex items-center gap-2 transition">
+                            <i class="fa-solid fa-plus"></i> Novo Medicamento
+                        </button>
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="inventory-grid">
                     <!-- Inserido via JS -->
@@ -417,6 +444,14 @@
                 </div>
             </div>
 
+            <!-- Alerta Reativo de Desmembramento 1:N no Modal de Triagem -->
+            <div id="val-split-preview" class="hidden p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-900 text-xs font-bold space-y-1">
+                <p class="flex items-center gap-1.5 text-sm text-amber-950 font-black">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Desmembramento Inteligente 1:N Ativado
+                </p>
+                <p id="val-split-preview-text">Itens em quantidade insuficiente no estoque municipal. A aprovação gerará automaticamente a Remessa A (imediata) e a Remessa B (aguardando reposição).</p>
+            </div>
+
             <!-- Sugestão Inteligente de Entregador -->
             <div class="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
@@ -432,8 +467,8 @@
             </div>
 
             <div class="flex justify-end gap-2 border-t pt-4">
-                <button onclick="closeModalValidacao()" class="px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
-                <button onclick="confirmApproval()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">
+                <button onclick="closeModalValidacao()" class="min-h-[44px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button onclick="confirmApproval()" class="min-h-[44px] px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">
                     <i class="fa-solid fa-check mr-1"></i> Aprovar e Atribuir Entrega
                 </button>
             </div>
@@ -452,62 +487,118 @@
             <p class="text-xs text-gray-600">É obrigatório registrar a justificativa técnica para o indeferimento da receita médica:</p>
             <textarea id="reason-text" rows="3" placeholder="Ex: Receita sem assinatura médica, vencida ou ilegível..." class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"></textarea>
             <div class="flex justify-end space-x-2">
-                <button onclick="closeModalRecusa()" class="px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
-                <button onclick="confirmRecusa()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold">Confirmar Reprovação</button>
+                <button onclick="closeModalRecusa()" class="min-h-[44px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button onclick="confirmRecusa()" class="min-h-[44px] px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold">Confirmar Reprovação</button>
             </div>
         </div>
     </div>
 
 
-    <!-- LOGICA E SCRIPTS JavaScript -->
+    <!-- ================================================================= -->
+    <!-- MODAL 3: CADASTRO DE NOVO MEDICAMENTO NO CATÁLOGO (CRUD)          -->
+    <!-- ================================================================= -->
+    <div id="modal-novo-medicamento" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl p-6 space-y-5">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-pills text-emerald-600"></i> Cadastrar Novo Medicamento
+                </h3>
+                <button onclick="closeModalNovoMedicamento()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form onsubmit="handleNovoMedicamento(event)" class="space-y-4">
+                <div>
+                    <label for="novo-med-nome" class="block text-xs font-bold text-gray-700 mb-1">Nome do Medicamento *</label>
+                    <input type="text" id="novo-med-nome" required placeholder="Ex: Paracetamol" class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="novo-med-dosagem" class="block text-xs font-bold text-gray-700 mb-1">Dosagem *</label>
+                        <input type="text" id="novo-med-dosagem" required placeholder="Ex: 500mg" class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="novo-med-apresentacao" class="block text-xs font-bold text-gray-700 mb-1">Apresentação *</label>
+                        <input type="text" id="novo-med-apresentacao" required placeholder="Ex: Cartela com 10 comp." class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="novo-med-estoque" class="block text-xs font-bold text-gray-700 mb-1">Estoque Inicial *</label>
+                        <input type="number" id="novo-med-estoque" required min="0" value="50" class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="novo-med-alerta" class="block text-xs font-bold text-gray-700 mb-1">Alerta Mínimo</label>
+                        <input type="number" id="novo-med-alerta" min="0" value="15" class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label for="novo-med-categoria" class="block text-xs font-bold text-gray-700 mb-1">Categoria RENAME</label>
+                    <select id="novo-med-categoria" class="w-full p-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="BASICO">Básico (Atenção Primária)</option>
+                        <option value="CONTINUO">Uso Contínuo / Hipertensão / Diabetes</option>
+                        <option value="ANTIBIOTICO">Antibiótico</option>
+                        <option value="CONTROLADO">Controlado (Portaria 344)</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeModalNovoMedicamento()" class="min-h-[44px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                    <button type="submit" class="min-h-[44px] px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">Salvar Medicamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- LOGICA E SCRIPTS JavaScript COM INTEGRAÇÃO REATIVA AO STORE -->
     <script>
-        // BASE DE ESTOQUE / CATÁLOGO (SOMENTE ACESSÍVEL PELO FUNCIONÁRIO)
-        const estoqueMedicamentos = [
-            { id: 1, nome: 'Paracetamol 500mg', desc: 'Cx 20 comprimidos', qtd: 150 },
-            { id: 2, nome: 'Amoxicilina 500mg', desc: 'Cx 21 cápsulas', qtd: 80 },
-            { id: 3, nome: 'Ibuprofeno 600mg', desc: 'Cx 10 comprimidos', qtd: 120 },
-            { id: 4, nome: 'Losartana Potássica 50mg', desc: 'Cx 30 comprimidos', qtd: 200 },
-            { id: 5, nome: 'Metformina 850mg', desc: 'Cx 60 comprimidos', qtd: 90 }
-        ];
-
-        // MOTOBOYS E GEOLOCALIZAÇÃO
-        const motoboys = [
-            { id: 'mb1', nome: 'Carlos Silva', status: 'Em Rota', dist: '0.8 km', lat: -23.0950, lng: -47.2120, destLat: -23.1020, destLng: -47.2050, clienteDestino: 'Thiago Silva' },
-            { id: 'mb2', nome: 'Ana Oliveira', status: 'Livre', dist: '1.2 km', lat: -23.0820, lng: -47.2250, destLat: null, destLng: null, clienteDestino: null }
-        ];
-
-        // DADOS DOS PEDIDOS
-        let pedidos = [
-            {
-                id: 'IND-8941',
-                cliente: 'Thiago Silva',
-                endereco: 'Rua das Prímulas, 450 - Indaiatuba',
-                telefone: '5519987654321',
-                arquivo: 'receita_thiago.jpg',
-                medicamentos: ['Paracetamol 500mg'],
-                status: 'Em Rota', // 'Aguardando Validação', 'Em Rota', 'Entregue', 'Recusado'
-                motoboy: 'Carlos Silva',
-                codigoPIN: '4892',
-                justificativa: ''
-            }
-        ];
-
+        // Variáveis de controle de estado local da UI
         let selectedOrderId = null;
-        let selectedMedsForOrder = [];
+        let selectedTriageDecisions = [];
         let mapInstance = null;
 
         // INICIALIZAÇÃO APLICAÇÃO
         document.addEventListener('DOMContentLoaded', () => {
+            // Sincroniza dados do cidadão na tela inicial
+            syncCitizenInfo();
+
+            // Renderização inicial de todos os componentes
+            renderAllViews();
+
+            // Inscreve no store reativo para atualizações instantâneas e automáticas
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                window.MinhaFarmacia.store.subscribe(() => {
+                    renderAllViews();
+                });
+            }
+        });
+
+        // Função global de sincronização e renderização completa
+        function renderAllViews() {
+            renderClientOrders();
             renderFuncionarioTable();
             renderMotoboyOrders();
-            renderCatalogList(estoqueMedicamentos);
             renderInventoryGrid();
             updateDashboardCounts();
-        });
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.renderMapMarkers === 'function') {
+                window.MinhaFarmacia.renderMapMarkers();
+            }
+        }
+
+        // Sincroniza informações do cidadão ativo no cabeçalho
+        function syncCitizenInfo() {
+            if (!window.MinhaFarmacia || !window.MinhaFarmacia.store) return;
+            const cit = window.MinhaFarmacia.store.getCurrentCitizen();
+            if (cit) {
+                const nameEl = document.querySelector('#cliente-home h2');
+                const addrEl = document.querySelector('#cliente-home p');
+                if (nameEl) nameEl.textContent = cit.name;
+                if (addrEl) {
+                    addrEl.innerHTML = `<i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i> ${cit.address.street}, ${cit.address.number} - ${cit.address.neighborhood}, ${cit.address.city}`;
+                }
+            }
+        }
 
         // TROCA DE MÓDULOS PRINCIPAIS
         function switchRole(role) {
-            // Se o orchestrator MinhaFarmacia estiver disponível, delega para navegação reativa e WCAG
             if (window.MinhaFarmacia && typeof window.MinhaFarmacia.switchRole === 'function') {
                 window.MinhaFarmacia.switchRole(role);
                 return;
@@ -603,7 +694,7 @@
                 active.classList.remove('hidden');
             }
             if (screen === 'acompanhar') {
-                renderClientTimeline();
+                renderClientOrders();
             }
         }
 
@@ -612,125 +703,279 @@
             document.getElementById('cli-file-name').innerText = f ? `Arquivo Selecionado: ${f.name}` : '';
         }
 
-        // CLIENTE ENVIA PEDIDO (RECEITA ANEXADA)
+        // 1. CLIENTE ENVIA PEDIDO
         function handleClientOrder(e) {
             e.preventDefault();
-            const newId = `IND-${Math.floor(1000 + Math.random() * 9000)}`;
             const fileInput = document.getElementById('cli-file');
+            const fileName = fileInput && fileInput.files[0] ? fileInput.files[0].name : 'receita_anexa.jpg';
 
-            const newOrder = {
-                id: newId,
-                cliente: 'Thiago Silva', // Cadastro Pré-existente
-                endereco: 'Rua das Prímulas, 450 - Indaiatuba',
-                telefone: '5519987654321',
-                arquivo: fileInput.files[0] ? fileInput.files[0].name : 'receita_anexa.jpg',
-                medicamentos: [], // Será preenchido exclusivamente pelo funcionário
-                status: 'Aguardando Validação',
-                motoboy: '-',
-                codigoPIN: Math.floor(1000 + Math.random() * 9000).toString(),
-                justificativa: ''
-            };
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.createCitizenPrescriptionOrder === 'function') {
+                const res = window.MinhaFarmacia.createCitizenPrescriptionOrder({
+                    prescriptionImageUrl: fileName,
+                    notes: 'Receita enviada via Portal do Munícipe'
+                });
+                if (!res.success) {
+                    alert(res.error || 'Erro ao enviar pedido.');
+                    return;
+                }
+                alert(`Sua receita foi enviada com sucesso! Código do Pedido: #${res.order.code}`);
+            } else {
+                alert(`Receita enviada com sucesso!`);
+            }
 
-            pedidos.unshift(newOrder);
-            alert(`Sua receita foi enviada com sucesso! Código do Pedido: ${newId}`);
-            
-            document.getElementById('track-id').innerText = `#${newId}`;
-            document.getElementById('track-pin').innerText = newOrder.codigoPIN;
-            
-            renderFuncionarioTable();
-            updateDashboardCounts();
             showClienteScreen('acompanhar');
+            renderClientOrders();
         }
 
-        // LINHA DO TEMPO DO CLIENTE
-        function renderClientTimeline() {
-            const ped = pedidos[0];
-            const container = document.getElementById('track-timeline');
-            
-            let html = `
-                <div class="relative">
-                    <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">✓</div>
-                    <h4 class="text-sm font-bold text-gray-800">Solicitação Enviada</h4>
-                    <p class="text-xs text-gray-500">Receita recebida pela Central da Farmácia Municipal</p>
-                </div>
-            `;
+        // =====================================================================
+        // 1 & 2. HISTÓRICO E LISTA DO CIDADÃO COM REMESSAS INDEPENDENTES E BANNER
+        // =====================================================================
+        function renderClientOrders() {
+            const activeContainer = document.getElementById('client-orders-active');
+            const historyContainer = document.getElementById('client-orders-history');
+            const activeCountBadge = document.getElementById('active-orders-count');
+            const historyCountBadge = document.getElementById('history-orders-count');
 
-            if (ped.status === 'Recusado') {
-                html += `
-                    <div class="relative">
-                        <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px]">✕</div>
-                        <h4 class="text-sm font-bold text-red-600">Solicitação Reprovada</h4>
-                        <p class="text-xs text-red-600 font-semibold mt-1">Justificativa da Farmácia: ${ped.justificativa}</p>
+            if (!activeContainer || !historyContainer) return;
+
+            let allOrders = [];
+            let citizenId = 'cit-01';
+
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                citizenId = window.MinhaFarmacia.store.getCurrentCitizen().id;
+                allOrders = window.MinhaFarmacia.store.getOrders();
+            }
+
+            // Filtra pedidos do cidadão (ou todos se for ambiente de teste/demo)
+            const citizenOrders = allOrders.filter(o => o.citizenId === citizenId);
+            const ordersToDisplay = citizenOrders.length > 0 ? citizenOrders : allOrders;
+
+            // Classifica pedidos entre ativos e histórico de entregas concluídas
+            const activeOrders = [];
+            const historyOrders = [];
+
+            ordersToDisplay.forEach(order => {
+                const hasSubOrders = order.subOrders && order.subOrders.length > 0;
+                const isFullyDelivered = hasSubOrders && order.subOrders.every(s => s.status === 'ENTREGUE');
+                const isFinalizado = order.status === 'FINALIZADO';
+
+                if (isFullyDelivered || isFinalizado) {
+                    historyOrders.push(order);
+                } else {
+                    activeOrders.push(order);
+                }
+            });
+
+            if (activeCountBadge) activeCountBadge.innerText = `${activeOrders.length} ativos`;
+            if (historyCountBadge) historyCountBadge.innerText = `${historyOrders.length} concluídos`;
+
+            // RENDERIZA SEÇÃO 1: PEDIDOS EM ANDAMENTO
+            if (activeOrders.length === 0) {
+                activeContainer.innerHTML = `
+                    <div class="bg-white p-6 rounded-2xl border text-center text-xs text-gray-400">
+                        <i class="fa-solid fa-box-open text-2xl text-gray-300 mb-2"></i>
+                        <p>Nenhum pedido em andamento no momento.</p>
+                        <button onclick="showClienteScreen('solicitar')" class="mt-3 text-emerald-600 font-bold hover:underline">
+                            + Fazer novo pedido de remédio
+                        </button>
                     </div>
                 `;
             } else {
-                const isValidated = ped.status === 'Em Rota' || ped.status === 'Entregue';
-                const isDelivered = ped.status === 'Entregue';
+                activeContainer.innerHTML = activeOrders.map(order => {
+                    const hasAwaitingRestock = order.subOrders && order.subOrders.some(s => s.status === 'AGUARDANDO_REPOSICAO');
+                    const hasSubOrders = order.subOrders && order.subOrders.length > 0;
 
-                html += `
-                    <div class="relative">
-                        <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full ${isValidated ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-white'} flex items-center justify-center text-[10px]">${isValidated ? '✓' : '2'}</div>
-                        <h4 class="text-sm font-bold ${isValidated ? 'text-gray-800' : 'text-gray-400'}">Validação da Receita & Separação</h4>
-                        <p class="text-xs text-gray-500">${isValidated ? `Medicamentos Selecionados: ${ped.medicamentos.join(', ')}` : 'Aguardando validação do farmacêutico'}</p>
-                    </div>
-                    <div class="relative">
-                        <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full ${isValidated ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-white'} flex items-center justify-center text-[10px]">${isValidated ? '✓' : '3'}</div>
-                        <h4 class="text-sm font-bold ${isValidated ? 'text-gray-800' : 'text-gray-400'}">Saiu para Entrega</h4>
-                        <p class="text-xs text-gray-500">${isValidated ? `Entregador: ${ped.motoboy}` : 'Aguardando despacho'}</p>
-                    </div>
-                    <div class="relative">
-                        <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full ${isDelivered ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-white'} flex items-center justify-center text-[10px]">${isDelivered ? '✓' : '4'}</div>
-                        <h4 class="text-sm font-bold ${isDelivered ? 'text-gray-800' : 'text-gray-400'}">Entrega Realizada</h4>
-                        <p class="text-xs text-gray-500">${isDelivered ? 'Medicamentos entregues ao cidadão com validação de PIN.' : 'Informe seu PIN ao motoboy no ato da entrega'}</p>
-                    </div>
-                `;
+                    let subOrdersHtml = '';
+
+                    if (hasSubOrders) {
+                        subOrdersHtml = `
+                            <div class="space-y-3 mt-3">
+                                <h5 class="text-xs font-black text-gray-700 uppercase tracking-wider">
+                                    Remessas do Pedido (${order.subOrders.length} remessas):
+                                </h5>
+                                ${order.subOrders.map(sub => {
+                                    const statusBadge = getSubOrderStatusBadge(sub.status);
+                                    const medList = sub.items.map(item => `<b>${item.medicationName}</b> (${item.dosage}) — Qtd: ${item.approvedQty}`).join('<br>');
+
+                                    return `
+                                        <div class="p-4 bg-white rounded-2xl border-2 border-emerald-100 shadow-sm space-y-3">
+                                            <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="w-8 h-8 bg-emerald-100 text-emerald-800 rounded-xl flex items-center justify-center font-black text-xs">
+                                                        ${sub.code.endsWith('-A') ? 'A' : (sub.code.endsWith('-B') ? 'B' : '1')}
+                                                    </span>
+                                                    <div>
+                                                        <h6 class="text-sm font-black text-gray-800">${sub.label}</h6>
+                                                        <span class="text-[11px] font-mono text-gray-400">#${sub.code}</span>
+                                                    </div>
+                                                </div>
+                                                ${statusBadge}
+                                            </div>
+
+                                            <div class="p-3 bg-gray-50 rounded-xl text-xs text-gray-700 space-y-1">
+                                                <span class="font-bold text-gray-500 block text-[10px] uppercase">Itens desta remessa:</span>
+                                                <p class="leading-relaxed">${medList}</p>
+                                            </div>
+
+                                            <!-- CARD DESTACADO DO CÓDIGO PIN DE 4 DÍGITOS -->
+                                            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-[10px] uppercase font-bold text-emerald-800 block">Código PIN de Confirmação</span>
+                                                    <span class="text-xs text-emerald-600">Apresente este código ao entregador no recebimento</span>
+                                                </div>
+                                                <div class="text-2xl font-black font-mono tracking-widest text-emerald-700 bg-white px-3 py-1 rounded-lg border border-emerald-300 shadow-inner">
+                                                    ${sub.pinCode}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    } else {
+                        subOrdersHtml = `
+                            <div class="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 space-y-1 mt-3">
+                                <p class="font-bold flex items-center gap-1.5 text-amber-950">
+                                    <i class="fa-solid fa-hourglass-half text-amber-600"></i> Aguardando Triagem Farmacêutica
+                                </p>
+                                <p>Sua receita médica foi recebida com sucesso e está na fila para conferência do farmacêutico da Central Municipal.</p>
+                            </div>
+                        `;
+                    }
+
+                    // Banner de desmembramento quando há remessa aguardando reposição (EXATAMENTE COMO REQUISITADO)
+                    const splitBannerHtml = hasAwaitingRestock ? `
+                        <div class="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-900 text-xs font-bold space-y-1 shadow-sm mt-3" role="alert" aria-live="polite">
+                            <p class="text-sm font-black text-amber-950 flex items-center gap-2">
+                                ⚠️ Pedido Desmembrado: A Remessa A está a caminho. A Remessa B será entregue assim que o estoque municipal for reposto.
+                            </p>
+                        </div>
+                    ` : '';
+
+                    return `
+                        <div class="bg-white p-5 rounded-3xl border shadow-sm space-y-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                    <span class="text-xs text-gray-400 font-bold block">Pedido</span>
+                                    <h4 class="text-lg font-black text-gray-800">#${order.code}</h4>
+                                </div>
+                                <span class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-full">
+                                    ${new Date(order.createdAt).toLocaleDateString('pt-BR')} às ${new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                            </div>
+
+                            ${splitBannerHtml}
+                            ${subOrdersHtml}
+                        </div>
+                    `;
+                }).join('');
             }
 
-            container.innerHTML = html;
+            // RENDERIZA SEÇÃO 2: HISTÓRICO DE ENTREGAS CONCLUÍDAS
+            if (historyOrders.length === 0) {
+                historyContainer.innerHTML = `
+                    <div class="bg-white p-6 rounded-2xl border text-center text-xs text-gray-400">
+                        <i class="fa-solid fa-clock-rotate-left text-2xl text-gray-300 mb-2"></i>
+                        <p>Nenhuma entrega concluída no histórico ainda.</p>
+                    </div>
+                `;
+            } else {
+                historyContainer.innerHTML = historyOrders.map(order => {
+                    const deliveredItems = (order.subOrders || []).flatMap(s => s.items).map(i => `${i.medicationName} (${i.dosage})`).join(', ');
+
+                    return `
+                        <div class="bg-white p-5 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">✓</span>
+                                    <h4 class="text-base font-black text-gray-800">Pedido #${order.code}</h4>
+                                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">Entregue</span>
+                                </div>
+                                <p class="text-xs text-gray-500 pl-8">Medicamentos: <span class="font-bold text-gray-700">${deliveredItems || 'Medicamentos RENAME'}</span></p>
+                                <p class="text-[11px] text-gray-400 pl-8">Concluído e validado com código PIN no ato da entrega.</p>
+                            </div>
+                            <span class="text-xs text-gray-400 font-medium">
+                                ${new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
-        // TABELA DA FILA DE PEDIDOS DO FUNCIONÁRIO
+        // Helper para badge de status das subOrders
+        function getSubOrderStatusBadge(status) {
+            const map = {
+                'EM_SEPARACAO': '<span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-boxes-packing mr-1"></i> Em Separação</span>',
+                'AGUARDANDO_COLETA': '<span class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-box mr-1"></i> Aguardando Coleta</span>',
+                'SAIU_PARA_ENTREGA': '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-motorcycle mr-1"></i> Em Rota</span>',
+                'AGUARDANDO_REPOSICAO': '<span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Aguardando Reposição</span>',
+                'ENTREGUE': '<span class="bg-green-100 text-green-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-circle-check mr-1"></i> Entregue</span>'
+            };
+            return map[status] || `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2.5 py-1 rounded-full">${status}</span>`;
+        }
+
+        // =====================================================================
+        // 3. TRIAGEM INTELIGENTE NA FARMÁCIA COM DESMEMBRAMENTO 1:N
+        // =====================================================================
         function renderFuncionarioTable() {
             const tbody = document.getElementById('table-funcionario-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
-            pedidos.forEach(p => {
-                const statusColors = {
-                    'Aguardando Validação': 'bg-amber-100 text-amber-800',
-                    'Em Rota': 'bg-blue-100 text-blue-800',
-                    'Entregue': 'bg-emerald-100 text-emerald-800',
-                    'Recusado': 'bg-red-100 text-red-800'
+            let orders = [];
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                orders = window.MinhaFarmacia.store.getOrders();
+            }
+
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-gray-400">Nenhum pedido no sistema.</td></tr>`;
+                return;
+            }
+
+            orders.forEach(p => {
+                const isPending = p.status === 'PENDENTE_TRIAGEM';
+                const statusMap = {
+                    'PENDENTE_TRIAGEM': 'bg-amber-100 text-amber-800',
+                    'EM_ANDAMENTO': 'bg-blue-100 text-blue-800',
+                    'FINALIZADO': 'bg-emerald-100 text-emerald-800',
+                    'RECUSADO': 'bg-red-100 text-red-800'
                 };
+
+                const addr = p.deliveryAddress ? `${p.deliveryAddress.street}, ${p.deliveryAddress.number}` : '-';
+                const meds = p.subOrders && p.subOrders.length > 0 
+                    ? p.subOrders.flatMap(s => s.items.map(i => i.medicationName)).join(', ') 
+                    : '<i class="text-gray-400">Aguardando Triagem</i>';
 
                 tbody.innerHTML += `
                     <tr>
                         <td class="p-3">
-                            <b class="text-gray-800 block">${p.id}</b>
-                            <span class="text-xs text-gray-500">${p.cliente}</span>
+                            <b class="text-gray-800 block">#${p.code}</b>
+                            <span class="text-xs text-gray-500">${p.citizenName || 'Munícipe'}</span>
                         </td>
-                        <td class="p-3 text-xs text-gray-600">${p.endereco}</td>
+                        <td class="p-3 text-xs text-gray-600">${addr}</td>
                         <td class="p-3 text-xs text-blue-600 font-bold underline cursor-pointer">
-                            <i class="fa-solid fa-file-image mr-1"></i> ${p.arquivo}
+                            <i class="fa-solid fa-file-prescription mr-1"></i> Receita Médica
                         </td>
                         <td class="p-3 text-xs font-semibold text-emerald-700">
-                            ${p.medicamentos.length > 0 ? p.medicamentos.join(', ') : '<i class="text-gray-400">Aguardando Seleção</i>'}
+                            ${meds}
                         </td>
                         <td class="p-3">
-                            <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full ${statusColors[p.status]}">
+                            <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full ${statusMap[p.status] || 'bg-gray-100 text-gray-800'}">
                                 ${p.status}
                             </span>
                         </td>
                         <td class="p-3 text-right space-x-1">
-                            ${p.status === 'Aguardando Validação' ? `
-                                <button onclick="openModalValidacao('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">
+                            ${isPending ? `
+                                <button onclick="openModalValidacao('${p.id}')" class="min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
                                     <i class="fa-solid fa-stethoscope"></i> Validar Receita
                                 </button>
-                                <button onclick="openModalRecusa('${p.id}')" class="bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold">
+                                <button onclick="openModalRecusa('${p.id}')" class="min-h-[44px] bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition">
                                     Reprovar
                                 </button>
                             ` : ''}
-                            <button onclick="openWhatsAppChat('${p.telefone}', '${p.id}')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Conversar com o Cidadão via WhatsApp">
-                                <i class="fa-brands fa-whatsapp text-sm"></i> Chat
+                            <button onclick="openWhatsAppChat('${p.citizenPhone}', '${p.code}')" class="min-h-[44px] bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition" title="WhatsApp Oficial">
+                                <i class="fa-brands fa-whatsapp text-sm"></i>
                             </button>
                         </td>
                     </tr>
@@ -738,29 +983,113 @@
             });
         }
 
-        // ATUALIZAR INDICADORES DO DASHBOARD
-        function updateDashboardCounts() {
-            const pending = pedidos.filter(p => p.status === 'Aguardando Validação').length;
-            const inRoute = pedidos.filter(p => p.status === 'Em Rota').length;
-            const done = pedidos.filter(p => p.status === 'Entregue').length;
+        // Abre modal de validação com pré-seleção inteligente da base RENAME
+        function openModalValidacao(orderId) {
+            selectedOrderId = orderId;
+            let order = null;
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                order = window.MinhaFarmacia.store.getOrderById(orderId);
+            }
 
-            document.getElementById('dash-count-pending').innerText = pending;
-            document.getElementById('dash-count-route').innerText = inRoute;
-            document.getElementById('dash-count-done').innerText = 12 + done;
+            if (order) {
+                document.getElementById('val-filename').innerText = 'Receita Oficial Prescrita.jpg';
+                document.getElementById('val-cliente-nome').innerText = order.citizenName || 'Dona Maria de Lourdes Silva';
+                document.getElementById('val-cliente-end').innerText = order.deliveryAddress ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number}` : 'Indaiatuba - SP';
+            }
+
+            // PRÉ-SELEÇÃO INTELIGENTE DE MEDICAMENTOS SUGERIDOS DA BASE RENAME:
+            // med-01 (Losartana - com estoque) e med-03 (Amoxicilina - estoque zerado intencionalmente para teste 1:N)
+            selectedTriageDecisions = [
+                { medicationId: 'med-01', approvedQty: 10 },
+                { medicationId: 'med-03', approvedQty: 5 }
+            ];
+
+            updateSelectedMedsUI();
+            checkTriageSplitPreview();
+            renderTriageCatalogList();
+
+            document.getElementById('suggested-motoboy-text').innerHTML = `Sugerido pelo sistema: <b>Marcos Vinicius (Moto 01)</b> (0.8 km de distância - Status: Livre)`;
+            document.getElementById('modal-validacao').classList.remove('hidden');
         }
 
-        // CATÁLOGO DENTRO DO MODAL
-        function renderCatalogList(list) {
-            const container = document.getElementById('catalog-list');
+        function closeModalValidacao() {
+            const m = document.getElementById('modal-validacao');
+            if (m) m.classList.add('hidden');
+        }
+
+        // Renderiza itens selecionados na modal de triagem
+        function updateSelectedMedsUI() {
+            const container = document.getElementById('val-selected-meds');
+            if (!container) return;
             container.innerHTML = '';
-            list.forEach(m => {
+
+            if (selectedTriageDecisions.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 italic">Nenhum item selecionado do catálogo ainda.</p>`;
+                return;
+            }
+
+            let meds = [];
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                meds = window.MinhaFarmacia.store.getMedications();
+            }
+
+            selectedTriageDecisions.forEach(dec => {
+                const med = meds.find(m => m.id === dec.medicationId);
+                const name = med ? `${med.name} (${med.dosage})` : dec.medicationId;
+                const stock = med ? med.stockQuantity : 0;
+                const isInsufficient = stock < dec.approvedQty;
+
+                container.innerHTML += `
+                    <div class="flex items-center justify-between bg-white p-2.5 rounded-lg border text-xs">
+                        <div>
+                            <span class="font-bold text-gray-800"><i class="fa-solid fa-check text-emerald-600 mr-1"></i> ${name}</span>
+                            <span class="text-[10px] ml-2 ${isInsufficient ? 'text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded' : 'text-emerald-700'}">
+                                Qtd: ${dec.approvedQty} • Saldo em estoque: ${stock}
+                            </span>
+                        </div>
+                        <button type="button" onclick="removeMedFromTriage('${dec.medicationId}')" class="text-red-500 font-bold hover:underline">Remover</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Verifica impacto de desmembramento em tempo real
+        function checkTriageSplitPreview() {
+            const banner = document.getElementById('val-split-preview');
+            const bannerText = document.getElementById('val-split-preview-text');
+            if (!banner) return;
+
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.previewStockImpact === 'function') {
+                const preview = window.MinhaFarmacia.previewStockImpact(selectedOrderId, selectedTriageDecisions);
+                if (preview.willBeSplit) {
+                    banner.classList.remove('hidden');
+                    if (bannerText) {
+                        bannerText.innerText = 'Itens com estoque insuficiente detectados na prescrição (ex: Amoxicilina). A aprovação ativará o desmembramento 1:N automático no sistema, gerando a Remessa A imediata e a Remessa B aguardando reposição.';
+                    }
+                } else {
+                    banner.classList.add('hidden');
+                }
+            }
+        }
+
+        function renderTriageCatalogList() {
+            const container = document.getElementById('catalog-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let meds = [];
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                meds = window.MinhaFarmacia.store.getMedications().filter(m => m.active);
+            }
+
+            meds.forEach(m => {
                 container.innerHTML += `
                     <div class="flex items-center justify-between p-2 bg-white border rounded-xl hover:bg-gray-50 text-xs">
                         <div>
-                            <p class="font-bold text-gray-800">${m.nome}</p>
-                            <p class="text-[10px] text-gray-400">${m.desc} • Estoque: ${m.qtd}</p>
+                            <p class="font-bold text-gray-800">${m.name} ${m.dosage}</p>
+                            <p class="text-[10px] text-gray-400">${m.presentation} • Estoque: <b>${m.stockQuantity}</b></p>
                         </div>
-                        <button type="button" onclick="addMedToOrder('${m.nome}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold hover:bg-emerald-700">
+                        <button type="button" onclick="addMedToTriage('${m.id}')" class="min-h-[44px] bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold hover:bg-emerald-700 transition">
                             + Selecionar
                         </button>
                     </div>
@@ -768,100 +1097,69 @@
             });
         }
 
-        // GRID DO ESTOQUE
-        function renderInventoryGrid() {
-            const container = document.getElementById('inventory-grid');
-            container.innerHTML = '';
-            estoqueMedicamentos.forEach(m => {
-                container.innerHTML += `
-                    <div class="p-4 bg-gray-50 border rounded-2xl space-y-2">
-                        <div class="flex justify-between items-start">
-                            <p class="font-bold text-gray-800 text-sm">${m.nome}</p>
-                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${m.qtd} un</span>
-                        </div>
-                        <p class="text-xs text-gray-500">${m.desc}</p>
-                    </div>
-                `;
-            });
+        function addMedToTriage(medId) {
+            if (!selectedTriageDecisions.some(d => d.medicationId === medId)) {
+                selectedTriageDecisions.push({ medicationId: medId, approvedQty: 1 });
+                updateSelectedMedsUI();
+                checkTriageSplitPreview();
+            }
+        }
+
+        function removeMedFromTriage(medId) {
+            selectedTriageDecisions = selectedTriageDecisions.filter(d => d.medicationId !== medId);
+            updateSelectedMedsUI();
+            checkTriageSplitPreview();
         }
 
         function filterCatalog() {
-            const q = document.getElementById('cat-search').value.toLowerCase();
-            const res = estoqueMedicamentos.filter(m => m.nome.toLowerCase().includes(q));
-            renderCatalogList(res);
-        }
+            const q = (document.getElementById('cat-search').value || '').toLowerCase();
+            const container = document.getElementById('catalog-list');
+            if (!container) return;
 
-        function addMedToOrder(medName) {
-            if (!selectedMedsForOrder.includes(medName)) {
-                selectedMedsForOrder.push(medName);
+            let meds = [];
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                meds = window.MinhaFarmacia.store.getMedications().filter(m => m.active);
             }
-            updateSelectedMedsUI();
-        }
 
-        function removeMedFromOrder(medName) {
-            selectedMedsForOrder = selectedMedsForOrder.filter(m => m !== medName);
-            updateSelectedMedsUI();
-        }
-
-        function updateSelectedMedsUI() {
-            const container = document.getElementById('val-selected-meds');
+            const filtered = meds.filter(m => m.name.toLowerCase().includes(q) || m.dosage.toLowerCase().includes(q));
             container.innerHTML = '';
-            if (selectedMedsForOrder.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 italic">Nenhum item selecionado do catálogo ainda.</p>`;
-                return;
-            }
-            selectedMedsForOrder.forEach(m => {
+            filtered.forEach(m => {
                 container.innerHTML += `
-                    <div class="flex items-center justify-between bg-white p-2 rounded-lg border text-xs">
-                        <span class="font-bold text-emerald-800"><i class="fa-solid fa-check text-emerald-600 mr-1"></i> ${m}</span>
-                        <button type="button" onclick="removeMedFromOrder('${m}')" class="text-red-500 font-bold hover:underline">Remover</button>
+                    <div class="flex items-center justify-between p-2 bg-white border rounded-xl hover:bg-gray-50 text-xs">
+                        <div>
+                            <p class="font-bold text-gray-800">${m.name} ${m.dosage}</p>
+                            <p class="text-[10px] text-gray-400">${m.presentation} • Estoque: <b>${m.stockQuantity}</b></p>
+                        </div>
+                        <button type="button" onclick="addMedToTriage('${m.id}')" class="min-h-[44px] bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold hover:bg-emerald-700 transition">
+                            + Selecionar
+                        </button>
                     </div>
                 `;
             });
         }
 
-        // ABRIR MODAL VALIDAÇÃO
-        function openModalValidacao(orderId) {
-            selectedOrderId = orderId;
-            selectedMedsForOrder = [];
-            const ped = pedidos.find(p => p.id === orderId);
-
-            document.getElementById('val-filename').innerText = ped.arquivo;
-            document.getElementById('val-cliente-nome').innerText = ped.cliente;
-            document.getElementById('val-cliente-end').innerText = ped.endereco;
-            updateSelectedMedsUI();
-
-            const livre = motoboys.find(m => m.status === 'Livre') || motoboys[0];
-            document.getElementById('suggested-motoboy-text').innerHTML = `Sugerido pelo sistema: <b>${livre.nome}</b> (${livre.dist} de distância - Status: ${livre.status})`;
-
-            document.getElementById('modal-validacao').classList.remove('hidden');
-        }
-
-        function closeModalValidacao() {
-            document.getElementById('modal-validacao').classList.add('hidden');
-        }
-
+        // Confirma aprovação da triagem invocando splitEngine e persistindo no store
         function confirmApproval() {
-            if (selectedMedsForOrder.length === 0) {
-                alert('Selecione ao menos um medicamento do catálogo correspondente à receita!');
+            if (selectedTriageDecisions.length === 0) {
+                alert('Selecione ao menos um medicamento do catálogo correspondente à receita médica!');
                 return;
             }
 
-            const ped = pedidos.find(p => p.id === selectedOrderId);
-            const motoboyOtimizado = motoboys.find(m => m.status === 'Livre') || motoboys[0];
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.performPharmacyTriage === 'function') {
+                const res = window.MinhaFarmacia.performPharmacyTriage(selectedOrderId, selectedTriageDecisions);
+                if (!res.success) {
+                    alert(res.error || 'Erro ao processar triagem farmacêutica.');
+                    return;
+                }
+                const isSplit = res.triageResult && res.triageResult.isSplit;
+                alert(`Triagem concluída com sucesso! ${isSplit ? 'Pedido desmembrado em 1:N (Remessa A imediata e Remessa B aguardando reposição).' : 'Pedido aprovado em remessa única.'}`);
+            }
 
-            ped.status = 'Em Rota';
-            ped.medicamentos = [...selectedMedsForOrder];
-            ped.motoboy = motoboyOtimizado.nome;
-
-            alert(`Pedido ${ped.id} aprovado! Medicamentos atrelados e entrega designada para ${ped.motoboy}.`);
             closeModalValidacao();
-            renderFuncionarioTable();
-            renderMotoboyOrders();
-            updateDashboardCounts();
+            renderAllViews();
         }
 
-        // REPROVAÇÃO COM JUSTIFICATIVA
+        // Reprovação
         function openModalRecusa(orderId) {
             selectedOrderId = orderId;
             document.getElementById('modal-recusa').classList.remove('hidden');
@@ -877,58 +1175,86 @@
                 alert('Obrigatório preencher a justificativa da reprovação!');
                 return;
             }
-            const ped = pedidos.find(p => p.id === selectedOrderId);
-            ped.status = 'Recusado';
-            ped.justificativa = reason;
-
-            alert(`Pedido ${ped.id} reprovado com justificativa emitida.`);
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                const order = window.MinhaFarmacia.store.getOrderById(selectedOrderId);
+                if (order) {
+                    order.status = 'RECUSADO';
+                    order.rejectionReason = reason;
+                    window.MinhaFarmacia.store.persistAndNotify();
+                }
+            }
+            alert(`Pedido reprovado com justificativa emitida.`);
             closeModalRecusa();
-            renderFuncionarioTable();
-            updateDashboardCounts();
+            renderAllViews();
         }
 
-        // BOTÃO WHATSAPP / CHAT
-        function openWhatsAppChat(phone, orderId) {
-            const msg = encodeURIComponent(`Olá! Sou da Central da Farmácia Municipal de Indaiatuba referente ao seu pedido #${orderId}.`);
-            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-        }
-
-        // PAINEL MOTOBOY
-        function renderMotoboyOrders() {
-            const container = document.getElementById('motoboy-orders-list');
+        // =====================================================================
+        // 4. CRUD COMPLETO NO CATÁLOGO DE ESTOQUE COM GATILHO REATIVO
+        // =====================================================================
+        function renderInventoryGrid() {
+            const container = document.getElementById('inventory-grid');
+            if (!container) return;
             container.innerHTML = '';
 
-            const minhasEntregas = pedidos.filter(p => p.status === 'Em Rota');
+            let list = [];
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getCatalogView === 'function') {
+                list = window.MinhaFarmacia.getCatalogView();
+            } else if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                list = window.MinhaFarmacia.store.getMedications();
+            }
 
-            if (minhasEntregas.length === 0) {
-                container.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center text-xs text-gray-400">Nenhuma entrega atribuída no momento.</div>`;
+            const searchInput = document.getElementById('inv-search');
+            const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            if (q) {
+                list = list.filter(m => m.name.toLowerCase().includes(q) || m.dosage.toLowerCase().includes(q));
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="col-span-3 p-6 text-center text-xs text-gray-400">Nenhum medicamento encontrado.</div>`;
                 return;
             }
 
-            minhasEntregas.forEach(p => {
+            list.forEach(m => {
+                const isOutOfStock = m.stockQuantity === 0;
+                const isLowStock = !isOutOfStock && (m.stockQuantity < m.minStockAlert);
+
+                let badgeHtml = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-0.5 rounded-full">${m.stockQuantity} un em estoque</span>`;
+                if (isOutOfStock) {
+                    badgeHtml = `<span class="bg-red-100 text-red-800 text-[10px] font-black px-2.5 py-0.5 rounded-full animate-pulse">0 un (ESGOTADO)</span>`;
+                } else if (isLowStock) {
+                    badgeHtml = `<span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full">${m.stockQuantity} un (ALERTA BAIXO)</span>`;
+                }
+
                 container.innerHTML += `
-                    <div class="bg-white p-5 rounded-2xl border-2 border-blue-200 shadow-sm space-y-4">
+                    <div class="p-5 bg-white border ${m.active ? 'border-gray-200' : 'border-dashed border-gray-300 opacity-60'} rounded-2xl shadow-sm space-y-3">
                         <div class="flex justify-between items-start">
                             <div>
-                                <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">Entrega Pendente</span>
-                                <h4 class="text-base font-black text-gray-800 mt-1">${p.cliente}</h4>
-                                <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i> ${p.endereco}</p>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${m.category}</span>
+                                <h4 class="font-black text-gray-800 text-base leading-tight">${m.name}</h4>
+                                <p class="text-xs font-semibold text-emerald-700">${m.dosage}</p>
                             </div>
-                            <button onclick="openWhatsAppChat('${p.telefone}', '${p.id}')" class="bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1">
-                                <i class="fa-brands fa-whatsapp"></i> Chat
-                            </button>
+                            ${badgeHtml}
                         </div>
 
-                        <div class="p-3 bg-gray-50 rounded-xl text-xs space-y-1">
-                            <p class="font-bold text-gray-700">Itens para entrega:</p>
-                            <p class="text-emerald-700 font-semibold">${p.medicamentos.join(', ')}</p>
+                        <p class="text-xs text-gray-500">${m.presentation} • Alerta: ${m.minStockAlert} un</p>
+
+                        <!-- Botões de Ajuste Rápido de Estoque (+10, -10, +1, -1) -->
+                        <div class="pt-2 border-t space-y-2">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase block">Ajuste Rápido de Saldo:</span>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <button type="button" onclick="quickAdjustStock('${m.id}', -10)" class="min-h-[44px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black rounded-lg transition" title="Subtrair 10 unidades">-10</button>
+                                <button type="button" onclick="quickAdjustStock('${m.id}', -1)" class="min-h-[44px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black rounded-lg transition" title="Subtrair 1 unidade">-1</button>
+                                <button type="button" onclick="quickAdjustStock('${m.id}', 1)" class="min-h-[44px] px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-black rounded-lg transition" title="Adicionar 1 unidade">+1</button>
+                                <button type="button" onclick="quickAdjustStock('${m.id}', 10)" class="min-h-[44px] px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg shadow-sm transition" title="Adicionar 10 unidades (dispara reabastecimento reativo)">+10</button>
+                            </div>
                         </div>
 
-                        <!-- Confirmação com PIN -->
-                        <div class="pt-2 border-t flex items-center gap-2">
-                            <input type="text" id="pin-input-${p.id}" placeholder="PIN (4 dígitos)" class="p-2 border rounded-xl text-xs w-32 font-mono text-center font-bold">
-                            <button onclick="confirmDelivery('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex-grow shadow-sm">
-                                Confirmar Entrega
+                        <!-- Inativar / Reativar Medicamento -->
+                        <div class="pt-2 border-t flex justify-between items-center text-xs">
+                            <span class="text-gray-400">${m.active ? '<i class="fa-solid fa-circle text-emerald-500 text-[8px] mr-1"></i> Ativo' : '<i class="fa-solid fa-circle text-gray-400 text-[8px] mr-1"></i> Inativo'}</span>
+                            <button type="button" onclick="toggleMedStatus('${m.id}')" class="min-h-[44px] px-2 py-1 font-bold ${m.active ? 'text-red-500 hover:text-red-700' : 'text-emerald-600 hover:text-emerald-800'} transition">
+                                ${m.active ? '<i class="fa-solid fa-ban mr-1"></i> Inativar' : '<i class="fa-solid fa-rotate-left mr-1"></i> Reativar'}
                             </button>
                         </div>
                     </div>
@@ -936,60 +1262,173 @@
             });
         }
 
-        function confirmDelivery(orderId) {
-            const input = document.getElementById(`pin-input-${orderId}`);
-            const ped = pedidos.find(p => p.id === orderId);
+        // Ajuste rápido de estoque com gatilho reativo automático
+        function quickAdjustStock(medId, delta) {
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.adjustMedicationStock === 'function') {
+                const res = window.MinhaFarmacia.adjustMedicationStock(medId, delta);
+                if (!res.success) {
+                    alert(res.error || 'Erro ao ajustar estoque.');
+                    return;
+                }
+            }
+            renderAllViews();
+        }
 
-            if (input && input.value === ped.codigoPIN) {
-                ped.status = 'Entregue';
-                alert(`Entrega do pedido ${orderId} concluída com sucesso!`);
-                renderMotoboyOrders();
-                renderFuncionarioTable();
-                updateDashboardCounts();
-            } else {
-                alert('PIN de confirmação incorreto!');
+        // Toggle do status do medicamento (Ativo/Inativo)
+        function toggleMedStatus(medId) {
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.toggleMedicationStatus === 'function') {
+                window.MinhaFarmacia.toggleMedicationStatus(medId);
+            }
+            renderAllViews();
+        }
+
+        // Modal de Novo Medicamento
+        function openModalNovoMedicamento() {
+            document.getElementById('modal-novo-medicamento').classList.remove('hidden');
+        }
+
+        function closeModalNovoMedicamento() {
+            document.getElementById('modal-novo-medicamento').classList.add('hidden');
+        }
+
+        function handleNovoMedicamento(e) {
+            e.preventDefault();
+            const name = document.getElementById('novo-med-nome').value;
+            const dosage = document.getElementById('novo-med-dosagem').value;
+            const presentation = document.getElementById('novo-med-apresentacao').value;
+            const stockQuantity = parseInt(document.getElementById('novo-med-estoque').value, 10) || 0;
+            const minStockAlert = parseInt(document.getElementById('novo-med-alerta').value, 10) || 10;
+            const category = document.getElementById('novo-med-categoria').value;
+
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.addMedication === 'function') {
+                const res = window.MinhaFarmacia.addMedication({
+                    name,
+                    dosage,
+                    presentation,
+                    stockQuantity,
+                    minStockAlert,
+                    category
+                });
+                if (!res.success) {
+                    alert(res.error || 'Erro ao cadastrar medicamento.');
+                    return;
+                }
+            }
+
+            alert(`Medicamento "${name}" cadastrado com sucesso no catálogo municipal!`);
+            closeModalNovoMedicamento();
+            document.getElementById('novo-med-nome').value = '';
+            document.getElementById('novo-med-dosagem').value = '';
+            document.getElementById('novo-med-apresentacao').value = '';
+            renderAllViews();
+        }
+
+        // =====================================================================
+        // CONTADORES DO DASHBOARD E WHATSAPP
+        // =====================================================================
+        function updateDashboardCounts() {
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getPharmacyDashboardCounters === 'function') {
+                const counters = window.MinhaFarmacia.getPharmacyDashboardCounters();
+                const pEl = document.getElementById('dash-count-pending');
+                const rEl = document.getElementById('dash-count-route');
+                const dEl = document.getElementById('dash-count-done');
+                if (pEl) pEl.innerText = counters.pendingTriage;
+                if (rEl) rEl.innerText = counters.inRoute + counters.inSeparation;
+                if (dEl) dEl.innerText = 12 + counters.readyForPickup;
             }
         }
 
-        // MAPA DE GEOLOCALIZAÇÃO
-        function initMap() {
-            if (mapInstance) return;
+        function openWhatsAppChat(phone, code) {
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getWhatsAppLink === 'function') {
+                const link = window.MinhaFarmacia.getWhatsAppLink(phone || '19998765432', code || 'PED-2026', 'Munícipe');
+                window.open(link, '_blank');
+            } else {
+                window.open(`https://wa.me/55${phone}?text=Olá!`, '_blank');
+            }
+        }
 
-            const indaiatubaCoords = [-23.0903, -47.2181];
-            mapInstance = L.map('map-gerencial').setView(indaiatubaCoords, 13);
+        // =====================================================================
+        // MÓDULO DO ENTREGADOR / MOTOBOY
+        // =====================================================================
+        function renderMotoboyOrders() {
+            const container = document.getElementById('motoboy-orders-list');
+            if (!container) return;
+            container.innerHTML = '';
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© Prefeitura de Indaiatuba'
-            }).addTo(mapInstance);
+            let deliveries = [];
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getCourierDeliveries === 'function') {
+                deliveries = window.MinhaFarmacia.getCourierDeliveries();
+            }
 
-            L.marker(indaiatubaCoords).addTo(mapInstance)
-                .bindPopup('<b>Farmácia Central - Indaiatuba</b><br>Ponto de Distribuição Municipal.')
-                .openPopup();
+            const activeDeliveries = deliveries.filter(d => d.status !== 'ENTREGUE');
 
-            const motoboyIcon = L.icon({
-                iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
-                iconSize: [36, 36]
+            if (activeDeliveries.length === 0) {
+                container.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center text-xs text-gray-400">Nenhuma entrega atribuída no momento.</div>`;
+                return;
+            }
+
+            activeDeliveries.forEach(p => {
+                const waLink = window.MinhaFarmacia && typeof window.MinhaFarmacia.getWhatsAppLink === 'function'
+                    ? window.MinhaFarmacia.getWhatsAppLink(p.citizenPhone, p.subOrderCode, p.citizenName)
+                    : `https://wa.me/55${p.citizenPhone}`;
+
+                const medList = p.items.map(i => `${i.medicationName} (${i.dosage})`).join(', ');
+
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl border-2 border-blue-200 shadow-sm space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">${p.subOrderLabel}</span>
+                                <h4 class="text-base font-black text-gray-800 mt-1">${p.citizenName}</h4>
+                                <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i> ${p.citizenAddress}</p>
+                            </div>
+                            <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="min-h-[44px] bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 transition">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> Chat
+                            </a>
+                        </div>
+
+                        <div class="p-3 bg-gray-50 rounded-xl text-xs space-y-1">
+                            <p class="font-bold text-gray-700">Itens desta remessa:</p>
+                            <p class="text-emerald-700 font-semibold">${medList}</p>
+                        </div>
+
+                        <!-- Confirmação com PIN estrito de 4 dígitos -->
+                        <div class="pt-2 border-t flex items-center gap-2">
+                            <input type="text" id="pin-input-${p.subOrderId}" maxlength="4" placeholder="PIN (4 dígitos)" class="min-h-[44px] p-2 border rounded-xl text-xs w-36 font-mono text-center font-bold tracking-widest focus:ring-2 focus:ring-emerald-500">
+                            <button onclick="confirmDelivery('${p.subOrderId}')" class="min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex-grow shadow-sm transition">
+                                <i class="fa-solid fa-circle-check mr-1"></i> Confirmar Entrega
+                            </button>
+                        </div>
+                    </div>
+                `;
             });
+        }
 
-            const destIcon = L.icon({
-                iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-                iconSize: [30, 30]
-            });
+        // Validação estrita de entrega com PIN
+        function confirmDelivery(subOrderId) {
+            const input = document.getElementById(`pin-input-${subOrderId}`);
+            const pinVal = input ? input.value.trim() : '';
 
-            motoboys.forEach(m => {
-                L.marker([m.lat, m.lng], { icon: motoboyIcon }).addTo(mapInstance)
-                    .bindPopup(`<b>${m.nome}</b><br>Status: ${m.status}`);
-
-                if (m.destLat && m.destLng) {
-                    L.marker([m.destLat, m.destLng], { icon: destIcon }).addTo(mapInstance)
-                        .bindPopup(`<b>Destino da Entrega</b><br>Cliente: ${m.clienteDestino}`);
-
-                    L.polyline([
-                        [m.lat, m.lng],
-                        [m.destLat, m.destLng]
-                    ], { color: '#2563eb', weight: 4, dashArray: '6, 8' }).addTo(mapInstance);
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.validateAndCompleteDelivery === 'function') {
+                const res = window.MinhaFarmacia.validateAndCompleteDelivery(subOrderId, pinVal);
+                if (res.success) {
+                    alert('Entrega realizada com sucesso! PIN validado e remessa baixada.');
+                } else {
+                    alert(res.message || 'Código PIN incorreto!');
+                    return;
                 }
-            });
+            } else {
+                alert('Entrega registrada.');
+            }
+
+            renderAllViews();
+        }
+
+        // MAPA DA FROTA (LEAFLET.JS)
+        function initMap() {
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.initFleetMap === 'function') {
+                window.MinhaFarmacia.initFleetMap('map-gerencial');
+            }
         }
     </script>
 

@@ -797,6 +797,289 @@
     };
   }
 
+  // src/modules/cidadao/cidadaoService.ts
+  function createCitizenPrescriptionOrder(params) {
+    if (!params.prescriptionImageUrl || params.prescriptionImageUrl.trim() === "") {
+      return {
+        success: false,
+        error: "Por favor, anexar a imagem da receita m\xE9dica antes de enviar o pedido."
+      };
+    }
+    const currentCitizen = store.getCurrentCitizen();
+    const newOrder = store.createOrder({
+      citizenId: currentCitizen.id,
+      prescriptionImageUrl: params.prescriptionImageUrl.trim(),
+      notes: params.notes
+    });
+    return {
+      success: true,
+      order: store.getOrderById(newOrder.id)
+    };
+  }
+  function formatCitizenOrdersView(citizenId) {
+    const allOrders = store.getOrders();
+    const citizenOrders = allOrders.filter((o) => o.citizenId === citizenId);
+    return citizenOrders.map((order) => {
+      const subOrderViews = order.subOrders.map((sub) => ({
+        id: sub.id,
+        code: sub.code,
+        label: sub.label,
+        status: sub.status,
+        pinCode: sub.pinCode,
+        items: sub.items,
+        createdAt: sub.createdAt,
+        updatedAt: sub.updatedAt,
+        estimatedDelivery: sub.estimatedDelivery,
+        deliveredAt: sub.deliveredAt,
+        notes: sub.notes
+      }));
+      return {
+        id: order.id,
+        code: order.code,
+        status: order.status,
+        isSplit: order.isSplit,
+        splitReason: order.splitReason,
+        prescriptionImageUrl: order.prescriptionImageUrl,
+        createdAt: order.createdAt,
+        subOrders: subOrderViews
+      };
+    });
+  }
+  function getCitizenSplitBannerInfo(orderView) {
+    if (!orderView.isSplit || orderView.subOrders.length < 2) {
+      return {
+        showBanner: false,
+        message: ""
+      };
+    }
+    const remessaA = orderView.subOrders[0];
+    const remessaB = orderView.subOrders[1];
+    const message = `Seu pedido foi dividido em duas remessas para n\xE3o atrasar seus medicamentos. A ${remessaA.label} (${remessaA.code}) ser\xE1 enviada imediatamente com os itens dispon\xEDveis. A ${remessaB.label} (${remessaB.code}) ser\xE1 enviada assim que o estoque for reposto pela Farm\xE1cia Central de Indaiatuba.`;
+    return {
+      showBanner: true,
+      message
+    };
+  }
+
+  // src/modules/farmacia/farmaciaService.ts
+  function getPharmacyTriageQueue() {
+    const allOrders = store.getOrders();
+    const pending = allOrders.filter((o) => o.status === "PENDENTE_TRIAGEM").sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    return pending.map((o) => ({
+      id: o.id,
+      code: o.code,
+      status: o.status,
+      citizenName: o.citizenName,
+      citizenCpf: o.citizenCpf,
+      citizenPhone: o.citizenPhone,
+      prescriptionImageUrl: o.prescriptionImageUrl,
+      createdAt: o.createdAt,
+      deliveryAddress: o.deliveryAddress
+    }));
+  }
+  function previewStockImpact(orderId, decisions) {
+    const medications = store.getMedications();
+    let willBeSplit = false;
+    const items = decisions.map((decision) => {
+      const med = medications.find((m) => m.id === decision.medicationId);
+      if (!med) {
+        return {
+          medicationId: decision.medicationId,
+          medicationName: "Medicamento n\xE3o encontrado",
+          dosage: "-",
+          approvedQty: decision.approvedQty,
+          currentStock: 0,
+          stockAfter: 0,
+          isAvailable: false
+        };
+      }
+      const isAvailable = med.stockQuantity >= decision.approvedQty;
+      const stockAfter = isAvailable ? med.stockQuantity - decision.approvedQty : med.stockQuantity;
+      if (!isAvailable) {
+        willBeSplit = true;
+      }
+      return {
+        medicationId: med.id,
+        medicationName: med.name,
+        dosage: med.dosage,
+        approvedQty: decision.approvedQty,
+        currentStock: med.stockQuantity,
+        stockAfter: Math.max(0, stockAfter),
+        isAvailable
+      };
+    });
+    return { orderId, willBeSplit, items };
+  }
+  function performPharmacyTriage(orderId, decisions, pharmacistId = "farm-central") {
+    const order = store.getOrderById(orderId);
+    if (!order) {
+      return { success: false, error: `Pedido ${orderId} n\xE3o encontrado.` };
+    }
+    if (order.status !== "PENDENTE_TRIAGEM") {
+      return {
+        success: false,
+        error: `Pedido ${order.code} j\xE1 foi processado (status: ${order.status}).`
+      };
+    }
+    const storeResult = store.performTriage(orderId, decisions, pharmacistId);
+    if (!storeResult.success) {
+      return { success: false, error: storeResult.error };
+    }
+    return { success: true, triageResult: storeResult.result };
+  }
+  function getPharmacyDashboardCounters() {
+    const allOrders = store.getOrders();
+    let pendingTriage = 0;
+    let inRoute = 0;
+    let awaitingRestock = 0;
+    let readyForPickup = 0;
+    let inSeparation = 0;
+    for (const order of allOrders) {
+      if (order.status === "PENDENTE_TRIAGEM") {
+        pendingTriage++;
+      }
+      for (const sub of order.subOrders) {
+        switch (sub.status) {
+          case "SAIU_PARA_ENTREGA":
+            inRoute++;
+            break;
+          case "AGUARDANDO_REPOSICAO":
+            awaitingRestock++;
+            break;
+          case "AGUARDANDO_COLETA":
+            readyForPickup++;
+            break;
+          case "EM_SEPARACAO":
+            inSeparation++;
+            break;
+        }
+      }
+    }
+    return {
+      pendingTriage,
+      inRoute,
+      awaitingRestock,
+      readyForPickup,
+      inSeparation,
+      totalOrders: allOrders.length
+    };
+  }
+
+  // src/modules/farmacia/catalogoService.ts
+  function toMedicationView(med) {
+    return {
+      ...med,
+      isOutOfStock: med.stockQuantity === 0,
+      isLowStock: med.stockQuantity < med.minStockAlert
+    };
+  }
+  function validateMedicationParams(params) {
+    if (!params.name || params.name.trim() === "") {
+      return "O nome do medicamento \xE9 obrigat\xF3rio.";
+    }
+    if (!params.dosage || params.dosage.trim() === "") {
+      return "A dosagem do medicamento \xE9 obrigat\xF3ria.";
+    }
+    if (!params.presentation || params.presentation.trim() === "") {
+      return "A apresenta\xE7\xE3o do medicamento \xE9 obrigat\xF3ria.";
+    }
+    if (typeof params.stockQuantity !== "number" || params.stockQuantity < 0) {
+      return "A quantidade em estoque deve ser um n\xFAmero n\xE3o negativo.";
+    }
+    if (typeof params.minStockAlert !== "number" || params.minStockAlert < 0) {
+      return "O alerta m\xEDnimo de estoque deve ser um n\xFAmero n\xE3o negativo.";
+    }
+    return null;
+  }
+  function getCatalogView(includeInactive = false) {
+    const meds = store.getMedications();
+    return meds.filter((m) => includeInactive || m.active).map(toMedicationView).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }
+  function searchCatalog(params) {
+    const meds = store.getMedications();
+    const queryLower = params.query?.toLowerCase().trim() ?? "";
+    return meds.filter((m) => params.includeInactive || m.active).filter((m) => {
+      if (queryLower === "") return true;
+      return m.name.toLowerCase().includes(queryLower) || m.dosage.toLowerCase().includes(queryLower) || m.presentation.toLowerCase().includes(queryLower);
+    }).filter((m) => {
+      if (!params.category) return true;
+      return m.category === params.category;
+    }).map(toMedicationView).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }
+  function getLowStockBadges() {
+    const meds = store.getMedications();
+    return meds.filter((m) => m.active && m.stockQuantity < m.minStockAlert).map((m) => ({
+      id: m.id,
+      name: m.name,
+      dosage: m.dosage,
+      category: m.category,
+      stockQuantity: m.stockQuantity,
+      minStockAlert: m.minStockAlert,
+      severity: m.stockQuantity === 0 ? "OUT_OF_STOCK" : "LOW_STOCK"
+    })).sort((a, b) => a.stockQuantity - b.stockQuantity);
+  }
+  function addMedication(params) {
+    const validationError = validateMedicationParams(params);
+    if (validationError) {
+      return { success: false, error: validationError };
+    }
+    const newMed = store.addMedication({
+      name: params.name.trim(),
+      dosage: params.dosage.trim(),
+      presentation: params.presentation.trim(),
+      stockQuantity: params.stockQuantity,
+      minStockAlert: params.minStockAlert,
+      category: params.category,
+      active: true
+    });
+    return { success: true, medication: toMedicationView(newMed) };
+  }
+  function editMedication(id, updates) {
+    const existing = store.getMedications().find((m) => m.id === id);
+    if (!existing) {
+      return { success: false, error: `Medicamento ${id} n\xE3o encontrado no cat\xE1logo.` };
+    }
+    if (updates.name !== void 0 && updates.name.trim() === "") {
+      return { success: false, error: "O nome do medicamento n\xE3o pode ser vazio." };
+    }
+    if (updates.dosage !== void 0 && updates.dosage.trim() === "") {
+      return { success: false, error: "A dosagem do medicamento n\xE3o pode ser vazia." };
+    }
+    if (updates.stockQuantity !== void 0 && updates.stockQuantity < 0) {
+      return { success: false, error: "A quantidade em estoque n\xE3o pode ser negativa." };
+    }
+    const updated = store.updateMedication(id, updates);
+    if (!updated) {
+      return { success: false, error: `Falha ao atualizar o medicamento ${id}.` };
+    }
+    const newMed = store.getMedications().find((m) => m.id === id);
+    return { success: true, medication: toMedicationView(newMed) };
+  }
+  function adjustMedicationStock(id, delta) {
+    const existing = store.getMedications().find((m) => m.id === id);
+    if (!existing) {
+      return { success: false, error: `Medicamento ${id} n\xE3o encontrado no cat\xE1logo.` };
+    }
+    const updated = store.adjustStock(id, delta);
+    if (!updated) {
+      return { success: false, error: `Falha ao ajustar estoque do medicamento ${id}.` };
+    }
+    const newMed = store.getMedications().find((m) => m.id === id);
+    return { success: true, newStock: newMed.stockQuantity };
+  }
+  function toggleMedicationStatus(id) {
+    const existing = store.getMedications().find((m) => m.id === id);
+    if (!existing) {
+      return { success: false, error: `Medicamento ${id} n\xE3o encontrado no cat\xE1logo.` };
+    }
+    const updated = store.toggleMedicationActive(id);
+    if (!updated) {
+      return { success: false, error: `Falha ao alterar status do medicamento ${id}.` };
+    }
+    const newMed = store.getMedications().find((m) => m.id === id);
+    return { success: true, newStatus: newMed.active };
+  }
+
   // src/app.ts
   var navManager = new NavigationManager("cidadao");
   function announceToScreenReader(message) {
@@ -900,7 +1183,26 @@
       getCourierDeliveries,
       getWhatsAppLink,
       validateAndCompleteDelivery,
-      formatPhoneForWhatsApp
+      formatPhoneForWhatsApp,
+      // Módulo do Cidadão
+      createCitizenPrescriptionOrder,
+      formatCitizenOrdersView,
+      getCitizenSplitBannerInfo,
+      // Módulo da Farmácia
+      getPharmacyTriageQueue,
+      previewStockImpact,
+      performPharmacyTriage,
+      getPharmacyDashboardCounters,
+      // Catálogo e Estoque
+      getCatalogView,
+      searchCatalog,
+      addMedication,
+      editMedication,
+      adjustMedicationStock,
+      toggleMedicationStatus,
+      getLowStockBadges,
+      // Motor 1:N
+      evaluateAndSplitOrder
     };
     window.switchRole = switchRole;
     window.initMap = () => {
@@ -911,6 +1213,18 @@
     window.getCourierDeliveries = getCourierDeliveries;
     window.getWhatsAppLink = getWhatsAppLink;
     window.validateAndCompleteDelivery = validateAndCompleteDelivery;
+    window.createCitizenPrescriptionOrder = createCitizenPrescriptionOrder;
+    window.formatCitizenOrdersView = formatCitizenOrdersView;
+    window.getCitizenSplitBannerInfo = getCitizenSplitBannerInfo;
+    window.getPharmacyTriageQueue = getPharmacyTriageQueue;
+    window.performPharmacyTriage = performPharmacyTriage;
+    window.previewStockImpact = previewStockImpact;
+    window.getPharmacyDashboardCounters = getPharmacyDashboardCounters;
+    window.getCatalogView = getCatalogView;
+    window.searchCatalog = searchCatalog;
+    window.addMedication = addMedication;
+    window.adjustMedicationStock = adjustMedicationStock;
+    window.toggleMedicationStatus = toggleMedicationStatus;
     navManager.onAnnouncement((msg) => {
       announceToScreenReader(msg);
     });

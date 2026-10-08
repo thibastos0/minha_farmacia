@@ -19,6 +19,27 @@ import {
   validateAndCompleteDelivery,
   formatPhoneForWhatsApp
 } from './modules/entregador/entregadorService.ts';
+import {
+  createCitizenPrescriptionOrder,
+  formatCitizenOrdersView,
+  getCitizenSplitBannerInfo
+} from './modules/cidadao/cidadaoService.ts';
+import {
+  getPharmacyTriageQueue,
+  previewStockImpact,
+  performPharmacyTriage,
+  getPharmacyDashboardCounters
+} from './modules/farmacia/farmaciaService.ts';
+import {
+  getCatalogView,
+  searchCatalog,
+  addMedication,
+  editMedication,
+  adjustMedicationStock,
+  toggleMedicationStatus,
+  getLowStockBadges
+} from './modules/farmacia/catalogoService.ts';
+import { evaluateAndSplitOrder } from './core/splitEngine.ts';
 
 // Inicializa o gerenciador de navegação
 export const navManager = new NavigationManager('cidadao');
@@ -156,7 +177,26 @@ if (typeof window !== 'undefined') {
     getCourierDeliveries,
     getWhatsAppLink,
     validateAndCompleteDelivery,
-    formatPhoneForWhatsApp
+    formatPhoneForWhatsApp,
+    // Módulo do Cidadão
+    createCitizenPrescriptionOrder,
+    formatCitizenOrdersView,
+    getCitizenSplitBannerInfo,
+    // Módulo da Farmácia
+    getPharmacyTriageQueue,
+    previewStockImpact,
+    performPharmacyTriage,
+    getPharmacyDashboardCounters,
+    // Catálogo e Estoque
+    getCatalogView,
+    searchCatalog,
+    addMedication,
+    editMedication,
+    adjustMedicationStock,
+    toggleMedicationStatus,
+    getLowStockBadges,
+    // Motor 1:N
+    evaluateAndSplitOrder
   };
 
   // Suporte aos cliques dos botões legados ou declarados inline
@@ -169,6 +209,18 @@ if (typeof window !== 'undefined') {
   (window as any).getCourierDeliveries = getCourierDeliveries;
   (window as any).getWhatsAppLink = getWhatsAppLink;
   (window as any).validateAndCompleteDelivery = validateAndCompleteDelivery;
+  (window as any).createCitizenPrescriptionOrder = createCitizenPrescriptionOrder;
+  (window as any).formatCitizenOrdersView = formatCitizenOrdersView;
+  (window as any).getCitizenSplitBannerInfo = getCitizenSplitBannerInfo;
+  (window as any).getPharmacyTriageQueue = getPharmacyTriageQueue;
+  (window as any).performPharmacyTriage = performPharmacyTriage;
+  (window as any).previewStockImpact = previewStockImpact;
+  (window as any).getPharmacyDashboardCounters = getPharmacyDashboardCounters;
+  (window as any).getCatalogView = getCatalogView;
+  (window as any).searchCatalog = searchCatalog;
+  (window as any).addMedication = addMedication;
+  (window as any).adjustMedicationStock = adjustMedicationStock;
+  (window as any).toggleMedicationStatus = toggleMedicationStatus;
 
   navManager.onAnnouncement((msg) => {
     announceToScreenReader(msg);
