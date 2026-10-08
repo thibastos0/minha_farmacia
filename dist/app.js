@@ -806,11 +806,28 @@
     }
   }
   function switchRole(role) {
-    navManager.switchRole(role);
+    const roleMap = {
+      cliente: "cidadao",
+      cidadao: "cidadao",
+      funcionario: "farmacia",
+      farmacia: "farmacia",
+      motoboy: "entregador",
+      entregador: "entregador"
+    };
+    const normalizedRole = roleMap[role] || role;
+    navManager.switchRole(normalizedRole);
     updateNavigationUI();
     updatePanelsVisibility();
+    if (normalizedRole === "farmacia" && typeof window?.switchFuncTab === "function") {
+      try {
+        window.switchFuncTab("dash");
+      } catch (e) {
+        console.warn("N\xE3o foi poss\xEDvel ativar a sub-aba da farm\xE1cia:", e);
+      }
+    }
   }
   function updateNavigationUI() {
+    if (typeof document === "undefined") return;
     const currentRole = navManager.getActiveRole();
     const legacyIdMap = {
       cidadao: "btn-role-cliente",
@@ -827,14 +844,17 @@
         btn.setAttribute("role", "tab");
         btn.setAttribute("tabindex", isSelected ? "0" : "-1");
         if (isSelected) {
-          btn.className = "role-btn min-h-[48px] px-4 py-3 rounded-2xl bg-white text-emerald-950 font-black text-sm shadow-md flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950";
+          btn.classList.add("bg-white", "text-emerald-950", "shadow-md", "font-black");
+          btn.classList.remove("hover:bg-emerald-800", "text-emerald-100", "text-white", "font-bold");
         } else {
-          btn.className = "role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950";
+          btn.classList.remove("bg-white", "text-emerald-950", "shadow-md", "font-black");
+          btn.classList.add("hover:bg-emerald-800", "text-emerald-100", "font-bold");
         }
       });
     });
   }
   function updatePanelsVisibility() {
+    if (typeof document === "undefined") return;
     const currentRole = navManager.getActiveRole();
     const sectionMap = {
       cidadao: ["portal-cidadao", "portal-cliente"],

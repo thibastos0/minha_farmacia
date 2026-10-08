@@ -36,16 +36,36 @@ export function announceToScreenReader(message: string): void {
 /**
  * Alterna visualmente as abas do sistema preservando a conformidade com WCAG AA
  */
-export function switchRole(role: ModuleRole): void {
-  navManager.switchRole(role);
+export function switchRole(role: ModuleRole | string): void {
+  const roleMap: Record<string, ModuleRole> = {
+    cliente: 'cidadao',
+    cidadao: 'cidadao',
+    funcionario: 'farmacia',
+    farmacia: 'farmacia',
+    motoboy: 'entregador',
+    entregador: 'entregador'
+  };
+  const normalizedRole: ModuleRole = roleMap[role] || (role as ModuleRole);
+
+  navManager.switchRole(normalizedRole);
   updateNavigationUI();
   updatePanelsVisibility();
+
+  // Garante que a sub-aba inicial da Farmácia seja exibida se estiver na janela
+  if (normalizedRole === 'farmacia' && typeof (window as any)?.switchFuncTab === 'function') {
+    try {
+      (window as any).switchFuncTab('dash');
+    } catch (e) {
+      console.warn('Não foi possível ativar a sub-aba da farmácia:', e);
+    }
+  }
 }
 
 /**
  * Atualiza classes visuais e atributos ARIA dos botões do seletor de módulos
  */
 function updateNavigationUI(): void {
+  if (typeof document === 'undefined') return;
   const currentRole = navManager.getActiveRole();
 
   const legacyIdMap: Record<ModuleRole, string> = {
@@ -67,11 +87,11 @@ function updateNavigationUI(): void {
       btn.setAttribute('tabindex', isSelected ? '0' : '-1');
 
       if (isSelected) {
-        btn.className =
-          'role-btn min-h-[48px] px-4 py-3 rounded-2xl bg-white text-emerald-950 font-black text-sm shadow-md flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950';
+        btn.classList.add('bg-white', 'text-emerald-950', 'shadow-md', 'font-black');
+        btn.classList.remove('hover:bg-emerald-800', 'text-emerald-100', 'text-white', 'font-bold');
       } else {
-        btn.className =
-          'role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950';
+        btn.classList.remove('bg-white', 'text-emerald-950', 'shadow-md', 'font-black');
+        btn.classList.add('hover:bg-emerald-800', 'text-emerald-100', 'font-bold');
       }
     });
   });
@@ -81,6 +101,7 @@ function updateNavigationUI(): void {
  * Alterna visibilidade das seções dos 3 módulos desacoplados
  */
 function updatePanelsVisibility(): void {
+  if (typeof document === 'undefined') return;
   const currentRole = navManager.getActiveRole();
 
   const sectionMap: Record<ModuleRole, string[]> = {

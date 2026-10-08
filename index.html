@@ -68,15 +68,15 @@
 
             <!-- Navegação de Módulos Desacoplados (WCAG Tablist) -->
             <nav role="tablist" aria-label="Seleção de módulo do sistema Minha Farmácia" class="flex items-center gap-1.5 bg-emerald-950/70 p-1.5 rounded-2xl border border-emerald-800/80">
-                <button type="button" role="tab" id="btn-role-cidadao" aria-selected="true" aria-controls="portal-cliente" aria-label="Acessar Módulo do Cidadão e Acompanhamento de Pedidos" onclick="switchRole('cidadao')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl bg-white text-emerald-950 font-black text-sm shadow-md flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
+                <button type="button" role="tab" id="btn-role-cidadao" aria-selected="true" aria-controls="portal-cidadao" aria-label="Acessar Módulo do Cidadão e Acompanhamento de Pedidos" onclick="switchRole('cidadao')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl bg-white text-emerald-950 font-black text-sm shadow-md flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
                     <i class="fa-solid fa-user text-emerald-700" aria-hidden="true"></i>
                     <span>Área do Cidadão</span>
                 </button>
-                <button type="button" role="tab" id="btn-role-farmacia" aria-selected="false" aria-controls="portal-funcionario" aria-label="Acessar Painel da Farmácia e Gestão de Estoque" onclick="switchRole('farmacia')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
+                <button type="button" role="tab" id="btn-role-farmacia" aria-selected="false" aria-controls="portal-farmacia" aria-label="Acessar Painel da Farmácia e Gestão de Estoque" onclick="switchRole('farmacia')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
                     <i class="fa-solid fa-user-doctor" aria-hidden="true"></i>
                     <span>Farmácia & Gestão</span>
                 </button>
-                <button type="button" role="tab" id="btn-role-entregador" aria-selected="false" aria-controls="portal-motoboy" aria-label="Acessar Painel do Entregador e Corridas" onclick="switchRole('entregador')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
+                <button type="button" role="tab" id="btn-role-entregador" aria-selected="false" aria-controls="portal-entregador" aria-label="Acessar Painel do Entregador e Corridas" onclick="switchRole('entregador')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
                     <i class="fa-solid fa-motorcycle" aria-hidden="true"></i>
                     <span>Entregador</span>
                 </button>
@@ -89,7 +89,7 @@
         <!-- ================================================================= -->
         <!-- 1. PORTAL DO CIDADÃO / CLIENTE (SEM RE-CADASTRO & ACESSIBILIDADE)  -->
         <!-- ================================================================= -->
-        <section id="portal-cliente" class="space-y-6">
+        <section id="portal-cidadao" class="space-y-6">
             
             <!-- HOME DO CLIENTE: ACESSIBILIDADE TOTAL E BOTÕES GRANDES -->
             <div id="cliente-home" class="space-y-6">
@@ -206,7 +206,7 @@
         <!-- ================================================================= -->
         <!-- 2. PAINEL DO FUNCIONÁRIO (DIVIDIDO EM SUB-SISTEMAS/ABAS)          -->
         <!-- ================================================================= -->
-        <section id="portal-funcionario" class="space-y-6 hidden">
+        <section id="portal-farmacia" class="space-y-6 hidden">
             
             <!-- SUB-NAVEGAÇÃO DO FUNCIONÁRIO -->
             <div class="bg-white p-3 rounded-2xl border shadow-sm flex flex-wrap items-center justify-between gap-3">
@@ -344,7 +344,7 @@
         <!-- ================================================================= -->
         <!-- 3. PORTAL DO MOTOBOY / ENTREGADOR (PAINEL DE ROTA & VALIDAR PIN)   -->
         <!-- ================================================================= -->
-        <section id="portal-motoboy" class="space-y-6 hidden">
+        <section id="portal-entregador" class="space-y-6 hidden">
             <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center font-bold text-xl">
@@ -507,47 +507,101 @@
 
         // TROCA DE MÓDULOS PRINCIPAIS
         function switchRole(role) {
-            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.role-btn').forEach(b => {
-                b.classList.remove('bg-white', 'text-emerald-900', 'shadow');
-                b.classList.add('hover:bg-emerald-800', 'text-white');
+            // Se o orchestrator MinhaFarmacia estiver disponível, delega para navegação reativa e WCAG
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.switchRole === 'function') {
+                window.MinhaFarmacia.switchRole(role);
+                return;
+            }
+
+            const roleAliasMap = {
+                cliente: 'cidadao',
+                cidadao: 'cidadao',
+                funcionario: 'farmacia',
+                farmacia: 'farmacia',
+                motoboy: 'entregador',
+                entregador: 'entregador'
+            };
+            const canonicalRole = roleAliasMap[role] || role;
+
+            document.querySelectorAll('main > section').forEach(s => {
+                if (s && s.classList) {
+                    s.classList.add('hidden');
+                    s.setAttribute('hidden', 'true');
+                }
             });
 
-            document.getElementById(`portal-${role}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`btn-role-${role}`);
-            activeBtn.classList.add('bg-white', 'text-emerald-900', 'shadow');
-            activeBtn.classList.remove('hover:bg-emerald-800', 'text-white');
+            document.querySelectorAll('.role-btn').forEach(b => {
+                if (b && b.classList) {
+                    b.classList.remove('bg-white', 'text-emerald-950', 'shadow-md', 'font-black');
+                    b.classList.add('hover:bg-emerald-800', 'text-emerald-100', 'font-bold');
+                    b.setAttribute('aria-selected', 'false');
+                }
+            });
 
-            if (role === 'funcionario') {
+            const targetSection = document.getElementById(`portal-${canonicalRole}`) ||
+                                 document.getElementById(`portal-${role}`);
+            if (targetSection && targetSection.classList) {
+                targetSection.classList.remove('hidden');
+                targetSection.removeAttribute('hidden');
+            }
+
+            const activeBtn = document.getElementById(`btn-role-${canonicalRole}`) ||
+                              document.getElementById(`btn-role-${role}`);
+            if (activeBtn && activeBtn.classList) {
+                activeBtn.classList.add('bg-white', 'text-emerald-950', 'shadow-md', 'font-black');
+                activeBtn.classList.remove('hover:bg-emerald-800', 'text-emerald-100', 'font-bold');
+                activeBtn.setAttribute('aria-selected', 'true');
+            }
+
+            if (canonicalRole === 'farmacia') {
                 switchFuncTab('dash');
             }
         }
 
-        // SUB-ABAS DO PAINEL DO FUNCIONÁRIO
+        // SUB-ABAS DO PAINEL DA FARMÁCIA / GESTÃO
         function switchFuncTab(tab) {
-            document.querySelectorAll('#portal-funcionario > div[id^="func-sub-"]').forEach(d => d.classList.add('hidden'));
+            document.querySelectorAll('div[id^="func-sub-"]').forEach(d => {
+                if (d && d.classList) d.classList.add('hidden');
+            });
             document.querySelectorAll('.ftab-btn').forEach(b => {
-                b.classList.remove('bg-white', 'shadow', 'text-emerald-800');
-                b.classList.add('text-gray-600');
+                if (b && b.classList) {
+                    b.classList.remove('bg-white', 'shadow', 'text-emerald-800');
+                    b.classList.add('text-gray-600');
+                }
             });
 
-            document.getElementById(`func-sub-${tab}`).classList.remove('hidden');
+            const activeSub = document.getElementById(`func-sub-${tab}`);
+            if (activeSub && activeSub.classList) {
+                activeSub.classList.remove('hidden');
+            }
+
             const btn = document.getElementById(`ftab-${tab}`);
-            btn.classList.add('bg-white', 'shadow', 'text-emerald-800');
-            btn.classList.remove('text-gray-600');
+            if (btn && btn.classList) {
+                btn.classList.add('bg-white', 'shadow', 'text-emerald-800');
+                btn.classList.remove('text-gray-600');
+            }
 
             if (tab === 'mapa') {
-                setTimeout(initMap, 150);
+                setTimeout(() => {
+                    if (typeof initMap === 'function') initMap();
+                    if (window.MinhaFarmacia && typeof window.MinhaFarmacia.invalidateMapSize === 'function') {
+                        window.MinhaFarmacia.invalidateMapSize();
+                    }
+                }, 150);
             }
         }
 
         // CONTROLADOR DE TELAS DO CLIENTE
         function showClienteScreen(screen) {
-            document.getElementById('cliente-home').classList.add('hidden');
-            document.getElementById('cliente-solicitar').classList.add('hidden');
-            document.getElementById('cliente-acompanhar').classList.add('hidden');
+            ['cliente-home', 'cliente-solicitar', 'cliente-acompanhar'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.classList) el.classList.add('hidden');
+            });
 
-            document.getElementById(`cliente-${screen}`).classList.remove('hidden');
+            const active = document.getElementById(`cliente-${screen}`);
+            if (active && active.classList) {
+                active.classList.remove('hidden');
+            }
             if (screen === 'acompanhar') {
                 renderClientTimeline();
             }
