@@ -1357,6 +1357,10 @@
             window.closeModalCadastro = closeModalCadastro;
             window.openModalValidacao = openModalValidacao;
             window.closeModalValidacao = closeModalValidacao;
+            window.aprovarESelecionarMedicamentos = aprovarESelecionarMedicamentos;
+            window.openModalTriagem = openModalTriagem;
+            window.closeModalTriagem = closeModalTriagem;
+            window.voltarParaReceita = voltarParaReceita;
             window.openWhatsAppChat = openWhatsAppChat;
             window.openModalDespacho = openModalDespacho;
             window.closeModalDespacho = closeModalDespacho;
@@ -2003,7 +2007,8 @@
             }
 
             orders.forEach(p => {
-                const isPending = p.status === 'PENDENTE_TRIAGEM';
+                const pedido = p;
+                const isPending = pedido.status === 'PENDENTE_TRIAGEM';
                 const statusMap = {
                     'PENDENTE_TRIAGEM': 'bg-amber-100 text-amber-800',
                     'EM_ANDAMENTO': 'bg-blue-100 text-blue-800',
@@ -2011,20 +2016,20 @@
                     'RECUSADO': 'bg-red-100 text-red-800'
                 };
 
-                const addr = p.deliveryAddress ? `${p.deliveryAddress.street}, ${p.deliveryAddress.number}` : '-';
-                const meds = p.subOrders && p.subOrders.length > 0 
-                    ? p.subOrders.flatMap(s => s.items.map(i => i.medicationName)).join(', ') 
+                const addr = pedido.deliveryAddress ? `${pedido.deliveryAddress.street}, ${pedido.deliveryAddress.number}` : '-';
+                const meds = pedido.subOrders && pedido.subOrders.length > 0 
+                    ? pedido.subOrders.flatMap(s => s.items.map(i => i.medicationName)).join(', ') 
                     : '<i class="text-gray-400">Aguardando Triagem</i>';
 
                 // SubOrders badges e botões de ação de despacho
-                const subOrdersList = p.subOrders || [];
+                const subOrdersList = pedido.subOrders || [];
                 const subOrdersBadgesHtml = subOrdersList.map(s => {
                     return `<div class="mt-1">${getSubOrderStatusBadge(s.status, s.courierName)} <span class="text-[10px] text-gray-500 font-mono">${s.code}</span></div>`;
                 }).join('');
 
                 const dispatchableSubOrders = subOrdersList.filter(s => s.status === 'EM_SEPARACAO');
                 const dispatchButtonsHtml = dispatchableSubOrders.map(sub => `
-                    <button onclick="openModalDespacho('${p.id}', '${sub.id}', '${sub.code}')" class="min-h-[48px] bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5" title="Chamar entregador para coletar esta remessa">
+                    <button onclick="window.openModalDespacho('${pedido.id}', '${sub.id}', '${sub.code}')" class="min-h-[48px] bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5" title="Chamar entregador para coletar esta remessa">
                         <i class="fa-solid fa-motorcycle"></i> Despachar / Chamar Entregador (${sub.code})
                     </button>
                 `).join('');
@@ -2032,33 +2037,33 @@
                 tbody.innerHTML += `
                     <tr>
                         <td class="p-3">
-                            <b class="text-gray-800 block">#${p.code}</b>
-                            <span class="text-xs text-gray-500">${p.citizenName || 'Munícipe'}</span>
+                            <b class="text-gray-800 block">#${pedido.code}</b>
+                            <span class="text-xs text-gray-500">${pedido.citizenName || 'Munícipe'}</span>
                         </td>
                         <td class="p-3 text-xs text-gray-600">${addr}</td>
-                        <td class="p-3 text-xs text-blue-600 font-bold underline cursor-pointer hover:text-blue-800 transition" onclick="openModalValidacao('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')openModalValidacao('${p.id}')" title="Visualizar e Validar Receita Médica">
+                        <td class="p-3 text-xs text-blue-600 font-bold underline cursor-pointer hover:text-blue-800 transition" onclick="window.openModalValidacao('${pedido.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')window.openModalValidacao('${pedido.id}')" title="Visualizar e Validar Receita Médica">
                             <i class="fa-solid fa-file-prescription mr-1"></i> Receita Médica
                         </td>
                         <td class="p-3 text-xs font-semibold text-emerald-700">
                             ${meds}
                         </td>
                         <td class="p-3">
-                            <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full ${statusMap[p.status] || 'bg-gray-100 text-gray-800'}">
-                                ${p.status}
+                            <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full ${statusMap[pedido.status] || 'bg-gray-100 text-gray-800'}">
+                                ${pedido.status}
                             </span>
                             ${subOrdersBadgesHtml}
                         </td>
                         <td class="p-3 text-right space-x-1 space-y-1">
                             ${isPending ? `
-                                <button onclick="openModalValidacao('${p.id}')" class="min-h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition" title="Validar Receita Médica conforme">
+                                <button onclick="window.openModalValidacao('${pedido.id}')" class="min-h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition" title="Validar Receita Médica conforme">
                                     <i class="fa-solid fa-stethoscope"></i> Validar Receita
                                 </button>
-                                <button onclick="openModalRecusa('${p.id}')" class="min-h-[48px] bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition">
+                                <button onclick="openModalRecusa('${pedido.id}')" class="min-h-[48px] bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition">
                                     Reprovar
                                 </button>
                             ` : ''}
                             ${dispatchButtonsHtml}
-                            <button onclick="openWhatsAppChat('${p.citizenPhone}', '${p.code}')" class="min-h-[48px] bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition" title="WhatsApp Oficial">
+                            <button onclick="window.openWhatsAppChat('${pedido.citizenPhone}', '${pedido.code}')" class="min-h-[48px] bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition" title="WhatsApp Oficial">
                                 <i class="fa-brands fa-whatsapp text-sm"></i>
                             </button>
                         </td>
@@ -2067,7 +2072,7 @@
             });
         }
 
-        // Abre modal de validação com simulação visual da Receita do SUS e pré-seleção RENAME
+        // Abre modal de validação com simulação visual da Receita do SUS
         function openModalValidacao(orderId) {
             selectedOrderId = orderId;
             let order = null;
@@ -2081,7 +2086,7 @@
 
             if (order) {
                 const valFn = document.getElementById('val-filename');
-                if (valFn) valFn.innerText = 'Receita Oficial Prescrita.jpg';
+                if (valFn) valFn.innerText = order.prescriptionFileName || 'Prescrição Eletrônica Validada Gov.br';
 
                 const valNome = document.getElementById('val-cliente-nome');
                 if (valNome) valNome.innerText = order.citizenName || (citizen ? citizen.name : 'Dona Maria de Lourdes Silva');
@@ -2095,6 +2100,11 @@
 
                 const valCpf = document.getElementById('val-cliente-cpf');
                 if (valCpf) valCpf.innerText = order.citizenCpf || (citizen ? citizen.cpf : '123.456.789-00');
+
+                const valData = document.getElementById('val-prescricao-data');
+                if (valData) {
+                    valData.innerText = order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Hoje';
+                }
 
                 const valSus = document.getElementById('val-cliente-sus');
                 if (valSus) valSus.innerText = (citizen && citizen.cartaoSus) ? citizen.cartaoSus : '7000.1234.5678.9012';
@@ -2111,11 +2121,60 @@
                 }
             }
 
-            // PRÉ-SELEÇÃO INTELIGENTE DE MEDICAMENTOS SUGERIDOS DA BASE RENAME:
-            // med-01 (Losartana - com estoque) e med-03 (Amoxicilina - estoque zerado intencionalmente para teste)
+            const modal = document.getElementById('modal-validacao');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.removeAttribute('hidden');
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeModalValidacao() {
+            const m = document.getElementById('modal-validacao');
+            if (m) {
+                m.classList.add('hidden');
+                m.setAttribute('hidden', 'true');
+                m.style.display = 'none';
+            }
+        }
+
+        // Transição: Aprova a receita e abre a modal de triagem e desmembramento com lista de itens
+        function aprovarESelecionarMedicamentos(orderId) {
+            const targetId = orderId || selectedOrderId;
+            closeModalValidacao();
+            openModalTriagem(targetId);
+        }
+
+        function voltarParaReceita() {
+            closeModalTriagem();
+            openModalValidacao(selectedOrderId);
+        }
+
+        function openModalTriagem(orderId) {
+            selectedOrderId = orderId || selectedOrderId;
+            let order = null;
+            let citizen = null;
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                order = window.MinhaFarmacia.store.getOrderById(selectedOrderId);
+                if (order && order.citizenId) {
+                    citizen = window.MinhaFarmacia.store.getCitizenById(order.citizenId);
+                }
+            }
+
+            const codEl = document.getElementById('triagem-pedido-codigo');
+            if (codEl) codEl.innerText = order ? `#${order.code}` : '#PED-2026';
+
+            const cliEl = document.getElementById('triagem-cliente-nome');
+            if (cliEl) cliEl.innerText = order ? (order.citizenName || 'Munícipe') : (citizen ? citizen.name : 'Munícipe');
+
+            // PRÉ-SELEÇÃO INTELIGENTE DE MEDICAMENTOS CONFORME A RECEITA MÉDICA DO SUS:
+            // 1. Amoxicilina 500mg (med-03) - Qtd: 2 caixas (estoque zerado para teste do split)
+            // 2. Losartana Potássica 50mg (med-01) - Qtd: 1 caixa
+            // 3. Dipirona 500mg (med-02) - Qtd: 1 caixa
             selectedTriageDecisions = [
-                { medicationId: 'med-01', approvedQty: 10 },
-                { medicationId: 'med-03', approvedQty: 5 }
+                { entryId: 'entry-1', medicationId: 'med-01', approvedQty: 1 },
+                { entryId: 'entry-2', medicationId: 'med-02', approvedQty: 1 },
+                { entryId: 'entry-3', medicationId: 'med-03', approvedQty: 2 }
             ];
 
             updateSelectedMedsUI();
@@ -2127,18 +2186,20 @@
                 motoboyEl.innerHTML = `Sugerido pelo sistema: <b>Marcos Vinicius (Moto 01)</b> (0.8 km de distância - Status: Livre)`;
             }
 
-            const modal = document.getElementById('modal-validacao');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.removeAttribute('hidden');
+            const modalTriagem = document.getElementById('modal-triagem');
+            if (modalTriagem) {
+                modalTriagem.classList.remove('hidden');
+                modalTriagem.removeAttribute('hidden');
+                modalTriagem.style.display = 'flex';
             }
         }
 
-        function closeModalValidacao() {
-            const m = document.getElementById('modal-validacao');
+        function closeModalTriagem() {
+            const m = document.getElementById('modal-triagem');
             if (m) {
                 m.classList.add('hidden');
                 m.setAttribute('hidden', 'true');
+                m.style.display = 'none';
             }
         }
 
@@ -2302,6 +2363,7 @@
                 alert(`Triagem concluída com sucesso! ${isSplit ? 'Pedido com Entrega Desmembrada Municipal (Remessa A imediata e Remessa B aguardando reposição).' : 'Pedido aprovado em remessa única.'}`);
             }
 
+            closeModalTriagem();
             closeModalValidacao();
             renderAllViews();
         }

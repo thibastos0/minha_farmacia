@@ -286,7 +286,7 @@ export function closeModalCadastro(): void {
 }
 
 /**
- * Abre a modal de inspeção sanitária RDC 44/2009 e validação de receita
+ * Abre a modal de inspeção sanitária RDC 44/2009 e visualização da receita oficial do SUS
  */
 export function openModalValidacao(orderId: string): void {
   if (typeof window !== 'undefined' && typeof (window as any).openModalValidacaoImpl === 'function') {
@@ -294,10 +294,42 @@ export function openModalValidacao(orderId: string): void {
     return;
   }
   if (typeof document === 'undefined') return;
+
+  const order = store.getOrderById(orderId);
+  if (order) {
+    const citizen = order.citizenId ? store.getCitizenById(order.citizenId) : undefined;
+
+    const valNome = document.getElementById('val-cliente-nome');
+    if (valNome) valNome.textContent = order.citizenName || citizen?.name || 'Dona Maria de Lourdes Silva';
+
+    const valCpf = document.getElementById('val-cliente-cpf');
+    if (valCpf) valCpf.textContent = order.citizenCpf || citizen?.cpf || '123.456.789-00';
+
+    const valData = document.getElementById('val-prescricao-data');
+    if (valData) {
+      valData.textContent = order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Hoje';
+    }
+
+    const valSus = document.getElementById('val-cliente-sus');
+    if (valSus) valSus.textContent = citizen?.cartaoSus || '7000.1234.5678.9012';
+
+    const valEnd = document.getElementById('val-cliente-end');
+    if (valEnd) {
+      valEnd.textContent = order.deliveryAddress
+        ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number} - ${order.deliveryAddress.neighborhood || ''}`
+        : (citizen ? `${citizen.address.street}, ${citizen.address.number}` : 'Indaiatuba - SP');
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    (window as any).selectedOrderId = orderId;
+  }
+
   const modal = document.getElementById('modal-validacao');
   if (modal) {
     modal.classList.remove('hidden');
     modal.removeAttribute('hidden');
+    modal.style.display = 'flex';
   }
 }
 
@@ -314,7 +346,59 @@ export function closeModalValidacao(): void {
   if (modal) {
     modal.classList.add('hidden');
     modal.setAttribute('hidden', 'true');
+    modal.style.display = 'none';
   }
+}
+
+/**
+ * Abre a modal de triagem e desmembramento de remessas
+ */
+export function openModalTriagem(orderId?: string): void {
+  if (typeof window !== 'undefined' && typeof (window as any).openModalTriagemImpl === 'function') {
+    (window as any).openModalTriagemImpl(orderId);
+    return;
+  }
+  if (typeof document === 'undefined') return;
+  const modal = document.getElementById('modal-triagem');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.removeAttribute('hidden');
+    modal.style.display = 'flex';
+  }
+}
+
+/**
+ * Fecha a modal de triagem e desmembramento
+ */
+export function closeModalTriagem(): void {
+  if (typeof window !== 'undefined' && typeof (window as any).closeModalTriagemImpl === 'function') {
+    (window as any).closeModalTriagemImpl();
+    return;
+  }
+  if (typeof document === 'undefined') return;
+  const modal = document.getElementById('modal-triagem');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.setAttribute('hidden', 'true');
+    modal.style.display = 'none';
+  }
+}
+
+/**
+ * Aprova e fecha a visualização da receita, abrindo a modal de triagem
+ */
+export function aprovarESelecionarMedicamentos(orderId?: string): void {
+  closeModalValidacao();
+  openModalTriagem(orderId);
+}
+
+/**
+ * Retorna da triagem para a visualização da receita médica do SUS
+ */
+export function voltarParaReceita(orderId?: string): void {
+  closeModalTriagem();
+  const targetId = orderId || (typeof window !== 'undefined' ? (window as any).selectedOrderId : 'ord-01');
+  openModalValidacao(targetId);
 }
 
 /**
@@ -408,6 +492,10 @@ if (typeof window !== 'undefined') {
     dispatchOrderForPickup,
     openModalValidacao,
     closeModalValidacao,
+    openModalTriagem,
+    closeModalTriagem,
+    aprovarESelecionarMedicamentos,
+    voltarParaReceita,
     openWhatsAppChat,
     openModalDespacho,
     closeModalDespacho,
@@ -442,6 +530,10 @@ if (typeof window !== 'undefined') {
   (window as any).closeModalCadastro = closeModalCadastro;
   (window as any).openModalValidacao = openModalValidacao;
   (window as any).closeModalValidacao = closeModalValidacao;
+  (window as any).openModalTriagem = openModalTriagem;
+  (window as any).closeModalTriagem = closeModalTriagem;
+  (window as any).aprovarESelecionarMedicamentos = aprovarESelecionarMedicamentos;
+  (window as any).voltarParaReceita = voltarParaReceita;
   (window as any).openWhatsAppChat = openWhatsAppChat;
   (window as any).openModalDespacho = openModalDespacho;
   (window as any).closeModalDespacho = closeModalDespacho;

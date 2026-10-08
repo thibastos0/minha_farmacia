@@ -1701,10 +1701,32 @@
       return;
     }
     if (typeof document === "undefined") return;
+    const order = store.getOrderById(orderId);
+    if (order) {
+      const citizen = order.citizenId ? store.getCitizenById(order.citizenId) : void 0;
+      const valNome = document.getElementById("val-cliente-nome");
+      if (valNome) valNome.textContent = order.citizenName || citizen?.name || "Dona Maria de Lourdes Silva";
+      const valCpf = document.getElementById("val-cliente-cpf");
+      if (valCpf) valCpf.textContent = order.citizenCpf || citizen?.cpf || "123.456.789-00";
+      const valData = document.getElementById("val-prescricao-data");
+      if (valData) {
+        valData.textContent = order.createdAt ? new Date(order.createdAt).toLocaleDateString("pt-BR") : "Hoje";
+      }
+      const valSus = document.getElementById("val-cliente-sus");
+      if (valSus) valSus.textContent = citizen?.cartaoSus || "7000.1234.5678.9012";
+      const valEnd = document.getElementById("val-cliente-end");
+      if (valEnd) {
+        valEnd.textContent = order.deliveryAddress ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number} - ${order.deliveryAddress.neighborhood || ""}` : citizen ? `${citizen.address.street}, ${citizen.address.number}` : "Indaiatuba - SP";
+      }
+    }
+    if (typeof window !== "undefined") {
+      window.selectedOrderId = orderId;
+    }
     const modal = document.getElementById("modal-validacao");
     if (modal) {
       modal.classList.remove("hidden");
       modal.removeAttribute("hidden");
+      modal.style.display = "flex";
     }
   }
   function closeModalValidacao() {
@@ -1717,7 +1739,43 @@
     if (modal) {
       modal.classList.add("hidden");
       modal.setAttribute("hidden", "true");
+      modal.style.display = "none";
     }
+  }
+  function openModalTriagem(orderId) {
+    if (typeof window !== "undefined" && typeof window.openModalTriagemImpl === "function") {
+      window.openModalTriagemImpl(orderId);
+      return;
+    }
+    if (typeof document === "undefined") return;
+    const modal = document.getElementById("modal-triagem");
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.removeAttribute("hidden");
+      modal.style.display = "flex";
+    }
+  }
+  function closeModalTriagem() {
+    if (typeof window !== "undefined" && typeof window.closeModalTriagemImpl === "function") {
+      window.closeModalTriagemImpl();
+      return;
+    }
+    if (typeof document === "undefined") return;
+    const modal = document.getElementById("modal-triagem");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.setAttribute("hidden", "true");
+      modal.style.display = "none";
+    }
+  }
+  function aprovarESelecionarMedicamentos(orderId) {
+    closeModalValidacao();
+    openModalTriagem(orderId);
+  }
+  function voltarParaReceita(orderId) {
+    closeModalTriagem();
+    const targetId = orderId || (typeof window !== "undefined" ? window.selectedOrderId : "ord-01");
+    openModalValidacao(targetId);
   }
   function openWhatsAppChat(phone, code, citizenName) {
     if (typeof window !== "undefined" && typeof window.openWhatsAppChatImpl === "function") {
@@ -1793,6 +1851,10 @@
       dispatchOrderForPickup,
       openModalValidacao,
       closeModalValidacao,
+      openModalTriagem,
+      closeModalTriagem,
+      aprovarESelecionarMedicamentos,
+      voltarParaReceita,
       openWhatsAppChat,
       openModalDespacho,
       closeModalDespacho,
@@ -1825,6 +1887,10 @@
     window.closeModalCadastro = closeModalCadastro;
     window.openModalValidacao = openModalValidacao;
     window.closeModalValidacao = closeModalValidacao;
+    window.openModalTriagem = openModalTriagem;
+    window.closeModalTriagem = closeModalTriagem;
+    window.aprovarESelecionarMedicamentos = aprovarESelecionarMedicamentos;
+    window.voltarParaReceita = voltarParaReceita;
     window.openWhatsAppChat = openWhatsAppChat;
     window.openModalDespacho = openModalDespacho;
     window.closeModalDespacho = closeModalDespacho;
