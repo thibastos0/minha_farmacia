@@ -2078,46 +2078,63 @@
             let order = null;
             let citizen = null;
             if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
-                order = window.MinhaFarmacia.store.getOrderById(orderId);
+                const store = window.MinhaFarmacia.store;
+                if (typeof store.getOrderById === 'function') {
+                    order = store.getOrderById(orderId);
+                } else if (store.orders && Array.isArray(store.orders)) {
+                    order = store.orders.find(o => o.id === orderId);
+                } else if (typeof store.getOrders === 'function') {
+                    const orders = store.getOrders();
+                    order = orders.find(o => o.id === orderId);
+                }
+
                 if (order && order.citizenId) {
-                    citizen = window.MinhaFarmacia.store.getCitizenById(order.citizenId);
+                    if (typeof store.getCitizenById === 'function') {
+                        citizen = store.getCitizenById(order.citizenId);
+                    } else if (typeof store.getCitizens === 'function') {
+                        const citizens = store.getCitizens();
+                        citizen = citizens.find(c => c.id === order.citizenId);
+                    } else if (store.citizens && Array.isArray(store.citizens)) {
+                        citizen = store.citizens.find(c => c.id === order.citizenId);
+                    }
                 }
             }
 
-            if (order) {
-                const valFn = document.getElementById('val-filename');
-                if (valFn) valFn.innerText = order.prescriptionFileName || 'Prescrição Eletrônica Validada Gov.br';
+            const citizenName = (order && order.citizenName) || (citizen && citizen.name) || 'Dona Maria de Lourdes Silva';
+            const citizenCpf = (order && order.citizenCpf) || (citizen && citizen.cpf) || '123.456.789-00';
+            const citizenAddress = (order && order.deliveryAddress) 
+                ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number}${order.deliveryAddress.neighborhood ? ' - ' + order.deliveryAddress.neighborhood : ''}` 
+                : ((order && order.address) || (citizen && citizen.address ? `${citizen.address.street}, ${citizen.address.number}` : 'Rua das Acácias, 142 - Jardim Morada do Sol'));
+            const citizenSus = (citizen && citizen.cartaoSus) || (order && order.cartaoSus) || '7000.1234.5678.9012';
+            const prescricaoData = (order && order.createdAt) ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Hoje';
+            const filename = (order && order.prescriptionFileName) || 'Prescrição Eletrônica Validada Gov.br';
 
-                const valNome = document.getElementById('val-cliente-nome');
-                if (valNome) valNome.innerText = order.citizenName || (citizen ? citizen.name : 'Dona Maria de Lourdes Silva');
+            const valFn = document.getElementById('val-filename');
+            if (valFn) valFn.innerText = filename;
 
-                const valEnd = document.getElementById('val-cliente-end');
-                if (valEnd) {
-                    valEnd.innerText = order.deliveryAddress 
-                        ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number} - ${order.deliveryAddress.neighborhood || ''}` 
-                        : (citizen ? `${citizen.address.street}, ${citizen.address.number}` : 'Indaiatuba - SP');
-                }
+            const valNome = document.getElementById('val-cliente-nome');
+            if (valNome) valNome.innerText = citizenName;
 
-                const valCpf = document.getElementById('val-cliente-cpf');
-                if (valCpf) valCpf.innerText = order.citizenCpf || (citizen ? citizen.cpf : '123.456.789-00');
+            const valEnd = document.getElementById('val-cliente-end');
+            if (valEnd) valEnd.innerText = citizenAddress;
 
-                const valData = document.getElementById('val-prescricao-data');
-                if (valData) {
-                    valData.innerText = order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Hoje';
-                }
+            const valCpf = document.getElementById('val-cliente-cpf');
+            if (valCpf) valCpf.innerText = citizenCpf;
 
-                const valSus = document.getElementById('val-cliente-sus');
-                if (valSus) valSus.innerText = (citizen && citizen.cartaoSus) ? citizen.cartaoSus : '7000.1234.5678.9012';
+            const valData = document.getElementById('val-prescricao-data');
+            if (valData) valData.innerText = prescricaoData;
 
-                const valAttach = document.getElementById('val-attachment-link');
-                const valAttachBox = document.getElementById('val-prescription-attachment');
-                if (valAttachBox && valAttach) {
-                    if (order.prescriptionImageUrl) {
-                        valAttach.href = order.prescriptionImageUrl;
-                        valAttachBox.classList.remove('hidden');
-                    } else {
-                        valAttachBox.classList.add('hidden');
-                    }
+            const valSus = document.getElementById('val-cliente-sus');
+            if (valSus) valSus.innerText = citizenSus;
+
+            const valAttach = document.getElementById('val-attachment-link');
+            const valAttachBox = document.getElementById('val-prescription-attachment');
+            if (valAttachBox && valAttach) {
+                if (order && order.prescriptionImageUrl) {
+                    valAttach.href = order.prescriptionImageUrl;
+                    valAttachBox.classList.remove('hidden');
+                } else {
+                    valAttachBox.classList.add('hidden');
                 }
             }
 
@@ -2128,6 +2145,7 @@
                 modal.style.display = 'flex';
             }
         }
+        window.openModalValidacao = openModalValidacao;
 
         function closeModalValidacao() {
             const m = document.getElementById('modal-validacao');
@@ -2137,6 +2155,7 @@
                 m.style.display = 'none';
             }
         }
+        window.closeModalValidacao = closeModalValidacao;
 
         // Transição: Aprova a receita e abre a modal de triagem e desmembramento com lista de itens
         function aprovarESelecionarMedicamentos(orderId) {
@@ -2144,20 +2163,38 @@
             closeModalValidacao();
             openModalTriagem(targetId);
         }
+        window.aprovarESelecionarMedicamentos = aprovarESelecionarMedicamentos;
 
         function voltarParaReceita() {
             closeModalTriagem();
             openModalValidacao(selectedOrderId);
         }
+        window.voltarParaReceita = voltarParaReceita;
 
         function openModalTriagem(orderId) {
             selectedOrderId = orderId || selectedOrderId;
             let order = null;
             let citizen = null;
             if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
-                order = window.MinhaFarmacia.store.getOrderById(selectedOrderId);
+                const store = window.MinhaFarmacia.store;
+                if (typeof store.getOrderById === 'function') {
+                    order = store.getOrderById(selectedOrderId);
+                } else if (store.orders && Array.isArray(store.orders)) {
+                    order = store.orders.find(o => o.id === selectedOrderId);
+                } else if (typeof store.getOrders === 'function') {
+                    const orders = store.getOrders();
+                    order = orders.find(o => o.id === selectedOrderId);
+                }
+
                 if (order && order.citizenId) {
-                    citizen = window.MinhaFarmacia.store.getCitizenById(order.citizenId);
+                    if (typeof store.getCitizenById === 'function') {
+                        citizen = store.getCitizenById(order.citizenId);
+                    } else if (typeof store.getCitizens === 'function') {
+                        const citizens = store.getCitizens();
+                        citizen = citizens.find(c => c.id === order.citizenId);
+                    } else if (store.citizens && Array.isArray(store.citizens)) {
+                        citizen = store.citizens.find(c => c.id === order.citizenId);
+                    }
                 }
             }
 
@@ -2193,6 +2230,7 @@
                 modalTriagem.style.display = 'flex';
             }
         }
+        window.openModalTriagem = openModalTriagem;
 
         function closeModalTriagem() {
             const m = document.getElementById('modal-triagem');
@@ -2202,6 +2240,7 @@
                 m.style.display = 'none';
             }
         }
+        window.closeModalTriagem = closeModalTriagem;
 
         // Renderiza itens selecionados na modal de triagem
         function updateSelectedMedsUI() {

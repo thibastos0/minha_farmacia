@@ -350,6 +350,15 @@
     getCitizens() {
       return [...this.data.citizens];
     }
+    getCitizenById(citizenId) {
+      return this.data.citizens.find((c) => c.id === citizenId);
+    }
+    get citizens() {
+      return [...this.data.citizens];
+    }
+    get orders() {
+      return [...this.data.orders];
+    }
     setCurrentCitizen(citizenId) {
       if (this.data.citizens.some((c) => c.id === citizenId)) {
         this.data.currentCitizenId = citizenId;
@@ -1701,24 +1710,23 @@
       return;
     }
     if (typeof document === "undefined") return;
-    const order = store.getOrderById(orderId);
-    if (order) {
-      const citizen = order.citizenId ? store.getCitizenById(order.citizenId) : void 0;
-      const valNome = document.getElementById("val-cliente-nome");
-      if (valNome) valNome.textContent = order.citizenName || citizen?.name || "Dona Maria de Lourdes Silva";
-      const valCpf = document.getElementById("val-cliente-cpf");
-      if (valCpf) valCpf.textContent = order.citizenCpf || citizen?.cpf || "123.456.789-00";
-      const valData = document.getElementById("val-prescricao-data");
-      if (valData) {
-        valData.textContent = order.createdAt ? new Date(order.createdAt).toLocaleDateString("pt-BR") : "Hoje";
-      }
-      const valSus = document.getElementById("val-cliente-sus");
-      if (valSus) valSus.textContent = citizen?.cartaoSus || "7000.1234.5678.9012";
-      const valEnd = document.getElementById("val-cliente-end");
-      if (valEnd) {
-        valEnd.textContent = order.deliveryAddress ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number} - ${order.deliveryAddress.neighborhood || ""}` : citizen ? `${citizen.address.street}, ${citizen.address.number}` : "Indaiatuba - SP";
-      }
-    }
+    const order = typeof store.getOrderById === "function" ? store.getOrderById(orderId) : (store.orders || []).find((o) => o.id === orderId);
+    const citizen = order && order.citizenId ? typeof store.getCitizenById === "function" ? store.getCitizenById(order.citizenId) : typeof store.getCitizens === "function" ? store.getCitizens().find((c) => c.id === order.citizenId) : void 0 : void 0;
+    const citizenName = order?.citizenName || citizen?.name || "Dona Maria de Lourdes Silva";
+    const citizenCpf = order?.citizenCpf || citizen?.cpf || "123.456.789-00";
+    const citizenAddress = order?.deliveryAddress ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number} - ${order.deliveryAddress.neighborhood || ""}` : citizen ? `${citizen.address.street}, ${citizen.address.number}` : "Rua das Ac\xE1cias, 142 - Jardim Morada do Sol";
+    const citizenSus = citizen?.cartaoSus || "7000.1234.5678.9012";
+    const prescricaoData = order?.createdAt ? new Date(order.createdAt).toLocaleDateString("pt-BR") : "Hoje";
+    const valNome = document.getElementById("val-cliente-nome");
+    if (valNome) valNome.textContent = citizenName;
+    const valCpf = document.getElementById("val-cliente-cpf");
+    if (valCpf) valCpf.textContent = citizenCpf;
+    const valData = document.getElementById("val-prescricao-data");
+    if (valData) valData.textContent = prescricaoData;
+    const valSus = document.getElementById("val-cliente-sus");
+    if (valSus) valSus.textContent = citizenSus;
+    const valEnd = document.getElementById("val-cliente-end");
+    if (valEnd) valEnd.textContent = citizenAddress;
     if (typeof window !== "undefined") {
       window.selectedOrderId = orderId;
     }

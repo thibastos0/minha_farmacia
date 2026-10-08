@@ -18,8 +18,10 @@ import {
   voltarParaReceita,
   openWhatsAppChat,
   openModalDespacho,
-  closeModalDespacho
+  closeModalDespacho,
+  store
 } from '../src/app.ts';
+import { StateStore } from '../src/core/store.ts';
 
 describe('Higienização de Textos da Interface (index.html)', () => {
   const htmlPath = path.resolve(process.cwd(), 'index.html');
@@ -189,5 +191,20 @@ describe('Correção dos Eventos na Fila de Farmácia (/farmacia)', () => {
     assert.match(htmlContent, /window\.openWhatsAppChat\s*=/);
     assert.match(htmlContent, /window\.openModalDespacho\s*=/);
     assert.match(htmlContent, /window\.closeModalDespacho\s*=/);
+  });
+
+  test('StateStore deve implementar getCitizenById e expor getters de orders e citizens sem quebrar', () => {
+    assert.equal(typeof store.getCitizenById, 'function', 'store.getCitizenById deve ser uma função');
+    const citizen = store.getCitizenById('cit-01');
+    assert.ok(citizen, 'Deve localizar cidadão cit-01');
+    assert.equal(citizen?.id, 'cit-01');
+    assert.ok(Array.isArray(store.orders), 'store.orders deve ser um array');
+    assert.ok(Array.isArray(store.citizens), 'store.citizens deve ser um array');
+
+    // Execução com pedido inexistente ou com cidadão ausente não deve lançar exceção
+    assert.doesNotThrow(() => {
+      openModalValidacao('pedido-inexistente-xyz');
+      openModalTriagem('pedido-inexistente-xyz');
+    });
   });
 });

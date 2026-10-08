@@ -118,6 +118,18 @@ export class StateStore {
     return [...this.data.citizens];
   }
 
+  public getCitizenById(citizenId: string): Citizen | undefined {
+    return this.data.citizens.find((c) => c.id === citizenId);
+  }
+
+  public get citizens(): Citizen[] {
+    return [...this.data.citizens];
+  }
+
+  public get orders(): Order[] {
+    return [...this.data.orders];
+  }
+
   public setCurrentCitizen(citizenId: string): void {
     if (this.data.citizens.some((c) => c.id === citizenId)) {
       this.data.currentCitizenId = citizenId;
