@@ -31,7 +31,7 @@ export interface StateData {
 
 export type StoreListener = (state: StateData) => void;
 
-class StateStore {
+export class StateStore {
   private data: StateData;
   private listeners: Set<StoreListener> = new Set();
   private storageKey = 'minha_farmacia_state_v1';
@@ -113,12 +113,57 @@ class StateStore {
     return cit || this.data.citizens[0];
   }
 
+  public getCitizens(): Citizen[] {
+    return [...this.data.citizens];
+  }
+
   public setCurrentCitizen(citizenId: string): void {
     if (this.data.citizens.some((c) => c.id === citizenId)) {
       this.data.currentCitizenId = citizenId;
       this.persistAndNotify();
     }
   }
+
+  public addCitizen(citizenData: {
+    name: string;
+    cpf: string;
+    cartaoSus?: string;
+    phone?: string;
+    address: {
+      street: string;
+      number: string;
+      neighborhood: string;
+      city?: string;
+      cep?: string;
+      lat?: number;
+      lng?: number;
+      complement?: string;
+    };
+  }): Citizen {
+    const id = `cit-${Date.now()}`;
+    const newCitizen: Citizen = {
+      id,
+      name: citizenData.name,
+      cpf: citizenData.cpf,
+      cartaoSus: citizenData.cartaoSus || '7000.9999.8888.7777',
+      phone: citizenData.phone || '(19) 99999-0000',
+      address: {
+        street: citizenData.address.street || 'Rua Central',
+        number: citizenData.address.number || '100',
+        neighborhood: citizenData.address.neighborhood || 'Jardim Morada do Sol',
+        city: citizenData.address.city || 'Indaiatuba - SP',
+        cep: citizenData.address.cep || '13348-000',
+        lat: citizenData.address.lat || -23.1042,
+        lng: citizenData.address.lng || -47.2341,
+        complement: citizenData.address.complement
+      }
+    };
+    this.data.citizens.push(newCitizen);
+    this.data.currentCitizenId = id;
+    this.persistAndNotify();
+    return newCitizen;
+  }
+
 
   // === MÉTODOS DE MEDICAMENTOS (CRUD) ===
   public getMedications(): Medication[] {

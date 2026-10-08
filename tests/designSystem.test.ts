@@ -11,8 +11,11 @@ import {
   A11Y_TOKENS,
   MODULE_TABS,
   type ModuleRole,
-  NavigationManager
+  NavigationManager,
+  MOCK_PROFILES,
+  type AuthUser
 } from '../src/core/navigation.ts';
+import { StateStore } from '../src/core/store.ts';
 
 describe('Design System "Minha Indaiatuba" e Acessibilidade (WCAG AA)', () => {
   test('Deve garantir token de área mínima de toque de 48px conforme WCAG 2.1 AA', () => {
@@ -93,5 +96,92 @@ describe('NavigationManager: Shell e Acessibilidade de Abas', () => {
 
     nav.switchRole('farmacia');
     assert.equal(mapTriggered, true, 'Deve notificar a ativação da farmácia para o ciclo de vida do mapa');
+  });
+});
+
+describe('Autenticação e Perfis de Acesso Simulado (Cidadão ID / Acesso Municipal)', () => {
+  let nav: NavigationManager;
+  let store: StateStore;
+
+  beforeEach(() => {
+    nav = new NavigationManager('cidadao');
+    store = new StateStore();
+  });
+
+  test('Deve conter perfis pré-definidos para Cidadão, Farmácia e Entregador', () => {
+    assert.ok(MOCK_PROFILES.cidadao, 'Perfil de cidadão deve existir');
+    assert.ok(MOCK_PROFILES.farmacia, 'Perfil de farmácia deve existir');
+    assert.ok(MOCK_PROFILES.entregador, 'Perfil de entregador deve existir');
+
+    assert.equal(MOCK_PROFILES.cidadao.username, 'usuario');
+    assert.equal(MOCK_PROFILES.cidadao.displayName, 'Thiago Silva');
+    assert.equal(MOCK_PROFILES.farmacia.displayName, 'Dra. Renata Souza');
+    assert.equal(MOCK_PROFILES.entregador.displayName, 'Marcos Vinicius');
+  });
+
+  test('Deve realizar login de Cidadão e notificar ouvintes', () => {
+    let notifiedUser: AuthUser | null = null;
+    nav.onAuthChange((user) => {
+      notifiedUser = user;
+    });
+
+    const user = nav.login('cidadao', 'usuario');
+    assert.equal(user.role, 'cidadao');
+    assert.equal(user.displayName, 'Thiago Silva');
+    assert.equal(nav.getActiveRole(), 'cidadao');
+    assert.deepEqual(notifiedUser, user);
+  });
+
+  test('Deve realizar login de Farmacêutico RT e alternar módulo automaticamente', () => {
+    const user = nav.login('farmacia', 'farmaceutico');
+    assert.equal(user.role, 'farmacia');
+    assert.equal(user.badgeTitle, 'Farmacêutica RT (CRF 48.219)');
+    assert.equal(nav.getActiveRole(), 'farmacia');
+  });
+
+  test('Deve realizar login de Entregador Municipal e alternar módulo', () => {
+    const user = nav.login('entregador', 'entregador');
+    assert.equal(user.role, 'entregador');
+    assert.equal(user.badgeTitle, 'Entregador Municipal (Moto IND-2026)');
+    assert.equal(nav.getActiveRole(), 'entregador');
+  });
+
+  test('Deve permitir logout e limpar o usuário ativo', () => {
+    nav.login('cidadao', 'usuario');
+    assert.ok(nav.getCurrentUser());
+
+    let notifiedUser: AuthUser | null = nav.getCurrentUser();
+    nav.onAuthChange((user) => {
+      notifiedUser = user;
+    });
+
+    nav.logout();
+    assert.equal(nav.getCurrentUser(), null);
+    assert.equal(notifiedUser, null);
+  });
+
+  test('Deve cadastrar novo munícipe no Store e disponibilizá-lo para seleção', () => {
+    const initialCount = store.getCitizens().length;
+
+    const newCitizen = store.addCitizen({
+      name: 'Mariana dos Santos',
+      cpf: '999.888.777-66',
+      phone: '(19) 99123-4567',
+      address: {
+        street: 'Rua das Primaveras',
+        number: '350',
+        neighborhood: 'Jardim Primavera',
+        city: 'Indaiatuba',
+        state: 'SP',
+        zipCode: '13330-000'
+      }
+    });
+
+    assert.ok(newCitizen.id.startsWith('cit-'));
+    assert.equal(store.getCitizens().length, initialCount + 1);
+
+    store.setCurrentCitizen(newCitizen.id);
+    assert.equal(store.getCurrentCitizen().name, 'Mariana dos Santos');
+    assert.equal(store.getCurrentCitizen().cpf, '999.888.777-66');
   });
 });

@@ -40,7 +40,7 @@
         #map-gerencial { height: 480px; width: 100%; border-radius: 1.5rem; z-index: 1; }
     </style>
 </head>
-<body class="bg-[#f8fafc] font-sans text-slate-800 min-h-screen flex flex-col antialiased">
+<body class="bg-[#f8fafc] font-sans text-slate-800 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
     <!-- Link Acessível para Pular Navegação (WCAG 2.1 AA) -->
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-emerald-950 focus:text-white focus:px-5 focus:py-3.5 focus:rounded-2xl focus:shadow-2xl focus:ring-4 focus:ring-emerald-400 font-bold text-sm">
@@ -66,8 +66,8 @@
                 </div>
             </div>
 
-            <!-- Navegação de Módulos Desacoplados (WCAG Tablist) -->
-            <nav role="tablist" aria-label="Seleção de módulo do sistema Minha Farmácia" class="flex items-center gap-1.5 bg-emerald-950/70 p-1.5 rounded-2xl border border-emerald-800/80">
+            <!-- Navegação de Módulos Desacoplados (Desktop / Tablet: sm:flex) -->
+            <nav role="tablist" aria-label="Seleção de módulo do sistema Minha Farmácia" class="hidden sm:flex items-center gap-1.5 bg-emerald-950/70 p-1.5 rounded-2xl border border-emerald-800/80">
                 <button type="button" role="tab" id="btn-role-cidadao" aria-selected="true" aria-controls="portal-cidadao" aria-label="Acessar Módulo do Cidadão e Acompanhamento de Pedidos" onclick="switchRole('cidadao')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl bg-white text-emerald-950 font-black text-sm shadow-md flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
                     <i class="fa-solid fa-user text-emerald-700" aria-hidden="true"></i>
                     <span>Área do Cidadão</span>
@@ -82,10 +82,25 @@
                     <span id="nav-badge-entregador" class="hidden ml-1 px-2 py-0.5 rounded-full text-xs font-black bg-amber-400 text-amber-950 shadow-sm animate-pulse">0</span>
                 </button>
             </nav>
+
+            <!-- Badge de Perfil Autenticado & Troca de Perfil -->
+            <div id="header-user-area" class="flex items-center gap-2 sm:gap-3 bg-emerald-950/80 px-3 py-1.5 rounded-2xl border border-emerald-800/90 shadow-inner">
+                <div id="user-avatar-badge" class="w-9 h-9 rounded-xl bg-emerald-700 text-emerald-100 border border-emerald-600 flex items-center justify-center font-black text-xs shadow-sm">
+                    TS
+                </div>
+                <div class="flex flex-col text-left">
+                    <span id="user-display-name" class="text-xs font-black text-white leading-tight">Thiago Silva</span>
+                    <span id="user-role-badge" class="text-[10px] font-medium text-emerald-300 leading-tight">Munícipe de Indaiatuba</span>
+                </div>
+                <button type="button" onclick="openModalLogin()" aria-label="Sair da sessão ou alternar perfil de acesso" class="ml-1 min-h-[48px] px-3 py-2 rounded-xl bg-emerald-800/90 hover:bg-emerald-700 text-emerald-100 hover:text-white text-xs font-bold flex items-center gap-1.5 transition border border-emerald-700/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400" title="Trocar Perfil / Sair">
+                    <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+                    <span class="hidden md:inline">Trocar Perfil</span>
+                </button>
+            </div>
         </div>
     </header>
 
-    <main id="main-content" tabindex="-1" class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 outline-none focus:outline-none">
+    <main id="main-content" tabindex="-1" class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 outline-none focus:outline-none pb-28 sm:pb-6 overflow-x-hidden">
 
         <!-- ================================================================= -->
         <!-- 1. PORTAL DO CIDADÃO / CLIENTE (SEM RE-CADASTRO & ACESSIBILIDADE)  -->
@@ -97,13 +112,13 @@
                 <!-- Cartão de Identificação do Cidadão Logado -->
                 <div class="bg-white p-5 rounded-3xl border shadow-sm flex items-center justify-between">
                     <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-2xl flex items-center justify-center font-black text-xl">
+                        <div id="cit-profile-initials" class="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-2xl flex items-center justify-center font-black text-xl">
                             TS
                         </div>
                         <div>
                             <span class="text-[11px] font-extrabold text-emerald-700 uppercase tracking-wider">Cidadão Cadastrado</span>
-                            <h2 class="text-lg font-black text-gray-900">Thiago Silva</h2>
-                            <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i> Rua das Prímulas, 450 - Morada do Sol, Indaiatuba</p>
+                            <h2 id="cit-profile-name" class="text-lg font-black text-gray-900">Thiago Silva</h2>
+                            <p id="cit-profile-address" class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i> Rua das Prímulas, 450 - Morada do Sol, Indaiatuba</p>
                         </div>
                     </div>
                     <span class="hidden sm:inline-block bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200">
@@ -434,6 +449,199 @@
 
 
     <!-- ================================================================= -->
+    <!-- MODAL 0: LOGIN E AUTENTICAÇÃO SIMULADA (CIDADÃO ID / ACESSO MUN.) -->
+    <!-- ================================================================= -->
+    <div id="modal-login" role="dialog" aria-modal="true" aria-labelledby="modal-login-title" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 p-6 sm:p-8 space-y-6 my-auto animate-in fade-in zoom-in-95 duration-200">
+            <!-- Cabeçalho Institucional do Modal -->
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-inner border border-emerald-200">
+                    <i class="fa-solid fa-id-card-clip" aria-hidden="true"></i>
+                </div>
+                <h2 id="modal-login-title" class="text-2xl font-black text-slate-900 tracking-tight">
+                    Cidadão ID / Acesso Municipal
+                </h2>
+                <p class="text-xs text-slate-500 font-medium">
+                    Prefeitura Municipal de Indaiatuba • Autenticação Unificada
+                </p>
+            </div>
+
+            <!-- Banner Dica de Avaliação para o Hackathon -->
+            <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-3.5 text-xs flex items-start gap-3 shadow-sm">
+                <i class="fa-solid fa-lightbulb text-amber-600 text-base mt-0.5 shrink-0" aria-hidden="true"></i>
+                <div class="space-y-1">
+                    <p class="font-extrabold text-amber-950">💡 Dica para Avaliação do Hackathon:</p>
+                    <p class="text-amber-800 text-[11px] leading-relaxed">
+                        Selecione o perfil desejado abaixo para testar os módulos. Os campos aceitam usuário padrão (<code class="bg-amber-200/80 px-1 py-0.5 rounded font-bold font-mono">usuario</code> / <code class="bg-amber-200/80 px-1 py-0.5 rounded font-bold font-mono">usuario</code>) para login imediato.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Formulário de Login -->
+            <form id="form-login" onsubmit="handleLoginSubmit(event)" class="space-y-5">
+                <!-- Seletor de Perfil de Acesso -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Selecione seu Perfil de Acesso:
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="Perfil de acesso">
+                        <button type="button" id="role-choice-cidadao" role="radio" aria-checked="true" onclick="selectLoginRole('cidadao')" class="p-3 rounded-2xl border-2 border-emerald-600 bg-emerald-50/70 text-slate-800 text-left flex flex-col justify-between transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <div class="flex items-center justify-between mb-1">
+                                <i class="fa-solid fa-user text-emerald-700 text-lg" aria-hidden="true"></i>
+                                <span class="badge-role-check text-emerald-600 text-sm font-bold"><i class="fa-solid fa-circle-check"></i></span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-slate-900">Munícipe</p>
+                                <p class="text-[10px] text-slate-500">Cidadão ID</p>
+                            </div>
+                        </button>
+
+                        <button type="button" id="role-choice-farmacia" role="radio" aria-checked="false" onclick="selectLoginRole('farmacia')" class="p-3 rounded-2xl border-2 border-slate-200 hover:border-slate-300 bg-white text-slate-800 text-left flex flex-col justify-between transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <div class="flex items-center justify-between mb-1">
+                                <i class="fa-solid fa-user-doctor text-slate-500 text-lg" aria-hidden="true"></i>
+                                <span class="badge-role-check text-transparent text-sm font-bold"><i class="fa-solid fa-circle-check"></i></span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-slate-900">Farmácia RT</p>
+                                <p class="text-[10px] text-slate-500">Gestão & Triagem</p>
+                            </div>
+                        </button>
+
+                        <button type="button" id="role-choice-entregador" role="radio" aria-checked="false" onclick="selectLoginRole('entregador')" class="p-3 rounded-2xl border-2 border-slate-200 hover:border-slate-300 bg-white text-slate-800 text-left flex flex-col justify-between transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <div class="flex items-center justify-between mb-1">
+                                <i class="fa-solid fa-motorcycle text-slate-500 text-lg" aria-hidden="true"></i>
+                                <span class="badge-role-check text-transparent text-sm font-bold"><i class="fa-solid fa-circle-check"></i></span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-slate-900">Entregador</p>
+                                <p class="text-[10px] text-slate-500">Logística & PIN</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campos de Login e Senha -->
+                <div class="space-y-3">
+                    <div>
+                        <label for="login-username" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Usuário / CPF ou Matrícula
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-id-badge text-sm"></i>
+                            </div>
+                            <input type="text" id="login-username" required value="usuario" class="w-full min-h-[48px] pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="login-password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Senha
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                            </div>
+                            <input type="password" id="login-password" required value="usuario" class="w-full min-h-[48px] pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botão de Acesso Principal -->
+                <button type="submit" id="btn-submit-login" class="w-full min-h-[48px] px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-sm shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                    <span>Entrar no Sistema</span>
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                </button>
+            </form>
+
+            <!-- Links Secundários -->
+            <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <button type="button" onclick="openModalCadastro()" class="min-h-[48px] px-3 py-2 text-emerald-700 hover:text-emerald-900 font-bold hover:underline flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded-xl">
+                    <i class="fa-solid fa-user-plus text-emerald-600"></i>
+                    <span>Cadastre-se / Criar Cidadão ID</span>
+                </button>
+                <button type="button" onclick="closeModalLogin()" class="min-h-[48px] px-3 py-2 text-slate-400 hover:text-slate-600 font-semibold focus:outline-none rounded-xl">
+                    Explorar sem login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL DE CADASTRO SIMULADO (CIDADÃO ID - INDAIATUBA)              -->
+    <!-- ================================================================= -->
+    <div id="modal-cadastro" role="dialog" aria-modal="true" aria-labelledby="modal-cad-title" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 p-6 sm:p-8 space-y-6 my-auto animate-in fade-in zoom-in-95 duration-200">
+            <!-- Cabeçalho -->
+            <div class="flex items-center justify-between border-b pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-2xl flex items-center justify-center text-xl font-black">
+                        <i class="fa-solid fa-user-plus text-emerald-700"></i>
+                    </div>
+                    <div>
+                        <h2 id="modal-cad-title" class="text-xl font-black text-slate-900">
+                            Criar Cidadão ID
+                        </h2>
+                        <p class="text-xs text-slate-500">Cadastro Municipal • Indaiatuba Digital</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModalCadastro()" aria-label="Fechar cadastro" class="min-h-[48px] min-w-[48px] text-slate-400 hover:text-slate-600 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Formulário -->
+            <form id="form-cadastro" onsubmit="handleCadastroSubmit(event)" class="space-y-4">
+                <div>
+                    <label for="cad-nome" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nome Completo *</label>
+                    <input type="text" id="cad-nome" required placeholder="Ex: Mariana dos Santos" class="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="cad-cpf" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">CPF *</label>
+                        <input type="text" id="cad-cpf" required placeholder="000.000.000-00" class="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 font-mono">
+                    </div>
+                    <div>
+                        <label for="cad-telefone" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">WhatsApp / Telefone</label>
+                        <input type="tel" id="cad-telefone" placeholder="(19) 99876-5432" class="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 font-mono">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="cad-bairro" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Bairro em Indaiatuba</label>
+                    <select id="cad-bairro" class="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+                        <option value="Jardim Morada do Sol">Jardim Morada do Sol</option>
+                        <option value="Centro">Centro</option>
+                        <option value="Jardim Pau Preto">Jardim Pau Preto</option>
+                        <option value="Itaici">Itaici</option>
+                        <option value="Parque Ecológico">Parque Ecológico</option>
+                        <option value="Cidade Nova">Cidade Nova</option>
+                        <option value="Jardim Colonial">Jardim Colonial</option>
+                        <option value="Jardim Primavera">Jardim Primavera</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="cad-endereco" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Logradouro e Número *</label>
+                    <input type="text" id="cad-endereco" required placeholder="Ex: Rua das Primaveras, 350" class="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t">
+                    <button type="button" onclick="closeModalCadastro(); openModalLogin();" class="w-full sm:w-auto min-h-[48px] px-5 py-2.5 border border-slate-300 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                        Voltar ao Login
+                    </button>
+                    <button type="submit" class="w-full sm:w-auto min-h-[48px] px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Cadastrar e Acessar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================================================================= -->
     <!-- MODAL 1: FARMACÊUTICO CONFERE RECEITA E SELECIONA NO CATÁLOGO    -->
     <!-- ================================================================= -->
     <div id="modal-validacao" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -502,8 +710,8 @@
             </div>
 
             <div class="flex justify-end gap-2 border-t pt-4">
-                <button onclick="closeModalValidacao()" class="min-h-[44px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
-                <button onclick="confirmApproval()" class="min-h-[44px] px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">
+                <button onclick="closeModalValidacao()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button onclick="confirmApproval()" class="min-h-[48px] px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">
                     <i class="fa-solid fa-check mr-1"></i> Aprovar e Atribuir Entrega
                 </button>
             </div>
@@ -522,8 +730,8 @@
             <p class="text-xs text-gray-600">É obrigatório registrar a justificativa técnica para o indeferimento da receita médica:</p>
             <textarea id="reason-text" rows="3" placeholder="Ex: Receita sem assinatura médica, vencida ou ilegível..." class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"></textarea>
             <div class="flex justify-end space-x-2">
-                <button onclick="closeModalRecusa()" class="min-h-[44px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
-                <button onclick="confirmRecusa()" class="min-h-[44px] px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold">Confirmar Reprovação</button>
+                <button onclick="closeModalRecusa()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button onclick="confirmRecusa()" class="min-h-[48px] px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold">Confirmar Reprovação</button>
             </div>
         </div>
     </div>
@@ -575,8 +783,8 @@
                     </select>
                 </div>
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" onclick="closeModalNovoMedicamento()" class="min-h-[44px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
-                    <button type="submit" class="min-h-[44px] px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">Salvar Medicamento</button>
+                    <button type="button" onclick="closeModalNovoMedicamento()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                    <button type="submit" class="min-h-[48px] px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">Salvar Medicamento</button>
                 </div>
             </form>
         </div>
@@ -608,8 +816,8 @@
             </div>
 
             <div class="flex justify-end gap-2 pt-3 border-t">
-                <button type="button" onclick="closeModalDespacho()" class="min-h-[44px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
-                <button type="button" onclick="confirmDespacho()" class="min-h-[44px] px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2">
+                <button type="button" onclick="closeModalDespacho()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button type="button" onclick="confirmDespacho()" class="min-h-[48px] px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2">
                     <i class="fa-solid fa-paper-plane"></i> Confirmar Despacho
                 </button>
             </div>
@@ -618,6 +826,132 @@
 
     <!-- LOGICA E SCRIPTS JavaScript COM INTEGRAÇÃO REATIVA AO STORE -->
     <script>
+        // Variáveis de controle de autenticação e UI
+        let currentSelectedLoginRole = 'cidadao';
+
+        function selectLoginRole(role) {
+            currentSelectedLoginRole = role;
+            const roles = ['cidadao', 'farmacia', 'entregador'];
+            const defaultUsernames = {
+                cidadao: 'usuario',
+                farmacia: 'farmaceutico',
+                entregador: 'entregador'
+            };
+
+            roles.forEach(r => {
+                const btn = document.getElementById(`role-choice-${r}`);
+                if (!btn) return;
+                const isSelected = r === role;
+                btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+                const checkIcon = btn.querySelector('.badge-role-check');
+
+                if (isSelected) {
+                    btn.className = 'p-3 rounded-2xl border-2 border-emerald-600 bg-emerald-50/70 text-slate-800 text-left flex flex-col justify-between transition focus:outline-none focus:ring-2 focus:ring-emerald-500';
+                    if (checkIcon) checkIcon.className = 'badge-role-check text-emerald-600 text-sm font-bold';
+                } else {
+                    btn.className = 'p-3 rounded-2xl border-2 border-slate-200 hover:border-slate-300 bg-white text-slate-800 text-left flex flex-col justify-between transition focus:outline-none focus:ring-2 focus:ring-emerald-500';
+                    if (checkIcon) checkIcon.className = 'badge-role-check text-transparent text-sm font-bold';
+                }
+            });
+
+            const userInput = document.getElementById('login-username');
+            if (userInput) {
+                userInput.value = defaultUsernames[role] || 'usuario';
+            }
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('login-username');
+            const usernameVal = usernameInput ? usernameInput.value.trim() : 'usuario';
+
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.loginUser === 'function') {
+                window.MinhaFarmacia.loginUser(currentSelectedLoginRole, usernameVal);
+            }
+            switchRole(currentSelectedLoginRole);
+            closeModalLogin();
+            renderAllViews();
+        }
+
+        function handleCadastroSubmit(e) {
+            e.preventDefault();
+            const name = (document.getElementById('cad-nome')?.value || '').trim();
+            const cpf = (document.getElementById('cad-cpf')?.value || '').trim();
+            const phone = (document.getElementById('cad-telefone')?.value || '').trim();
+            const neighborhood = (document.getElementById('cad-bairro')?.value || 'Jardim Morada do Sol').trim();
+            const street = (document.getElementById('cad-endereco')?.value || '').trim();
+
+            if (!name || !cpf || !street) {
+                alert('Por favor, preencha os campos obrigatórios (*).');
+                return;
+            }
+
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store && typeof window.MinhaFarmacia.store.addCitizen === 'function') {
+                window.MinhaFarmacia.store.addCitizen({
+                    name,
+                    cpf,
+                    phone: phone || '(19) 99876-5432',
+                    address: {
+                        street,
+                        number: 'S/N',
+                        neighborhood,
+                        city: 'Indaiatuba',
+                        state: 'SP',
+                        zipCode: '13330-000'
+                    }
+                });
+            }
+
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.loginUser === 'function') {
+                window.MinhaFarmacia.loginUser('cidadao', name, {
+                    displayName: name,
+                    cpf,
+                    neighborhood,
+                    address: `${street} - ${neighborhood}, Indaiatuba`
+                });
+            }
+
+            closeModalCadastro();
+            switchRole('cidadao');
+            renderAllViews();
+            alert(`Cadastro realizado com sucesso! Seja bem-vindo(a), ${name}.`);
+        }
+
+        function openModalLogin() {
+            const modal = document.getElementById('modal-login');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.removeAttribute('hidden');
+            }
+        }
+
+        function closeModalLogin() {
+            const modal = document.getElementById('modal-login');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.setAttribute('hidden', 'true');
+            }
+        }
+
+        function openModalCadastro() {
+            closeModalLogin();
+            const modal = document.getElementById('modal-cadastro');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.removeAttribute('hidden');
+                const nomeInput = document.getElementById('cad-nome');
+                if (nomeInput) nomeInput.focus();
+            }
+        }
+
+        function closeModalCadastro() {
+            const modal = document.getElementById('modal-cadastro');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.setAttribute('hidden', 'true');
+            }
+        }
+
         // Variáveis de controle de estado local da UI
         let selectedOrderId = null;
         let selectedTriageDecisions = [];
@@ -711,6 +1045,21 @@
                 activeBtn.classList.remove('hover:bg-emerald-800', 'text-emerald-100', 'font-bold');
                 activeBtn.setAttribute('aria-selected', 'true');
             }
+
+            // Atualiza botões da barra inferior mobile no fallback
+            ['cidadao', 'farmacia', 'entregador'].forEach(r => {
+                const bBtn = document.getElementById(`bottom-btn-role-${r}`);
+                if (!bBtn) return;
+                const isSelected = r === canonicalRole;
+                bBtn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                if (isSelected) {
+                    bBtn.classList.add('bg-emerald-800', 'text-white', 'font-black', 'shadow-inner');
+                    bBtn.classList.remove('text-emerald-200');
+                } else {
+                    bBtn.classList.remove('bg-emerald-800', 'text-white', 'font-black', 'shadow-inner');
+                    bBtn.classList.add('text-emerald-200');
+                }
+            });
 
             if (canonicalRole === 'farmacia') {
                 switchFuncTab('dash');
@@ -1073,7 +1422,7 @@
 
                 const dispatchableSubOrders = subOrdersList.filter(s => s.status === 'EM_SEPARACAO');
                 const dispatchButtonsHtml = dispatchableSubOrders.map(sub => `
-                    <button onclick="openModalDespacho('${p.id}', '${sub.id}', '${sub.code}')" class="min-h-[44px] bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5" title="Chamar entregador para coletar esta remessa">
+                    <button onclick="openModalDespacho('${p.id}', '${sub.id}', '${sub.code}')" class="min-h-[48px] bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5" title="Chamar entregador para coletar esta remessa">
                         <i class="fa-solid fa-motorcycle"></i> Despachar / Chamar Entregador (${sub.code})
                     </button>
                 `).join('');
@@ -1099,15 +1448,15 @@
                         </td>
                         <td class="p-3 text-right space-x-1 space-y-1">
                             ${isPending ? `
-                                <button onclick="openModalValidacao('${p.id}')" class="min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
+                                <button onclick="openModalValidacao('${p.id}')" class="min-h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
                                     <i class="fa-solid fa-stethoscope"></i> Validar Receita
                                 </button>
-                                <button onclick="openModalRecusa('${p.id}')" class="min-h-[44px] bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition">
+                                <button onclick="openModalRecusa('${p.id}')" class="min-h-[48px] bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition">
                                     Reprovar
                                 </button>
                             ` : ''}
                             ${dispatchButtonsHtml}
-                            <button onclick="openWhatsAppChat('${p.citizenPhone}', '${p.code}')" class="min-h-[44px] bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition" title="WhatsApp Oficial">
+                            <button onclick="openWhatsAppChat('${p.citizenPhone}', '${p.code}')" class="min-h-[48px] bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition" title="WhatsApp Oficial">
                                 <i class="fa-brands fa-whatsapp text-sm"></i>
                             </button>
                         </td>
@@ -1222,7 +1571,7 @@
                             <p class="font-bold text-gray-800">${m.name} ${m.dosage}</p>
                             <p class="text-[10px] text-gray-400">${m.presentation} • Estoque: <b>${m.stockQuantity}</b></p>
                         </div>
-                        <button type="button" onclick="addMedToTriage('${m.id}')" class="min-h-[44px] bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold hover:bg-emerald-700 transition">
+                        <button type="button" onclick="addMedToTriage('${m.id}')" class="min-h-[48px] bg-emerald-600 text-white px-3 py-2 rounded-xl font-bold hover:bg-emerald-700 transition">
                             + Selecionar
                         </button>
                     </div>
@@ -1263,7 +1612,7 @@
                             <p class="font-bold text-gray-800">${m.name} ${m.dosage}</p>
                             <p class="text-[10px] text-gray-400">${m.presentation} • Estoque: <b>${m.stockQuantity}</b></p>
                         </div>
-                        <button type="button" onclick="addMedToTriage('${m.id}')" class="min-h-[44px] bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold hover:bg-emerald-700 transition">
+                        <button type="button" onclick="addMedToTriage('${m.id}')" class="min-h-[48px] bg-emerald-600 text-white px-3 py-2 rounded-xl font-bold hover:bg-emerald-700 transition">
                             + Selecionar
                         </button>
                     </div>
@@ -1376,17 +1725,17 @@
                         <div class="pt-2 border-t space-y-2">
                             <span class="text-[10px] font-bold text-gray-400 uppercase block">Ajuste Rápido de Saldo:</span>
                             <div class="flex items-center gap-1.5 flex-wrap">
-                                <button type="button" onclick="quickAdjustStock('${m.id}', -10)" class="min-h-[44px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black rounded-lg transition" title="Subtrair 10 unidades">-10</button>
-                                <button type="button" onclick="quickAdjustStock('${m.id}', -1)" class="min-h-[44px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black rounded-lg transition" title="Subtrair 1 unidade">-1</button>
-                                <button type="button" onclick="quickAdjustStock('${m.id}', 1)" class="min-h-[44px] px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-black rounded-lg transition" title="Adicionar 1 unidade">+1</button>
-                                <button type="button" onclick="quickAdjustStock('${m.id}', 10)" class="min-h-[44px] px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg shadow-sm transition" title="Adicionar 10 unidades (dispara reabastecimento reativo)">+10</button>
+                                <button type="button" onclick="quickAdjustStock('${m.id}', -10)" class="min-h-[48px] min-w-[48px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black rounded-lg transition" title="Subtrair 10 unidades">-10</button>
+                                <button type="button" onclick="quickAdjustStock('${m.id}', -1)" class="min-h-[48px] min-w-[48px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black rounded-lg transition" title="Subtrair 1 unidade">-1</button>
+                                <button type="button" onclick="quickAdjustStock('${m.id}', 1)" class="min-h-[48px] min-w-[48px] px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-black rounded-lg transition" title="Adicionar 1 unidade">+1</button>
+                                <button type="button" onclick="quickAdjustStock('${m.id}', 10)" class="min-h-[48px] min-w-[48px] px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg shadow-sm transition" title="Adicionar 10 unidades (dispara reabastecimento reativo)">+10</button>
                             </div>
                         </div>
 
                         <!-- Inativar / Reativar Medicamento -->
                         <div class="pt-2 border-t flex justify-between items-center text-xs">
                             <span class="text-gray-400">${m.active ? '<i class="fa-solid fa-circle text-emerald-500 text-[8px] mr-1"></i> Ativo' : '<i class="fa-solid fa-circle text-gray-400 text-[8px] mr-1"></i> Inativo'}</span>
-                            <button type="button" onclick="toggleMedStatus('${m.id}')" class="min-h-[44px] px-2 py-1 font-bold ${m.active ? 'text-red-500 hover:text-red-700' : 'text-emerald-600 hover:text-emerald-800'} transition">
+                            <button type="button" onclick="toggleMedStatus('${m.id}')" class="min-h-[48px] px-3 py-2 font-bold ${m.active ? 'text-red-500 hover:text-red-700' : 'text-emerald-600 hover:text-emerald-800'} transition rounded-xl">
                                 ${m.active ? '<i class="fa-solid fa-ban mr-1"></i> Inativar' : '<i class="fa-solid fa-rotate-left mr-1"></i> Reativar'}
                             </button>
                         </div>
@@ -1724,7 +2073,7 @@
                                         <h4 class="text-base font-black text-gray-800 mt-1">${p.citizenName}</h4>
                                         <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i> ${p.citizenAddress}</p>
                                     </div>
-                                    <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="min-h-[44px] bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 transition">
+                                    <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="min-h-[48px] bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
                                         <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
                                     </a>
                                 </div>
@@ -1814,5 +2163,21 @@
             </div>
         </div>
     </footer>
+
+    <!-- BARRA DE NAVEGAÇÃO INFERIOR MOBILE (< 640px) CONFORME WCAG 2.1 AA -->
+    <nav role="tablist" aria-label="Navegação rápida móvel de módulos" class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#064e3b]/95 backdrop-blur-md border-t border-emerald-800/90 px-3 py-1.5 flex justify-around items-center shadow-2xl">
+        <button type="button" role="tab" id="bottom-btn-role-cidadao" aria-selected="true" aria-controls="portal-cidadao" aria-label="Acessar Módulo do Cidadão" onclick="switchRole('cidadao')" class="min-h-[48px] min-w-[48px] flex-1 py-1 px-1 rounded-xl bg-emerald-800 text-white font-black text-center flex flex-col items-center justify-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+            <i class="fa-solid fa-user text-base mb-0.5" aria-hidden="true"></i>
+            <span class="text-[11px] leading-tight">Cidadão</span>
+        </button>
+        <button type="button" role="tab" id="bottom-btn-role-farmacia" aria-selected="false" aria-controls="portal-farmacia" aria-label="Acessar Módulo da Farmácia" onclick="switchRole('farmacia')" class="min-h-[48px] min-w-[48px] flex-1 py-1 px-1 rounded-xl text-emerald-200 text-center flex flex-col items-center justify-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+            <i class="fa-solid fa-user-doctor text-base mb-0.5" aria-hidden="true"></i>
+            <span class="text-[11px] leading-tight">Farmácia</span>
+        </button>
+        <button type="button" role="tab" id="bottom-btn-role-entregador" aria-selected="false" aria-controls="portal-entregador" aria-label="Acessar Painel do Entregador" onclick="switchRole('entregador')" class="min-h-[48px] min-w-[48px] flex-1 py-1 px-1 rounded-xl text-emerald-200 text-center flex flex-col items-center justify-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+            <i class="fa-solid fa-motorcycle text-base mb-0.5" aria-hidden="true"></i>
+            <span class="text-[11px] leading-tight">Entregador</span>
+        </button>
+    </nav>
 </body>
 </html>

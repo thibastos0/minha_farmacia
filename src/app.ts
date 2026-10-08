@@ -88,9 +88,9 @@ export function switchRole(role: ModuleRole | string): void {
 }
 
 /**
- * Atualiza classes visuais e atributos ARIA dos botões do seletor de módulos
+ * Atualiza classes visuais e atributos ARIA dos botões do seletor de módulos (topo e mobile bottom nav)
  */
-function updateNavigationUI(): void {
+export function updateNavigationUI(): void {
   if (typeof document === 'undefined') return;
   const currentRole = navManager.getActiveRole();
 
@@ -104,6 +104,7 @@ function updateNavigationUI(): void {
     const isSelected = tab.role === currentRole;
     const btnIds = [`btn-role-${tab.role}`, legacyIdMap[tab.role]];
 
+    // Atualiza botões superiores da barra de navegação
     btnIds.forEach((id) => {
       const btn = document.getElementById(id);
       if (!btn) return;
@@ -120,13 +121,28 @@ function updateNavigationUI(): void {
         btn.classList.add('hover:bg-emerald-800', 'text-emerald-100', 'font-bold');
       }
     });
+
+    // Atualiza botões da barra de navegação inferior (Mobile Bottom Navigation Bar)
+    const bottomBtn = document.getElementById(`bottom-btn-role-${tab.role}`);
+    if (bottomBtn) {
+      bottomBtn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      bottomBtn.setAttribute('tabindex', isSelected ? '0' : '-1');
+
+      if (isSelected) {
+        bottomBtn.classList.add('bg-emerald-800', 'text-white', 'font-black', 'shadow-inner');
+        bottomBtn.classList.remove('text-emerald-200');
+      } else {
+        bottomBtn.classList.remove('bg-emerald-800', 'text-white', 'font-black', 'shadow-inner');
+        bottomBtn.classList.add('text-emerald-200');
+      }
+    }
   });
 }
 
 /**
  * Alterna visibilidade das seções dos 3 módulos desacoplados
  */
-function updatePanelsVisibility(): void {
+export function updatePanelsVisibility(): void {
   if (typeof document === 'undefined') return;
   const currentRole = navManager.getActiveRole();
 
@@ -153,6 +169,121 @@ function updatePanelsVisibility(): void {
     });
   });
 }
+
+/**
+ * Autentica usuário simulado com base no perfil selecionado
+ */
+export function loginUser(
+  role: ModuleRole,
+  username?: string,
+  customData?: Partial<any>
+): any {
+  const user = navManager.login(role, username, customData);
+  updateAuthUI();
+  updateNavigationUI();
+  updatePanelsVisibility();
+  closeModalLogin();
+
+  // Sincroniza com o cidadão ativo no store caso seja perfil de cidadão
+  if (role === 'cidadao') {
+    const citizens = store.getCitizens();
+    const targetCpf = customData?.cpf || user.cpf;
+    const match = citizens.find((c) => (targetCpf && c.cpf === targetCpf) || c.name === user.displayName);
+    if (match) {
+      store.setCurrentCitizen(match.id);
+    }
+  }
+
+  // Notifica tecnologias assistivas
+  announceToScreenReader(`Acesso concedido para ${user.displayName} como ${user.badgeTitle}.`);
+  return user;
+}
+
+/**
+ * Encerra a sessão e reabre o modal de login para troca de perfil
+ */
+export function logoutUser(): void {
+  navManager.logout();
+  updateAuthUI();
+  openModalLogin();
+  announceToScreenReader('Sessão encerrada. Selecione um perfil para entrar.');
+}
+
+/**
+ * Atualiza os badges e dados do usuário no cabeçalho e tela do munícipe
+ */
+export function updateAuthUI(): void {
+  if (typeof document === 'undefined') return;
+  const user = navManager.getCurrentUser();
+
+  const avatarEl = document.getElementById('user-avatar-badge');
+  const nameEl = document.getElementById('user-display-name');
+  const roleEl = document.getElementById('user-role-badge');
+  const modalLogin = document.getElementById('modal-login');
+
+  if (user) {
+    if (avatarEl) avatarEl.textContent = user.avatarInitials || 'ID';
+    if (nameEl) nameEl.textContent = user.displayName;
+    if (roleEl) roleEl.textContent = user.badgeTitle;
+    if (modalLogin) {
+      modalLogin.classList.add('hidden');
+      modalLogin.setAttribute('hidden', 'true');
+    }
+
+    // Se estiver no módulo do cidadão, atualiza o cartão do munícipe na home
+    const citNameEl = document.getElementById('cit-profile-name');
+    const citAddrEl = document.getElementById('cit-profile-address');
+    const citInitEl = document.getElementById('cit-profile-initials');
+    if (citNameEl && user.role === 'cidadao') citNameEl.textContent = user.displayName;
+    if (citAddrEl && user.role === 'cidadao') {
+      citAddrEl.innerHTML = `<i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i> ${user.address || 'Indaiatuba - SP'}`;
+    }
+    if (citInitEl && user.role === 'cidadao') citInitEl.textContent = user.avatarInitials;
+  } else {
+    if (avatarEl) avatarEl.textContent = '??';
+    if (nameEl) nameEl.textContent = 'Não Autenticado';
+    if (roleEl) roleEl.textContent = 'Cidadão ID / Acesso Municipal';
+  }
+}
+
+export function openModalLogin(): void {
+  if (typeof document === 'undefined') return;
+  const modal = document.getElementById('modal-login');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.removeAttribute('hidden');
+  }
+}
+
+export function closeModalLogin(): void {
+  if (typeof document === 'undefined') return;
+  const modal = document.getElementById('modal-login');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.setAttribute('hidden', 'true');
+  }
+}
+
+export function openModalCadastro(): void {
+  if (typeof document === 'undefined') return;
+  const modalCad = document.getElementById('modal-cadastro');
+  if (modalCad) {
+    modalCad.classList.remove('hidden');
+    modalCad.removeAttribute('hidden');
+    const nomeInput = document.getElementById('cad-nome');
+    if (nomeInput) (nomeInput as HTMLElement).focus();
+  }
+}
+
+export function closeModalCadastro(): void {
+  if (typeof document === 'undefined') return;
+  const modalCad = document.getElementById('modal-cadastro');
+  if (modalCad) {
+    modalCad.classList.add('hidden');
+    modalCad.setAttribute('hidden', 'true');
+  }
+}
+
 
 // Vincula ouvinte de ativação do módulo da farmácia ao hook invalidateSize do mapa
 navManager.onFarmaciaActivated(() => {
@@ -206,11 +337,28 @@ if (typeof window !== 'undefined') {
     toggleMedicationStatus,
     getLowStockBadges,
     // Motor 1:N
-    evaluateAndSplitOrder
+    evaluateAndSplitOrder,
+    // Autenticação e Perfis
+    loginUser,
+    logoutUser,
+    updateAuthUI,
+    openModalLogin,
+    closeModalLogin,
+    openModalCadastro,
+    closeModalCadastro
   };
 
   // Suporte aos cliques dos botões legados ou declarados inline
   (window as any).switchRole = switchRole;
+  (window as any).loginUser = loginUser;
+  (window as any).logoutUser = logoutUser;
+  (window as any).openModalLogin = openModalLogin;
+  (window as any).closeModalLogin = closeModalLogin;
+  (window as any).openModalCadastro = openModalCadastro;
+  (window as any).closeModalCadastro = closeModalCadastro;
+  (window as any).updateAuthUI = updateAuthUI;
+  (window as any).updateNavigationUI = updateNavigationUI;
+  (window as any).updatePanelsVisibility = updatePanelsVisibility;
   (window as any).initMap = () => {
     initFleetMap('map-gerencial');
   };
@@ -245,5 +393,12 @@ if (typeof window !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
     updateNavigationUI();
     updatePanelsVisibility();
+    updateAuthUI();
+
+    // Se o usuário ainda não realizou o login, exibe o modal inicial de login
+    if (!navManager.getCurrentUser()) {
+      openModalLogin();
+    }
   });
 }
+

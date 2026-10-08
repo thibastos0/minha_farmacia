@@ -305,11 +305,38 @@
       const cit = this.data.citizens.find((c) => c.id === this.data.currentCitizenId);
       return cit || this.data.citizens[0];
     }
+    getCitizens() {
+      return [...this.data.citizens];
+    }
     setCurrentCitizen(citizenId) {
       if (this.data.citizens.some((c) => c.id === citizenId)) {
         this.data.currentCitizenId = citizenId;
         this.persistAndNotify();
       }
+    }
+    addCitizen(citizenData) {
+      const id = `cit-${Date.now()}`;
+      const newCitizen = {
+        id,
+        name: citizenData.name,
+        cpf: citizenData.cpf,
+        cartaoSus: citizenData.cartaoSus || "7000.9999.8888.7777",
+        phone: citizenData.phone || "(19) 99999-0000",
+        address: {
+          street: citizenData.address.street || "Rua Central",
+          number: citizenData.address.number || "100",
+          neighborhood: citizenData.address.neighborhood || "Jardim Morada do Sol",
+          city: citizenData.address.city || "Indaiatuba - SP",
+          cep: citizenData.address.cep || "13348-000",
+          lat: citizenData.address.lat || -23.1042,
+          lng: citizenData.address.lng || -47.2341,
+          complement: citizenData.address.complement
+        }
+      };
+      this.data.citizens.push(newCitizen);
+      this.data.currentCitizenId = id;
+      this.persistAndNotify();
+      return newCitizen;
     }
     // === MÉTODOS DE MEDICAMENTOS (CRUD) ===
     getMedications() {
@@ -582,16 +609,74 @@
       icon: "fa-solid fa-motorcycle"
     }
   ];
+  var MOCK_PROFILES = {
+    cidadao: {
+      role: "cidadao",
+      username: "usuario",
+      displayName: "Thiago Silva",
+      badgeTitle: "Mun\xEDcipe de Indaiatuba",
+      avatarInitials: "TS",
+      cpf: "123.456.789-00",
+      neighborhood: "Jardim Morada do Sol",
+      address: "Rua das Pr\xEDmulas, 450 - Morada do Sol, Indaiatuba"
+    },
+    farmacia: {
+      role: "farmacia",
+      username: "farmaceutico",
+      displayName: "Dra. Renata Souza",
+      badgeTitle: "Farmac\xEAutica RT (CRF 48.219)",
+      avatarInitials: "RS",
+      cpf: "321.654.987-11",
+      neighborhood: "Centro",
+      address: "Farm\xE1cia Central Municipal - Av. Eng. F\xE1bio Roberto Barnab\xE9"
+    },
+    entregador: {
+      role: "entregador",
+      username: "entregador",
+      displayName: "Marcos Vinicius",
+      badgeTitle: "Entregador Municipal (Moto IND-2026)",
+      avatarInitials: "MV",
+      cpf: "456.789.012-33",
+      neighborhood: "Jardim Pau Preto",
+      address: "Central de Log\xEDstica Farmac\xEAutica"
+    }
+  };
   var NavigationManager = class {
     constructor(initialRole = "cidadao") {
       __publicField(this, "activeRole");
+      __publicField(this, "currentUser", null);
       __publicField(this, "announcementListeners", /* @__PURE__ */ new Set());
       __publicField(this, "farmaciaListeners", /* @__PURE__ */ new Set());
       __publicField(this, "roleChangeListeners", /* @__PURE__ */ new Set());
+      __publicField(this, "authChangeListeners", /* @__PURE__ */ new Set());
       this.activeRole = initialRole;
     }
     getActiveRole() {
       return this.activeRole;
+    }
+    getCurrentUser() {
+      return this.currentUser;
+    }
+    login(role, username, customData) {
+      const base = MOCK_PROFILES[role] || MOCK_PROFILES.cidadao;
+      const user = {
+        ...base,
+        ...customData,
+        role,
+        username: username || base.username
+      };
+      this.currentUser = user;
+      this.switchRole(role);
+      this.authChangeListeners.forEach((fn) => fn(user));
+      return user;
+    }
+    logout() {
+      this.currentUser = null;
+      this.authChangeListeners.forEach((fn) => fn(null));
+    }
+    onAuthChange(listener) {
+      this.authChangeListeners.add(listener);
+      return () => this.authChangeListeners.delete(listener);
     }
     getTabsState() {
       return MODULE_TABS.map((tab) => ({
@@ -1294,6 +1379,18 @@
           btn.classList.add("hover:bg-emerald-800", "text-emerald-100", "font-bold");
         }
       });
+      const bottomBtn = document.getElementById(`bottom-btn-role-${tab.role}`);
+      if (bottomBtn) {
+        bottomBtn.setAttribute("aria-selected", isSelected ? "true" : "false");
+        bottomBtn.setAttribute("tabindex", isSelected ? "0" : "-1");
+        if (isSelected) {
+          bottomBtn.classList.add("bg-emerald-800", "text-white", "font-black", "shadow-inner");
+          bottomBtn.classList.remove("text-emerald-200");
+        } else {
+          bottomBtn.classList.remove("bg-emerald-800", "text-white", "font-black", "shadow-inner");
+          bottomBtn.classList.add("text-emerald-200");
+        }
+      }
     });
   }
   function updatePanelsVisibility() {
@@ -1319,6 +1416,92 @@
         }
       });
     });
+  }
+  function loginUser(role, username, customData) {
+    const user = navManager.login(role, username, customData);
+    updateAuthUI();
+    updateNavigationUI();
+    updatePanelsVisibility();
+    closeModalLogin();
+    if (role === "cidadao") {
+      const citizens = store.getCitizens();
+      const targetCpf = customData?.cpf || user.cpf;
+      const match = citizens.find((c) => targetCpf && c.cpf === targetCpf || c.name === user.displayName);
+      if (match) {
+        store.setCurrentCitizen(match.id);
+      }
+    }
+    announceToScreenReader(`Acesso concedido para ${user.displayName} como ${user.badgeTitle}.`);
+    return user;
+  }
+  function logoutUser() {
+    navManager.logout();
+    updateAuthUI();
+    openModalLogin();
+    announceToScreenReader("Sess\xE3o encerrada. Selecione um perfil para entrar.");
+  }
+  function updateAuthUI() {
+    if (typeof document === "undefined") return;
+    const user = navManager.getCurrentUser();
+    const avatarEl = document.getElementById("user-avatar-badge");
+    const nameEl = document.getElementById("user-display-name");
+    const roleEl = document.getElementById("user-role-badge");
+    const modalLogin = document.getElementById("modal-login");
+    if (user) {
+      if (avatarEl) avatarEl.textContent = user.avatarInitials || "ID";
+      if (nameEl) nameEl.textContent = user.displayName;
+      if (roleEl) roleEl.textContent = user.badgeTitle;
+      if (modalLogin) {
+        modalLogin.classList.add("hidden");
+        modalLogin.setAttribute("hidden", "true");
+      }
+      const citNameEl = document.getElementById("cit-profile-name");
+      const citAddrEl = document.getElementById("cit-profile-address");
+      const citInitEl = document.getElementById("cit-profile-initials");
+      if (citNameEl && user.role === "cidadao") citNameEl.textContent = user.displayName;
+      if (citAddrEl && user.role === "cidadao") {
+        citAddrEl.innerHTML = `<i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i> ${user.address || "Indaiatuba - SP"}`;
+      }
+      if (citInitEl && user.role === "cidadao") citInitEl.textContent = user.avatarInitials;
+    } else {
+      if (avatarEl) avatarEl.textContent = "??";
+      if (nameEl) nameEl.textContent = "N\xE3o Autenticado";
+      if (roleEl) roleEl.textContent = "Cidad\xE3o ID / Acesso Municipal";
+    }
+  }
+  function openModalLogin() {
+    if (typeof document === "undefined") return;
+    const modal = document.getElementById("modal-login");
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.removeAttribute("hidden");
+    }
+  }
+  function closeModalLogin() {
+    if (typeof document === "undefined") return;
+    const modal = document.getElementById("modal-login");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.setAttribute("hidden", "true");
+    }
+  }
+  function openModalCadastro() {
+    if (typeof document === "undefined") return;
+    const modalCad = document.getElementById("modal-cadastro");
+    if (modalCad) {
+      modalCad.classList.remove("hidden");
+      modalCad.removeAttribute("hidden");
+      const nomeInput = document.getElementById("cad-nome");
+      if (nomeInput) nomeInput.focus();
+    }
+  }
+  function closeModalCadastro() {
+    if (typeof document === "undefined") return;
+    const modalCad = document.getElementById("modal-cadastro");
+    if (modalCad) {
+      modalCad.classList.add("hidden");
+      modalCad.setAttribute("hidden", "true");
+    }
   }
   navManager.onFarmaciaActivated(() => {
     setTimeout(() => {
@@ -1367,9 +1550,26 @@
       toggleMedicationStatus,
       getLowStockBadges,
       // Motor 1:N
-      evaluateAndSplitOrder
+      evaluateAndSplitOrder,
+      // Autenticação e Perfis
+      loginUser,
+      logoutUser,
+      updateAuthUI,
+      openModalLogin,
+      closeModalLogin,
+      openModalCadastro,
+      closeModalCadastro
     };
     window.switchRole = switchRole;
+    window.loginUser = loginUser;
+    window.logoutUser = logoutUser;
+    window.openModalLogin = openModalLogin;
+    window.closeModalLogin = closeModalLogin;
+    window.openModalCadastro = openModalCadastro;
+    window.closeModalCadastro = closeModalCadastro;
+    window.updateAuthUI = updateAuthUI;
+    window.updateNavigationUI = updateNavigationUI;
+    window.updatePanelsVisibility = updatePanelsVisibility;
     window.initMap = () => {
       initFleetMap("map-gerencial");
     };
@@ -1401,6 +1601,10 @@
     document.addEventListener("DOMContentLoaded", () => {
       updateNavigationUI();
       updatePanelsVisibility();
+      updateAuthUI();
+      if (!navManager.getCurrentUser()) {
+        openModalLogin();
+      }
     });
   }
 })();

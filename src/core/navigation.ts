@@ -59,11 +59,57 @@ export interface TabState {
   isSelected: boolean;
 }
 
+export interface AuthUser {
+  role: ModuleRole;
+  username: string;
+  displayName: string;
+  badgeTitle: string;
+  avatarInitials: string;
+  cpf?: string;
+  neighborhood?: string;
+  address?: string;
+}
+
+export const MOCK_PROFILES: Record<ModuleRole, AuthUser> = {
+  cidadao: {
+    role: 'cidadao',
+    username: 'usuario',
+    displayName: 'Thiago Silva',
+    badgeTitle: 'Munícipe de Indaiatuba',
+    avatarInitials: 'TS',
+    cpf: '123.456.789-00',
+    neighborhood: 'Jardim Morada do Sol',
+    address: 'Rua das Prímulas, 450 - Morada do Sol, Indaiatuba'
+  },
+  farmacia: {
+    role: 'farmacia',
+    username: 'farmaceutico',
+    displayName: 'Dra. Renata Souza',
+    badgeTitle: 'Farmacêutica RT (CRF 48.219)',
+    avatarInitials: 'RS',
+    cpf: '321.654.987-11',
+    neighborhood: 'Centro',
+    address: 'Farmácia Central Municipal - Av. Eng. Fábio Roberto Barnabé'
+  },
+  entregador: {
+    role: 'entregador',
+    username: 'entregador',
+    displayName: 'Marcos Vinicius',
+    badgeTitle: 'Entregador Municipal (Moto IND-2026)',
+    avatarInitials: 'MV',
+    cpf: '456.789.012-33',
+    neighborhood: 'Jardim Pau Preto',
+    address: 'Central de Logística Farmacêutica'
+  }
+};
+
 export class NavigationManager {
   private activeRole: ModuleRole;
+  private currentUser: AuthUser | null = null;
   private announcementListeners: Set<(msg: string) => void> = new Set();
   private farmaciaListeners: Set<() => void> = new Set();
   private roleChangeListeners: Set<(role: ModuleRole) => void> = new Set();
+  private authChangeListeners: Set<(user: AuthUser | null) => void> = new Set();
 
   constructor(initialRole: ModuleRole = 'cidadao') {
     this.activeRole = initialRole;
@@ -71,6 +117,38 @@ export class NavigationManager {
 
   public getActiveRole(): ModuleRole {
     return this.activeRole;
+  }
+
+  public getCurrentUser(): AuthUser | null {
+    return this.currentUser;
+  }
+
+  public login(
+    role: ModuleRole,
+    username?: string,
+    customData?: Partial<AuthUser>
+  ): AuthUser {
+    const base = MOCK_PROFILES[role] || MOCK_PROFILES.cidadao;
+    const user: AuthUser = {
+      ...base,
+      ...customData,
+      role,
+      username: username || base.username
+    };
+    this.currentUser = user;
+    this.switchRole(role);
+    this.authChangeListeners.forEach((fn) => fn(user));
+    return user;
+  }
+
+  public logout(): void {
+    this.currentUser = null;
+    this.authChangeListeners.forEach((fn) => fn(null));
+  }
+
+  public onAuthChange(listener: (user: AuthUser | null) => void): () => void {
+    this.authChangeListeners.add(listener);
+    return () => this.authChangeListeners.delete(listener);
   }
 
   public getTabsState(): TabState[] {
@@ -115,3 +193,4 @@ export class NavigationManager {
     return () => this.roleChangeListeners.delete(listener);
   }
 }
+
