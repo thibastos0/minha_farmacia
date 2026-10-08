@@ -461,7 +461,7 @@
         <!-- 3. PORTAL DO MOTOBOY / ENTREGADOR (PAINEL DE ROTA & VALIDAR PIN)   -->
         <!-- ================================================================= -->
         <!-- ================================================================= -->
-        <!-- 3. PORTAL DO ENTREGADOR (ESTILO IFOOD / CORRIDAS & BAIXA COM PIN) -->
+        <!-- 3. PORTAL DO ENTREGADOR MUNICIPAL (CORRIDAS & BAIXA COM PIN)       -->
         <!-- ================================================================= -->
         <section id="portal-entregador" class="space-y-6 hidden">
             <div class="bg-white p-5 rounded-3xl border shadow-sm flex items-center justify-between">
@@ -470,7 +470,7 @@
                         <i class="fa-solid fa-motorcycle"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-gray-800">Painel do Entregador (Estilo Delivery)</h2>
+                        <h2 class="text-lg font-bold text-gray-800">Painel do Entregador Municipal</h2>
                         <p class="text-xs text-gray-500">Entregador Responsável: <b class="text-gray-800">Marcos Vinicius (Moto 01)</b> • Frota Municipal Indaiatuba</p>
                     </div>
                 </div>
@@ -738,7 +738,7 @@
                         <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                             <i class="fa-solid fa-stamp text-emerald-600"></i> Receituário Oficial SUS / Indaiatuba
                         </span>
-                        <span class="text-[10px] bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full">Validado Gov.br</span>
+                        <span class="text-[10px] bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full" id="val-filename">Validado Gov.br</span>
                     </div>
 
                     <!-- Folha da Receita Médica Simulação Visual -->
@@ -756,13 +756,21 @@
                         <!-- Dados do Paciente e Médico -->
                         <div class="font-sans text-xs space-y-1 bg-white/70 p-2.5 rounded-xl border border-slate-200">
                             <p><b>Paciente:</b> <span id="val-cliente-nome" class="font-semibold text-slate-900">Dona Maria de Lourdes Silva</span></p>
-                            <p><b>Cartão SUS:</b> <span class="font-mono text-[11px] text-slate-700">7000.1234.5678.9012</span> | <b>CPF:</b> <span class="font-mono text-[11px]">123.456.789-00</span></p>
+                            <p><b>Cartão SUS:</b> <span id="val-cliente-sus" class="font-mono text-[11px] text-slate-700">7000.1234.5678.9012</span> | <b>CPF:</b> <span id="val-cliente-cpf" class="font-mono text-[11px]">123.456.789-00</span></p>
                             <p><b>Endereço:</b> <span id="val-cliente-end" class="text-slate-600">Rua das Acácias, 142 - Jd. Morada do Sol</span></p>
                             <div class="pt-1 border-t border-slate-200 flex justify-between text-[11px] text-slate-600">
-                                <span><b>Médico:</b> Dr. Eduardo F. Lima</span>
-                                <span class="font-mono"><b>CRM-SP:</b> 142.890</span>
+                                <span><b>Médico:</b> <span id="val-medico-nome">Dr. Eduardo F. Lima</span></span>
+                                <span class="font-mono"><b>CRM-SP:</b> <span id="val-medico-crm">142.890</span></span>
                                 <span><b>Data:</b> <span class="text-emerald-800 font-bold">Hoje</span></span>
                             </div>
+                        </div>
+
+                        <!-- Anexo da Receita Submetida (se disponível) -->
+                        <div id="val-prescription-attachment" class="hidden p-2 bg-white/90 border border-emerald-200 rounded-xl font-sans text-xs flex items-center justify-between">
+                            <span class="text-emerald-900 font-semibold flex items-center gap-1.5 text-[11px]">
+                                <i class="fa-solid fa-paperclip text-emerald-600"></i> Anexo da Receita do Cidadão
+                            </span>
+                            <a id="val-attachment-link" href="#" target="_blank" class="text-emerald-700 underline font-bold text-[11px] hover:text-emerald-900">Abrir Imagem</a>
                         </div>
 
                         <!-- Prescrição de Medicamentos -->
@@ -829,12 +837,20 @@
                 </div>
             </div>
 
-            <!-- Alerta Reativo de Desmembramento 1:N no Modal de Triagem -->
+            <!-- Alerta Reativo de Entrega Desmembrada Municipal no Modal de Triagem -->
             <div id="val-split-preview" class="hidden p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-900 text-xs font-bold space-y-1">
                 <p class="flex items-center gap-1.5 text-sm text-amber-950 font-black">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Desmembramento Inteligente 1:N Ativado
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Entrega Desmembrada Municipal Ativada
                 </p>
                 <p id="val-split-preview-text">Itens em quantidade insuficiente no estoque municipal. A aprovação gerará automaticamente a Remessa A (imediata) e a Remessa B (aguardando reposição).</p>
+            </div>
+
+            <!-- Sugestão de Logística Municipal -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
+                <span id="suggested-motoboy-text" class="text-slate-700 font-medium">
+                    Sugerido pelo sistema: <b>Marcos Vinicius (Moto 01)</b> (0.8 km de distância - Status: Livre)
+                </span>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Logística Integrada</span>
             </div>
 
             <!-- CHANCELA OFICIAL DA FARMACÊUTICA RESPONSÁVEL TÉCNICA (RDC 44) -->
@@ -871,7 +887,7 @@
                     <i class="fa-solid fa-ban"></i> Recusar Receita
                 </button>
                 <button type="button" onclick="confirmApproval()" class="min-h-[48px] px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check"></i> Aprovar Prescrição (Disparar Split)
+                    <i class="fa-solid fa-check"></i> Aprovar Prescrição (Entrega Desmembrada Municipal)
                 </button>
             </div>
         </div>
@@ -1001,18 +1017,18 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- MODAL 4: DETALHES DA SOLICITAÇÃO ESTILO MERCADO LIVRE             -->
+    <!-- MODAL 4: DETALHES DO PEDIDO E REMESSAS DESMEMBRADAS               -->
     <!-- ================================================================= -->
     <div id="modal-detalhes-ml" role="dialog" aria-modal="true" aria-labelledby="modal-detalhes-title" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div class="bg-slate-50 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 p-5 sm:p-7 space-y-6 my-auto">
-            <!-- Cabeçalho Estilo E-commerce Municipal -->
+            <!-- Cabeçalho Oficial do Pedido Municipal -->
             <div class="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
                     <span class="text-[11px] font-black text-emerald-800 uppercase tracking-wider block">
                         Portal do Cidadão • Entrega Municipal
                     </span>
                     <h3 id="modal-detalhes-title" class="text-xl font-black text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-boxes-packing text-emerald-600"></i> Detalhes da Solicitação
+                        <i class="fa-solid fa-boxes-packing text-emerald-600"></i> Detalhes do Pedido e Remessas
                     </h3>
                 </div>
                 <button type="button" onclick="closeModalDetalhesML()" aria-label="Fechar detalhes" class="min-h-[48px] min-w-[48px] text-slate-400 hover:text-slate-700 rounded-xl flex items-center justify-center transition">
@@ -1036,7 +1052,7 @@
                 </div>
             </div>
 
-            <!-- Container de Cards dos Pacotes Mercado Livre -->
+            <!-- Container de Cards das Remessas Municipais -->
             <div id="ml-packages-container" class="space-y-5">
                 <!-- Renderizado dinamicamente via JS -->
             </div>
@@ -1214,6 +1230,9 @@
             window.closeModalCadastro = closeModalCadastro;
             window.openModalValidacao = openModalValidacao;
             window.closeModalValidacao = closeModalValidacao;
+            window.openWhatsAppChat = openWhatsAppChat;
+            window.openModalDespacho = openModalDespacho;
+            window.closeModalDespacho = closeModalDespacho;
             window.openModalDetalhesML = openModalDetalhesML;
             window.closeModalDetalhesML = closeModalDetalhesML;
             window.selectLoginRole = selectLoginRole;
@@ -1582,12 +1601,12 @@
                             </div>
 
                             <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
-                                <button type="button" onclick="openModalDetalhesML('${order.id}')" class="min-h-[48px] px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-2xl text-xs font-black shadow-sm flex items-center gap-2 transition" title="Ver pacotes desmembrados estilo Mercado Livre">
+                                <button type="button" onclick="openModalDetalhesML('${order.id}')" class="min-h-[48px] px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-2xl text-xs font-black shadow-sm flex items-center gap-2 transition" title="Ver detalhes do pedido e remessas">
                                     <i class="fa-solid fa-box-open text-emerald-600"></i>
-                                    <span>Ver Detalhes da Solicitação (Estilo Mercado Livre)</span>
+                                    <span>Ver Detalhes do Pedido e Remessas</span>
                                 </button>
                                 <span class="text-[11px] text-slate-500 font-medium">
-                                    ${order.subOrders ? order.subOrders.length : 0} pacote(s) associado(s)
+                                    ${order.subOrders ? order.subOrders.length : 0} remessa(s) associada(s)
                                 </span>
                             </div>
 
@@ -1631,7 +1650,7 @@
         }
 
         // =====================================================================
-        // DETALHES DA SOLICITAÇÃO ESTILO MERCADO LIVRE (MODAL DO CIDADÃO)
+        // DETALHES DO PEDIDO E REMESSAS (MODAL DO CIDADÃO)
         // =====================================================================
         function openModalDetalhesML(orderId) {
             let order = null;
@@ -1676,7 +1695,7 @@
                     else if (sub.status === 'ENTREGUE') activeStep = 4;
 
                     if (isAwaitingRestock) {
-                        // Card "Pacote X de Y - Aguardando Reposição" (Estilo Mercado Livre)
+                        // Card "Remessa X de Y - Aguardando Reposição"
                         container.innerHTML += `
                             <div class="bg-white rounded-3xl border-2 border-amber-200 shadow-sm p-5 sm:p-6 space-y-4">
                                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
@@ -1686,7 +1705,7 @@
                                         </div>
                                         <div>
                                             <span class="text-[10px] font-black uppercase text-amber-700 tracking-wider">Envio Pendente de Reposição</span>
-                                            <h4 class="text-base font-black text-slate-900">Pacote ${packageNumber} de ${totalPackages} — Aguardando Reposição</h4>
+                                            <h4 class="text-base font-black text-slate-900">Remessa ${packageNumber} de ${totalPackages} — Aguardando Reposição</h4>
                                         </div>
                                     </div>
                                     <span class="bg-amber-100 text-amber-900 font-extrabold text-xs px-3 py-1 rounded-full uppercase">
@@ -1694,7 +1713,7 @@
                                     </span>
                                 </div>
 
-                                <!-- Banner explicativo Mercado Livre -->
+                                <!-- Banner explicativo de reposição municipal -->
                                 <div class="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-start gap-3 text-xs text-amber-950 shadow-inner">
                                     <i class="fa-solid fa-circle-info text-amber-600 text-lg mt-0.5 shrink-0"></i>
                                     <p class="font-bold leading-relaxed">
@@ -1704,7 +1723,7 @@
 
                                 <!-- Lista de Itens Pendentes -->
                                 <div class="space-y-2">
-                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Itens deste pacote:</span>
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Itens desta remessa:</span>
                                     <div class="space-y-2">
                                         ${sub.items.map(item => `
                                             <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
@@ -1725,7 +1744,7 @@
                             </div>
                         `;
                     } else {
-                        // Card "Pacote X de Y - Remessa Prioritária Municipal" (Estilo Mercado Livre)
+                        // Card "Remessa X de Y - Remessa Prioritária Municipal"
                         container.innerHTML += `
                             <div class="bg-white rounded-3xl border-2 border-emerald-200 shadow-sm p-5 sm:p-6 space-y-4">
                                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
@@ -1735,7 +1754,7 @@
                                         </div>
                                         <div>
                                             <span class="text-[10px] font-black uppercase text-emerald-700 tracking-wider">Envio Rápido Municipal</span>
-                                            <h4 class="text-base font-black text-slate-900">Pacote ${packageNumber} de ${totalPackages} — Remessa Prioritária Municipal</h4>
+                                            <h4 class="text-base font-black text-slate-900">Remessa ${packageNumber} de ${totalPackages} — Remessa Prioritária Municipal</h4>
                                         </div>
                                     </div>
                                     <span class="bg-emerald-100 text-emerald-900 font-extrabold text-xs px-3 py-1 rounded-full uppercase">
@@ -1764,7 +1783,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Timeline de Rastreamento Mercado Livre -->
+                                <!-- Linha do Tempo de Rastreio Municipal -->
                                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
                                     <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Linha do Tempo de Rastreio:</span>
                                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -1839,7 +1858,7 @@
         }
 
         // =====================================================================
-        // 3. TRIAGEM INTELIGENTE NA FARMÁCIA COM DESMEMBRAMENTO 1:N
+        // 3. TRIAGEM INTELIGENTE NA FARMÁCIA COM ENTREGA DESMEMBRADA MUNICIPAL
         // =====================================================================
         function renderFuncionarioTable() {
             const tbody = document.getElementById('table-funcionario-body');
@@ -1890,7 +1909,7 @@
                             <span class="text-xs text-gray-500">${p.citizenName || 'Munícipe'}</span>
                         </td>
                         <td class="p-3 text-xs text-gray-600">${addr}</td>
-                        <td class="p-3 text-xs text-blue-600 font-bold underline cursor-pointer">
+                        <td class="p-3 text-xs text-blue-600 font-bold underline cursor-pointer hover:text-blue-800 transition" onclick="openModalValidacao('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')openModalValidacao('${p.id}')" title="Visualizar e Validar Receita Médica (RDC 44/2009)">
                             <i class="fa-solid fa-file-prescription mr-1"></i> Receita Médica
                         </td>
                         <td class="p-3 text-xs font-semibold text-emerald-700">
@@ -1904,7 +1923,7 @@
                         </td>
                         <td class="p-3 text-right space-x-1 space-y-1">
                             ${isPending ? `
-                                <button onclick="openModalValidacao('${p.id}')" class="min-h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
+                                <button onclick="openModalValidacao('${p.id}')" class="min-h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition" title="Validar Receita Médica conforme RDC 44/2009">
                                     <i class="fa-solid fa-stethoscope"></i> Validar Receita
                                 </button>
                                 <button onclick="openModalRecusa('${p.id}')" class="min-h-[48px] bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition">
@@ -1921,22 +1940,52 @@
             });
         }
 
-        // Abre modal de validação com pré-seleção inteligente da base RENAME
+        // Abre modal de validação com simulação visual da Receita do SUS e pré-seleção RENAME
         function openModalValidacao(orderId) {
             selectedOrderId = orderId;
             let order = null;
+            let citizen = null;
             if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
                 order = window.MinhaFarmacia.store.getOrderById(orderId);
+                if (order && order.citizenId) {
+                    citizen = window.MinhaFarmacia.store.getCitizenById(order.citizenId);
+                }
             }
 
             if (order) {
-                document.getElementById('val-filename').innerText = 'Receita Oficial Prescrita.jpg';
-                document.getElementById('val-cliente-nome').innerText = order.citizenName || 'Dona Maria de Lourdes Silva';
-                document.getElementById('val-cliente-end').innerText = order.deliveryAddress ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number}` : 'Indaiatuba - SP';
+                const valFn = document.getElementById('val-filename');
+                if (valFn) valFn.innerText = 'Receita Oficial Prescrita.jpg';
+
+                const valNome = document.getElementById('val-cliente-nome');
+                if (valNome) valNome.innerText = order.citizenName || (citizen ? citizen.name : 'Dona Maria de Lourdes Silva');
+
+                const valEnd = document.getElementById('val-cliente-end');
+                if (valEnd) {
+                    valEnd.innerText = order.deliveryAddress 
+                        ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number} - ${order.deliveryAddress.neighborhood || ''}` 
+                        : (citizen ? `${citizen.address.street}, ${citizen.address.number}` : 'Indaiatuba - SP');
+                }
+
+                const valCpf = document.getElementById('val-cliente-cpf');
+                if (valCpf) valCpf.innerText = order.citizenCpf || (citizen ? citizen.cpf : '123.456.789-00');
+
+                const valSus = document.getElementById('val-cliente-sus');
+                if (valSus) valSus.innerText = (citizen && citizen.cartaoSus) ? citizen.cartaoSus : '7000.1234.5678.9012';
+
+                const valAttach = document.getElementById('val-attachment-link');
+                const valAttachBox = document.getElementById('val-prescription-attachment');
+                if (valAttachBox && valAttach) {
+                    if (order.prescriptionImageUrl) {
+                        valAttach.href = order.prescriptionImageUrl;
+                        valAttachBox.classList.remove('hidden');
+                    } else {
+                        valAttachBox.classList.add('hidden');
+                    }
+                }
             }
 
             // PRÉ-SELEÇÃO INTELIGENTE DE MEDICAMENTOS SUGERIDOS DA BASE RENAME:
-            // med-01 (Losartana - com estoque) e med-03 (Amoxicilina - estoque zerado intencionalmente para teste 1:N)
+            // med-01 (Losartana - com estoque) e med-03 (Amoxicilina - estoque zerado intencionalmente para teste)
             selectedTriageDecisions = [
                 { medicationId: 'med-01', approvedQty: 10 },
                 { medicationId: 'med-03', approvedQty: 5 }
@@ -1946,13 +1995,24 @@
             checkTriageSplitPreview();
             renderTriageCatalogList();
 
-            document.getElementById('suggested-motoboy-text').innerHTML = `Sugerido pelo sistema: <b>Marcos Vinicius (Moto 01)</b> (0.8 km de distância - Status: Livre)`;
-            document.getElementById('modal-validacao').classList.remove('hidden');
+            const motoboyEl = document.getElementById('suggested-motoboy-text');
+            if (motoboyEl) {
+                motoboyEl.innerHTML = `Sugerido pelo sistema: <b>Marcos Vinicius (Moto 01)</b> (0.8 km de distância - Status: Livre)`;
+            }
+
+            const modal = document.getElementById('modal-validacao');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.removeAttribute('hidden');
+            }
         }
 
         function closeModalValidacao() {
             const m = document.getElementById('modal-validacao');
-            if (m) m.classList.add('hidden');
+            if (m) {
+                m.classList.add('hidden');
+                m.setAttribute('hidden', 'true');
+            }
         }
 
         // Renderiza itens selecionados na modal de triagem
@@ -2011,7 +2071,7 @@
                 if (preview.willBeSplit) {
                     banner.classList.remove('hidden');
                     if (bannerText) {
-                        bannerText.innerText = 'Itens com estoque insuficiente detectados na prescrição (ex: Amoxicilina). A aprovação ativará o desmembramento 1:N automático no sistema, gerando a Remessa A imediata e a Remessa B aguardando reposição.';
+                        bannerText.innerText = 'Itens com estoque insuficiente detectados na prescrição (ex: Amoxicilina). A aprovação ativará a Entrega Desmembrada Municipal no sistema, gerando a Remessa A imediata e a Remessa B aguardando reposição.';
                     }
                 } else {
                     banner.classList.add('hidden');
@@ -2098,7 +2158,7 @@
             });
         }
 
-        // Confirma aprovação da triagem invocando splitEngine e persistindo no store
+        // Confirma aprovação da triagem invocando motor de entrega desmembrada municipal e persistindo no store
         function confirmApproval() {
             if (selectedTriageDecisions.length === 0) {
                 alert('Selecione ao menos um medicamento do catálogo correspondente à receita médica!');
@@ -2112,7 +2172,7 @@
                     return;
                 }
                 const isSplit = res.triageResult && res.triageResult.isSplit;
-                alert(`Triagem concluída com sucesso! ${isSplit ? 'Pedido desmembrado em 1:N (Remessa A imediata e Remessa B aguardando reposição).' : 'Pedido aprovado em remessa única.'}`);
+                alert(`Triagem concluída com sucesso! ${isSplit ? 'Pedido com Entrega Desmembrada Municipal (Remessa A imediata e Remessa B aguardando reposição).' : 'Pedido aprovado em remessa única.'}`);
             }
 
             closeModalValidacao();
@@ -2456,14 +2516,17 @@
             }
         }
 
-        function openWhatsAppChat(phone, code) {
+        function openWhatsAppChat(phone, code, citizenName) {
             if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getWhatsAppLink === 'function') {
-                const link = window.MinhaFarmacia.getWhatsAppLink(phone || '19998765432', code || 'PED-2026', 'Munícipe');
+                const link = window.MinhaFarmacia.getWhatsAppLink(phone || '19998765432', code || 'PED-2026', citizenName || 'Munícipe');
                 window.open(link, '_blank');
             } else {
-                window.open(`https://wa.me/55${phone}?text=Olá!`, '_blank');
+                const cleanPhone = (phone || '19998765432').replace(/\D/g, '');
+                window.open(`https://wa.me/55${cleanPhone}?text=Olá!`, '_blank');
             }
         }
+        window.openWhatsAppChat = openWhatsAppChat;
+        window.openWhatsAppChatImpl = openWhatsAppChat;
 
         // =====================================================================
         // MODAL DE DESPACHO / ATRIBUIR ENTREGADOR (FARMÁCIA)
@@ -2544,8 +2607,15 @@
 
         function closeModalDespacho() {
             const modal = document.getElementById('modal-despacho');
-            if (modal) modal.classList.add('hidden');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.setAttribute('hidden', 'true');
+            }
         }
+        window.openModalDespacho = openModalDespacho;
+        window.openModalDespachoImpl = openModalDespacho;
+        window.closeModalDespacho = closeModalDespacho;
+        window.closeModalDespachoImpl = closeModalDespacho;
 
         function confirmDespacho() {
             if (!selectedDespachoSubOrderId) {
@@ -2570,7 +2640,7 @@
         }
 
         // =====================================================================
-        // MÓDULO DO ENTREGADOR ESTILO IFOOD (CENTRAL E CORRIDAS ATIVAS)
+        // MÓDULO DO ENTREGADOR MUNICIPAL (CENTRAL E CORRIDAS ATIVAS)
         // =====================================================================
         function switchEntregadorTab(tab) {
             const tabCentral = document.getElementById('entregador-tab-central');

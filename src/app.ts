@@ -285,6 +285,83 @@ export function closeModalCadastro(): void {
   }
 }
 
+/**
+ * Abre a modal de inspeção sanitária RDC 44/2009 e validação de receita
+ */
+export function openModalValidacao(orderId: string): void {
+  if (typeof window !== 'undefined' && typeof (window as any).openModalValidacaoImpl === 'function') {
+    (window as any).openModalValidacaoImpl(orderId);
+    return;
+  }
+  if (typeof document === 'undefined') return;
+  const modal = document.getElementById('modal-validacao');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.removeAttribute('hidden');
+  }
+}
+
+/**
+ * Fecha a modal de validação de receita
+ */
+export function closeModalValidacao(): void {
+  if (typeof window !== 'undefined' && typeof (window as any).closeModalValidacaoImpl === 'function') {
+    (window as any).closeModalValidacaoImpl();
+    return;
+  }
+  if (typeof document === 'undefined') return;
+  const modal = document.getElementById('modal-validacao');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.setAttribute('hidden', 'true');
+  }
+}
+
+/**
+ * Abre o chat de WhatsApp oficial com o munícipe
+ */
+export function openWhatsAppChat(phone?: string, code?: string, citizenName?: string): void {
+  if (typeof window !== 'undefined' && typeof (window as any).openWhatsAppChatImpl === 'function') {
+    (window as any).openWhatsAppChatImpl(phone, code, citizenName);
+    return;
+  }
+  const link = getWhatsAppLink(phone || '19998765432', code || 'PED-2026', citizenName || 'Munícipe');
+  if (typeof window !== 'undefined' && window.open) {
+    window.open(link, '_blank');
+  }
+}
+
+/**
+ * Abre a modal de despacho da remessa para entregador
+ */
+export function openModalDespacho(orderId: string, subOrderId: string, subOrderCode: string): void {
+  if (typeof window !== 'undefined' && typeof (window as any).openModalDespachoImpl === 'function') {
+    (window as any).openModalDespachoImpl(orderId, subOrderId, subOrderCode);
+    return;
+  }
+  if (typeof document === 'undefined') return;
+  const modal = document.getElementById('modal-despacho');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.removeAttribute('hidden');
+  }
+}
+
+/**
+ * Fecha a modal de despacho
+ */
+export function closeModalDespacho(): void {
+  if (typeof window !== 'undefined' && typeof (window as any).closeModalDespachoImpl === 'function') {
+    (window as any).closeModalDespachoImpl();
+    return;
+  }
+  if (typeof document === 'undefined') return;
+  const modal = document.getElementById('modal-despacho');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.setAttribute('hidden', 'true');
+  }
+}
 
 // Vincula ouvinte de ativação do módulo da farmácia ao hook invalidateSize do mapa
 navManager.onFarmaciaActivated(() => {
@@ -329,6 +406,11 @@ if (typeof window !== 'undefined') {
     performPharmacyTriage,
     getPharmacyDashboardCounters,
     dispatchOrderForPickup,
+    openModalValidacao,
+    closeModalValidacao,
+    openWhatsAppChat,
+    openModalDespacho,
+    closeModalDespacho,
     // Catálogo e Estoque
     getCatalogView,
     searchCatalog,
@@ -338,7 +420,7 @@ if (typeof window !== 'undefined') {
     adjustMedicationStockUnit,
     toggleMedicationStatus,
     getLowStockBadges,
-    // Motor 1:N
+    // Motor de Entrega Desmembrada Municipal
     evaluateAndSplitOrder,
     // Autenticação e Perfis
     loginUser,
@@ -358,6 +440,11 @@ if (typeof window !== 'undefined') {
   (window as any).closeModalLogin = closeModalLogin;
   (window as any).openModalCadastro = openModalCadastro;
   (window as any).closeModalCadastro = closeModalCadastro;
+  (window as any).openModalValidacao = openModalValidacao;
+  (window as any).closeModalValidacao = closeModalValidacao;
+  (window as any).openWhatsAppChat = openWhatsAppChat;
+  (window as any).openModalDespacho = openModalDespacho;
+  (window as any).closeModalDespacho = closeModalDespacho;
   (window as any).updateAuthUI = updateAuthUI;
   (window as any).updateNavigationUI = updateNavigationUI;
   (window as any).updatePanelsVisibility = updatePanelsVisibility;

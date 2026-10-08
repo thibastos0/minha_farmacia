@@ -1695,6 +1695,64 @@
       modalCad.setAttribute("hidden", "true");
     }
   }
+  function openModalValidacao(orderId) {
+    if (typeof window !== "undefined" && typeof window.openModalValidacaoImpl === "function") {
+      window.openModalValidacaoImpl(orderId);
+      return;
+    }
+    if (typeof document === "undefined") return;
+    const modal = document.getElementById("modal-validacao");
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.removeAttribute("hidden");
+    }
+  }
+  function closeModalValidacao() {
+    if (typeof window !== "undefined" && typeof window.closeModalValidacaoImpl === "function") {
+      window.closeModalValidacaoImpl();
+      return;
+    }
+    if (typeof document === "undefined") return;
+    const modal = document.getElementById("modal-validacao");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.setAttribute("hidden", "true");
+    }
+  }
+  function openWhatsAppChat(phone, code, citizenName) {
+    if (typeof window !== "undefined" && typeof window.openWhatsAppChatImpl === "function") {
+      window.openWhatsAppChatImpl(phone, code, citizenName);
+      return;
+    }
+    const link = getWhatsAppLink(phone || "19998765432", code || "PED-2026", citizenName || "Mun\xEDcipe");
+    if (typeof window !== "undefined" && window.open) {
+      window.open(link, "_blank");
+    }
+  }
+  function openModalDespacho(orderId, subOrderId, subOrderCode) {
+    if (typeof window !== "undefined" && typeof window.openModalDespachoImpl === "function") {
+      window.openModalDespachoImpl(orderId, subOrderId, subOrderCode);
+      return;
+    }
+    if (typeof document === "undefined") return;
+    const modal = document.getElementById("modal-despacho");
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.removeAttribute("hidden");
+    }
+  }
+  function closeModalDespacho() {
+    if (typeof window !== "undefined" && typeof window.closeModalDespachoImpl === "function") {
+      window.closeModalDespachoImpl();
+      return;
+    }
+    if (typeof document === "undefined") return;
+    const modal = document.getElementById("modal-despacho");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.setAttribute("hidden", "true");
+    }
+  }
   navManager.onFarmaciaActivated(() => {
     setTimeout(() => {
       invalidateMapSize();
@@ -1733,6 +1791,11 @@
       performPharmacyTriage,
       getPharmacyDashboardCounters,
       dispatchOrderForPickup,
+      openModalValidacao,
+      closeModalValidacao,
+      openWhatsAppChat,
+      openModalDespacho,
+      closeModalDespacho,
       // Catálogo e Estoque
       getCatalogView,
       searchCatalog,
@@ -1742,7 +1805,7 @@
       adjustMedicationStockUnit,
       toggleMedicationStatus,
       getLowStockBadges,
-      // Motor 1:N
+      // Motor de Entrega Desmembrada Municipal
       evaluateAndSplitOrder,
       // Autenticação e Perfis
       loginUser,
@@ -1760,6 +1823,11 @@
     window.closeModalLogin = closeModalLogin;
     window.openModalCadastro = openModalCadastro;
     window.closeModalCadastro = closeModalCadastro;
+    window.openModalValidacao = openModalValidacao;
+    window.closeModalValidacao = closeModalValidacao;
+    window.openWhatsAppChat = openWhatsAppChat;
+    window.openModalDespacho = openModalDespacho;
+    window.closeModalDespacho = closeModalDespacho;
     window.updateAuthUI = updateAuthUI;
     window.updateNavigationUI = updateNavigationUI;
     window.updatePanelsVisibility = updatePanelsVisibility;
