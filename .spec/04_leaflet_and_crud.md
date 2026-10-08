@@ -62,7 +62,7 @@ O farmacêutico possui autonomia total para gerir a lista de medicamentos dispon
    - Indicação visual com badge vermelho pulsante quando `stockQuantity <= minStockAlert`.
 3. **Update (Edição Completa e Ajuste Rápido de Estoque):**
    - Edição de dados cadastrais no modal.
-   - Botões de ajuste rápido de estoque (`+10`, `+50`, `-10`) com histórico de movimentação.
+   - Botões de ajuste rápido de estoque (`+10`, `-10`, `+1`, `-1`, além de suporte a deltas arbitrários como `+50` no serviço).
 4. **Delete / Deactivate (Inativação Segura):**
    - Em conformidade com sistemas de saúde pública, a exclusão física é substituída por **Inativação Lógica (Soft Delete)**.
    - Medicamentos inativados deixam de aparecer para triagem de novos pedidos, mas preservam o histórico de dispensações e pedidos passados.
