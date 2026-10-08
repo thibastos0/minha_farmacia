@@ -66,22 +66,11 @@
                 </div>
             </div>
 
-            <!-- Navegação de Módulos Desacoplados (Desktop / Tablet: sm:flex) -->
-            <nav role="tablist" aria-label="Seleção de módulo do sistema Minha Farmácia" class="hidden sm:flex items-center gap-1.5 bg-emerald-950/70 p-1.5 rounded-2xl border border-emerald-800/80">
-                <button type="button" role="tab" id="btn-role-cidadao" aria-selected="true" aria-controls="portal-cidadao" aria-label="Acessar Módulo do Cidadão e Acompanhamento de Pedidos" onclick="switchRole('cidadao')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl bg-white text-emerald-950 font-black text-sm shadow-md flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
-                    <i class="fa-solid fa-user text-emerald-700" aria-hidden="true"></i>
-                    <span>Área do Cidadão</span>
-                </button>
-                <button type="button" role="tab" id="btn-role-farmacia" aria-selected="false" aria-controls="portal-farmacia" aria-label="Acessar Painel da Farmácia e Gestão de Estoque" onclick="switchRole('farmacia')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
-                    <i class="fa-solid fa-user-doctor" aria-hidden="true"></i>
-                    <span>Farmácia & Gestão</span>
-                </button>
-                <button type="button" role="tab" id="btn-role-entregador" aria-selected="false" aria-controls="portal-entregador" aria-label="Acessar Painel do Entregador e Corridas" onclick="switchRole('entregador')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
-                    <i class="fa-solid fa-motorcycle" aria-hidden="true"></i>
-                    <span>Entregador</span>
-                    <span id="nav-badge-entregador" class="hidden ml-1 px-2 py-0.5 rounded-full text-xs font-black bg-amber-400 text-amber-950 shadow-sm animate-pulse">0</span>
-                </button>
-            </nav>
+            <!-- Placeholder hidden IDs kept for JS references (legacy) -->
+            <span id="btn-role-cidadao" class="hidden" aria-hidden="true"></span>
+            <span id="btn-role-farmacia" class="hidden" aria-hidden="true"></span>
+            <span id="btn-role-entregador" class="hidden" aria-hidden="true"></span>
+            <span id="nav-badge-entregador" class="hidden" aria-hidden="true"></span>
 
             <!-- Badge de Perfil Autenticado & Troca de Perfil -->
             <div id="header-user-area" class="flex items-center gap-2 sm:gap-3 bg-emerald-950/80 px-3 py-1.5 rounded-2xl border border-emerald-800/90 shadow-inner">
@@ -1202,12 +1191,38 @@
             // Renderização inicial de todos os componentes
             renderAllViews();
 
+            // Atualiza o badge do usuário logado no cabeçalho
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.updateAuthUI === 'function') {
+                window.MinhaFarmacia.updateAuthUI();
+            }
+
             // Inscreve no store reativo para atualizações instantâneas e automáticas
             if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
                 window.MinhaFarmacia.store.subscribe(() => {
                     renderAllViews();
                 });
             }
+
+            // Expõe funções locais do HTML no window para inline onclick
+            window.switchFuncTab = switchFuncTab;
+            window.showClienteScreen = showClienteScreen;
+            window.handleLoginSubmit = handleLoginSubmit;
+            window.handleCadastroSubmit = handleCadastroSubmit;
+            window.openModalLogin = openModalLogin;
+            window.closeModalLogin = closeModalLogin;
+            window.openModalCadastro = openModalCadastro;
+            window.closeModalCadastro = closeModalCadastro;
+            window.openModalValidacao = openModalValidacao;
+            window.closeModalValidacao = closeModalValidacao;
+            window.openModalDetalhesML = openModalDetalhesML;
+            window.closeModalDetalhesML = closeModalDetalhesML;
+            window.selectLoginRole = selectLoginRole;
+            window.renderAllViews = renderAllViews;
+            window.acceptOrderRide = acceptOrderRide;
+            window.confirmDelivery = confirmDelivery;
+            window.updateClientFileName = updateClientFileName;
+            window.handleClientOrder = handleClientOrder;
+            window.switchEntregadorTab = switchEntregadorTab;
         });
 
         // Função global de sincronização e renderização completa
@@ -1809,6 +1824,8 @@
             const modal = document.getElementById('modal-detalhes-ml');
             if (modal) modal.classList.add('hidden');
         }
+
+        function getSubOrderStatusBadge(status, courierName) {
             const courierSuffix = courierName ? ` [${courierName}]` : ' [Frota Geral]';
             const map = {
                 'EM_SEPARACAO': '<span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-boxes-packing mr-1"></i> Em Separação</span>',
