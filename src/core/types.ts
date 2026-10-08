@@ -12,7 +12,8 @@ export type OrderStatus =
 
 export type SubOrderStatus =
   | 'EM_SEPARACAO'          // Itens aprovados e separados fisicamente na farmácia
-  | 'AGUARDANDO_COLETA'     // Pacote pronto aguardando motoboy
+  | 'AGUARDANDO_RETIRADA'   // Pacote pronto na farmácia aguardando retirada/aceite do motoboy
+  | 'AGUARDANDO_COLETA'     // Compatibilidade legada
   | 'SAIU_PARA_ENTREGA'     // Motoboy a caminho do munícipe
   | 'AGUARDANDO_REPOSICAO'  // Medicamento em falta aguardando lote da central
   | 'ENTREGUE'              // Entregue e confirmado com PIN

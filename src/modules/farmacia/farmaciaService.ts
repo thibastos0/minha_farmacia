@@ -211,6 +211,7 @@ export function getPharmacyDashboardCounters(): PharmacyDashboardCounters {
         case 'AGUARDANDO_REPOSICAO':
           awaitingRestock++;
           break;
+        case 'AGUARDANDO_RETIRADA':
         case 'AGUARDANDO_COLETA':
           readyForPickup++;
           break;
@@ -230,3 +231,14 @@ export function getPharmacyDashboardCounters(): PharmacyDashboardCounters {
     totalOrders: allOrders.length
   };
 }
+
+/**
+ * Despacha uma remessa em separação para retirada pelo entregador
+ */
+export function dispatchOrderForPickup(
+  subOrderId: string,
+  courierId?: string
+) {
+  return store.dispatchSubOrder(subOrderId, courierId);
+}
+

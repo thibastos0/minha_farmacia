@@ -22,6 +22,8 @@ export interface SubOrderView {
   status: SubOrder['status'];
   pinCode: string;
   items: SubOrder['items'];
+  courierId?: string;
+  courierName?: string;
   createdAt: string;
   updatedAt: string;
   estimatedDelivery?: string;
@@ -109,6 +111,8 @@ export function formatCitizenOrdersView(citizenId: string): CitizenOrderView[] {
       status: sub.status,
       pinCode: sub.pinCode,
       items: sub.items,
+      courierId: sub.courierId,
+      courierName: sub.courierName,
       createdAt: sub.createdAt,
       updatedAt: sub.updatedAt,
       estimatedDelivery: sub.estimatedDelivery,

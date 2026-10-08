@@ -10,6 +10,9 @@ import assert from 'node:assert/strict';
 import { store } from '../src/core/store.ts';
 import {
   getCourierDeliveries,
+  getAvailableDeliveries,
+  getActiveCourierDeliveries,
+  acceptCourierDelivery,
   getWhatsAppLink,
   validateAndCompleteDelivery,
   formatPhoneForWhatsApp
@@ -136,3 +139,93 @@ describe('Módulo do Entregador: Fila de Corridas e Baixa com PIN de Segurança'
     assert.match(secondAttempt.message, /já foi entregue/i);
   });
 });
+
+describe('Módulo do Entregador: Fluxo de Despacho e Aceite de Corridas (Farmácia -> Motoboy -> Cidadão)', () => {
+  beforeEach(() => {
+    store.resetToDefaults();
+  });
+
+  test('Deve despachar remessa de EM_SEPARACAO para AGUARDANDO_RETIRADA na Central', () => {
+    const orders = store.getOrders();
+    const orderId = orders[0].id;
+
+    store.performTriage(orderId, [
+      { medicationId: 'med-01', approvedQty: 10 }
+    ]);
+
+    const order = store.getOrderById(orderId)!;
+    const subOrder = order.subOrders[0];
+    assert.equal(subOrder.status, 'EM_SEPARACAO');
+
+    // Despacho pela Farmácia para a frota geral
+    const dispatchResult = store.dispatchSubOrder(subOrder.id);
+    assert.equal(dispatchResult.success, true);
+    assert.equal(dispatchResult.subOrder?.status, 'AGUARDANDO_RETIRADA');
+    assert.equal(dispatchResult.subOrder?.courierId, undefined);
+
+    // Deve constar na listagem de pacotes disponíveis na central
+    const available = getAvailableDeliveries();
+    const found = available.find((a) => a.subOrderId === subOrder.id);
+    assert.ok(found, 'Pacote deve estar disponível na Central');
+    assert.equal(found.status, 'AGUARDANDO_RETIRADA');
+  });
+
+  test('Deve despachar remessa com atribuição específica a um entregador municipal', () => {
+    const orders = store.getOrders();
+    const orderId = orders[0].id;
+
+    store.performTriage(orderId, [
+      { medicationId: 'med-01', approvedQty: 10 }
+    ]);
+
+    const order = store.getOrderById(orderId)!;
+    const subOrder = order.subOrders[0];
+
+    const dispatchResult = store.dispatchSubOrder(subOrder.id, 'cour-01');
+    assert.equal(dispatchResult.success, true);
+    assert.equal(dispatchResult.subOrder?.status, 'AGUARDANDO_RETIRADA');
+    assert.equal(dispatchResult.subOrder?.courierId, 'cour-01');
+    assert.match(dispatchResult.subOrder?.courierName!, /Marcos Vinicius/i);
+
+    // Munícipe enxerga nome do motoboy na timeline
+    const citizenOrders = formatCitizenOrdersView('cit-01');
+    const myOrder = citizenOrders.find((o) => o.id === orderId)!;
+    assert.equal(myOrder.subOrders[0].status, 'AGUARDANDO_RETIRADA');
+    assert.equal(myOrder.subOrders[0].courierName, 'Marcos Vinicius (Moto 01)');
+  });
+
+  test('Deve aceitar corrida e fazer a transição para SAIU_PARA_ENTREGA', () => {
+    const orders = store.getOrders();
+    const orderId = orders[0].id;
+
+    store.performTriage(orderId, [
+      { medicationId: 'med-01', approvedQty: 10 }
+    ]);
+
+    const order = store.getOrderById(orderId)!;
+    const subOrder = order.subOrders[0];
+    store.dispatchSubOrder(subOrder.id);
+
+    // Motoboy aceita corrida na Central
+    const acceptResult = acceptCourierDelivery(subOrder.id, 'cour-01');
+    assert.equal(acceptResult.success, true);
+    assert.equal(acceptResult.subOrder?.status, 'SAIU_PARA_ENTREGA');
+    assert.equal(acceptResult.subOrder?.courierId, 'cour-01');
+
+    // Não deve mais constar em pacotes prontos na central
+    const available = getAvailableDeliveries();
+    assert.ok(!available.some((a) => a.subOrderId === subOrder.id));
+
+    // Deve constar em entregas ativas do motoboy
+    const active = getActiveCourierDeliveries('cour-01');
+    const foundActive = active.find((a) => a.subOrderId === subOrder.id);
+    assert.ok(foundActive);
+    assert.equal(foundActive.status, 'SAIU_PARA_ENTREGA');
+
+    // Conclusão com PIN
+    const completeResult = validateAndCompleteDelivery(subOrder.id, subOrder.pinCode);
+    assert.equal(completeResult.success, true);
+    assert.equal(completeResult.subOrder?.status, 'ENTREGUE');
+  });
+});
+

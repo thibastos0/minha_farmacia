@@ -15,6 +15,10 @@ import {
 } from './modules/farmacia/fleetMapService.ts';
 import {
   getCourierDeliveries,
+  getAvailableDeliveries,
+  getActiveCourierDeliveries,
+  acceptCourierDelivery,
+  dispatchSubOrder,
   getWhatsAppLink,
   validateAndCompleteDelivery,
   formatPhoneForWhatsApp
@@ -28,7 +32,8 @@ import {
   getPharmacyTriageQueue,
   previewStockImpact,
   performPharmacyTriage,
-  getPharmacyDashboardCounters
+  getPharmacyDashboardCounters,
+  dispatchOrderForPickup
 } from './modules/farmacia/farmaciaService.ts';
 import {
   getCatalogView,
@@ -175,6 +180,10 @@ if (typeof window !== 'undefined') {
     getFleetMarkersData,
     INDAIATUBA_CENTER,
     getCourierDeliveries,
+    getAvailableDeliveries,
+    getActiveCourierDeliveries,
+    acceptCourierDelivery,
+    dispatchSubOrder,
     getWhatsAppLink,
     validateAndCompleteDelivery,
     formatPhoneForWhatsApp,
@@ -187,6 +196,7 @@ if (typeof window !== 'undefined') {
     previewStockImpact,
     performPharmacyTriage,
     getPharmacyDashboardCounters,
+    dispatchOrderForPickup,
     // Catálogo e Estoque
     getCatalogView,
     searchCatalog,
@@ -207,6 +217,11 @@ if (typeof window !== 'undefined') {
   (window as any).initFleetMap = initFleetMap;
   (window as any).invalidateMapSize = invalidateMapSize;
   (window as any).getCourierDeliveries = getCourierDeliveries;
+  (window as any).getAvailableDeliveries = getAvailableDeliveries;
+  (window as any).getActiveCourierDeliveries = getActiveCourierDeliveries;
+  (window as any).acceptCourierDelivery = acceptCourierDelivery;
+  (window as any).dispatchSubOrder = dispatchSubOrder;
+  (window as any).dispatchOrderForPickup = dispatchOrderForPickup;
   (window as any).getWhatsAppLink = getWhatsAppLink;
   (window as any).validateAndCompleteDelivery = validateAndCompleteDelivery;
   (window as any).createCitizenPrescriptionOrder = createCitizenPrescriptionOrder;

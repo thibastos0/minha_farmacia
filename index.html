@@ -79,6 +79,7 @@
                 <button type="button" role="tab" id="btn-role-entregador" aria-selected="false" aria-controls="portal-entregador" aria-label="Acessar Painel do Entregador e Corridas" onclick="switchRole('entregador')" class="role-btn min-h-[48px] px-4 py-3 rounded-2xl hover:bg-emerald-800 text-emerald-100 font-bold text-sm flex items-center gap-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950">
                     <i class="fa-solid fa-motorcycle" aria-hidden="true"></i>
                     <span>Entregador</span>
+                    <span id="nav-badge-entregador" class="hidden ml-1 px-2 py-0.5 rounded-full text-xs font-black bg-amber-400 text-amber-950 shadow-sm animate-pulse">0</span>
                 </button>
             </nav>
         </div>
@@ -371,27 +372,61 @@
         <!-- ================================================================= -->
         <!-- 3. PORTAL DO MOTOBOY / ENTREGADOR (PAINEL DE ROTA & VALIDAR PIN)   -->
         <!-- ================================================================= -->
+        <!-- ================================================================= -->
+        <!-- 3. PORTAL DO ENTREGADOR (ESTILO IFOOD / CORRIDAS & BAIXA COM PIN) -->
+        <!-- ================================================================= -->
         <section id="portal-entregador" class="space-y-6 hidden">
-            <div class="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between">
+            <div class="bg-white p-5 rounded-3xl border shadow-sm flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center font-bold text-xl">
                         <i class="fa-solid fa-motorcycle"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-gray-800">Painel do Entregador</h2>
-                        <p class="text-xs text-gray-500">Entregador Responsável: <b class="text-gray-800">Carlos Silva (Motoboy 01)</b></p>
+                        <h2 class="text-lg font-bold text-gray-800">Painel do Entregador (Estilo Delivery)</h2>
+                        <p class="text-xs text-gray-500">Entregador Responsável: <b class="text-gray-800">Marcos Vinicius (Moto 01)</b> • Frota Municipal Indaiatuba</p>
                     </div>
                 </div>
                 <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-xl">
-                    Sua Frota: Ativa
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Disponível no Pátio
                 </span>
             </div>
 
-            <div class="space-y-4 max-w-2xl mx-auto">
-                <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Entregas Sob Sua Responsabilidade</h3>
-                <div id="motoboy-orders-list" class="space-y-4">
-                    <!-- Inserido dinamicamente via JS -->
+            <!-- Navegação de Abas do Módulo do Entregador -->
+            <div class="max-w-2xl mx-auto space-y-4">
+                <div class="flex border-b border-gray-200 bg-white rounded-2xl p-1 shadow-sm border">
+                    <button type="button" id="tab-entregador-central-btn" onclick="switchEntregadorTab('central')" class="flex-1 min-h-[48px] px-4 py-3 rounded-xl border-b-2 border-emerald-600 bg-emerald-50/80 font-bold text-xs sm:text-sm text-emerald-800 flex items-center justify-center gap-2 focus:outline-none transition">
+                        <i class="fa-solid fa-box text-base"></i>
+                        <span>📦 Pacotes Prontos na Central</span>
+                        <span id="badge-count-central" class="bg-emerald-200 text-emerald-950 text-xs px-2 py-0.5 rounded-full font-black">0</span>
+                    </button>
+                    <button type="button" id="tab-entregador-ativas-btn" onclick="switchEntregadorTab('ativas')" class="flex-1 min-h-[48px] px-4 py-3 rounded-xl border-b-2 border-transparent font-medium text-xs sm:text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 focus:outline-none transition">
+                        <i class="fa-solid fa-motorcycle text-base"></i>
+                        <span>🛵 Minhas Entregas Ativas</span>
+                        <span id="badge-count-ativas" class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-black">0</span>
+                    </button>
                 </div>
+
+                <!-- Seção A: Pacotes Prontos na Central (Aguardando Retirada) -->
+                <div id="entregador-tab-central" class="space-y-4">
+                    <div class="flex items-center justify-between text-xs text-gray-500 px-1">
+                        <span>Pacotes despachados pela Farmácia aguardando coleta de um entregador:</span>
+                    </div>
+                    <div id="motoboy-central-list" class="space-y-4">
+                        <!-- Inserido dinamicamente via JS -->
+                    </div>
+                </div>
+
+                <!-- Seção B: Minhas Entregas Ativas (Saiu para Entrega) -->
+                <div id="entregador-tab-ativas" class="hidden space-y-4">
+                    <div class="flex items-center justify-between text-xs text-gray-500 px-1">
+                        <span>Corridas aceitas sob sua responsabilidade em rota de entrega:</span>
+                    </div>
+                    <div id="motoboy-active-list" class="space-y-4">
+                        <!-- Inserido dinamicamente via JS -->
+                    </div>
+                </div>
+
+                <div id="motoboy-orders-list" class="hidden"></div>
             </div>
         </section>
 
@@ -547,6 +582,39 @@
         </div>
     </div>
 
+    <!-- ================================================================= -->
+    <!-- MODAL: ATRIBUIR ENTREGADOR & DESPACHAR REMESSA                   -->
+    <!-- ================================================================= -->
+    <div id="modal-despacho" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl p-6 space-y-5">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-motorcycle text-emerald-600"></i> Despachar / Chamar Entregador
+                </h3>
+                <button onclick="closeModalDespacho()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-2xl border space-y-1 text-xs">
+                <p><b>Remessa:</b> <span id="despacho-suborder-code" class="font-mono font-bold text-emerald-700">-</span></p>
+                <p><b>Destino:</b> <span id="despacho-suborder-dest">-</span></p>
+                <p><b>Munícipe:</b> <span id="despacho-suborder-citizen">-</span></p>
+            </div>
+
+            <div class="space-y-3">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Selecione o Método de Despacho:</label>
+                <div id="despacho-courier-options" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    <!-- Inserido dinamicamente via JS -->
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t">
+                <button type="button" onclick="closeModalDespacho()" class="min-h-[44px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button type="button" onclick="confirmDespacho()" class="min-h-[44px] px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Confirmar Despacho
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- LOGICA E SCRIPTS JavaScript COM INTEGRAÇÃO REATIVA AO STORE -->
     <script>
@@ -794,8 +862,54 @@
                                     Remessas do Pedido (${order.subOrders.length} remessas):
                                 </h5>
                                 ${order.subOrders.map(sub => {
-                                    const statusBadge = getSubOrderStatusBadge(sub.status);
+                                    const statusBadge = getSubOrderStatusBadge(sub.status, sub.courierName);
                                     const medList = sub.items.map(item => `<b>${item.medicationName}</b> (${item.dosage}) — Qtd: ${item.approvedQty}`).join('<br>');
+                                    const courierDisplayName = sub.courierName || 'Frota Geral';
+
+                                    let activeStep = 0;
+                                    if (sub.status === 'EM_SEPARACAO') activeStep = 1;
+                                    else if (sub.status === 'AGUARDANDO_RETIRADA' || sub.status === 'AGUARDANDO_COLETA') activeStep = 2;
+                                    else if (sub.status === 'SAIU_PARA_ENTREGA') activeStep = 3;
+                                    else if (sub.status === 'ENTREGUE') activeStep = 4;
+
+                                    const isAwaitingRestock = sub.status === 'AGUARDANDO_REPOSICAO';
+
+                                    const timelineHtml = isAwaitingRestock ? `
+                                        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
+                                            <i class="fa-solid fa-hourglass-half text-amber-600"></i>
+                                            <span>Aguardando Reposição no Estoque Municipal para iniciar a separação.</span>
+                                        </div>
+                                    ` : `
+                                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2">
+                                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Linha do Tempo da Remessa:</span>
+                                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+                                                <div class="flex items-center gap-2 p-2 rounded-xl ${activeStep >= 1 ? 'bg-emerald-50 text-emerald-900 font-bold border border-emerald-200' : 'bg-white text-gray-400 border'}">
+                                                    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs ${activeStep > 1 ? 'bg-emerald-600 text-white font-bold' : (activeStep === 1 ? 'bg-emerald-500 text-white font-bold animate-pulse' : 'bg-gray-200 text-gray-500')}">
+                                                        ${activeStep > 1 ? '✓' : '1'}
+                                                    </span>
+                                                    <span>Em Separação</span>
+                                                </div>
+                                                <div class="flex items-center gap-2 p-2 rounded-xl ${activeStep >= 2 ? 'bg-purple-50 text-purple-900 font-bold border border-purple-200' : 'bg-white text-gray-400 border'}">
+                                                    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs ${activeStep > 2 ? 'bg-emerald-600 text-white font-bold' : (activeStep === 2 ? 'bg-purple-600 text-white font-bold animate-pulse' : 'bg-gray-200 text-gray-500')}">
+                                                        ${activeStep > 2 ? '✓' : '2'}
+                                                    </span>
+                                                    <span class="truncate" title="Aguardando Coleta pelo Entregador [${courierDisplayName}]">Aguardando Coleta pelo Entregador [${courierDisplayName}]</span>
+                                                </div>
+                                                <div class="flex items-center gap-2 p-2 rounded-xl ${activeStep >= 3 ? 'bg-blue-50 text-blue-900 font-bold border border-blue-200' : 'bg-white text-gray-400 border'}">
+                                                    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs ${activeStep > 3 ? 'bg-emerald-600 text-white font-bold' : (activeStep === 3 ? 'bg-blue-600 text-white font-bold animate-pulse' : 'bg-gray-200 text-gray-500')}">
+                                                        ${activeStep > 3 ? '✓' : '3'}
+                                                    </span>
+                                                    <span>Saiu para Entrega</span>
+                                                </div>
+                                                <div class="flex items-center gap-2 p-2 rounded-xl ${activeStep === 4 ? 'bg-emerald-50 text-emerald-900 font-bold border border-emerald-200' : 'bg-white text-gray-400 border'}">
+                                                    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs ${activeStep === 4 ? 'bg-emerald-600 text-white font-bold' : 'bg-gray-200 text-gray-500'}">
+                                                        ${activeStep === 4 ? '✓' : '4'}
+                                                    </span>
+                                                    <span>Entregue</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
 
                                     return `
                                         <div class="p-4 bg-white rounded-2xl border-2 border-emerald-100 shadow-sm space-y-3">
@@ -816,6 +930,8 @@
                                                 <span class="font-bold text-gray-500 block text-[10px] uppercase">Itens desta remessa:</span>
                                                 <p class="leading-relaxed">${medList}</p>
                                             </div>
+
+                                            ${timelineHtml}
 
                                             <!-- CARD DESTACADO DO CÓDIGO PIN DE 4 DÍGITOS -->
                                             <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between">
@@ -904,10 +1020,12 @@
         }
 
         // Helper para badge de status das subOrders
-        function getSubOrderStatusBadge(status) {
+        function getSubOrderStatusBadge(status, courierName) {
+            const courierSuffix = courierName ? ` [${courierName}]` : ' [Frota Geral]';
             const map = {
                 'EM_SEPARACAO': '<span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-boxes-packing mr-1"></i> Em Separação</span>',
-                'AGUARDANDO_COLETA': '<span class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-box mr-1"></i> Aguardando Coleta</span>',
+                'AGUARDANDO_RETIRADA': `<span class="bg-purple-100 text-purple-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-box mr-1"></i> Aguardando Coleta pelo Entregador${courierSuffix}</span>`,
+                'AGUARDANDO_COLETA': `<span class="bg-purple-100 text-purple-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-box mr-1"></i> Aguardando Coleta pelo Entregador${courierSuffix}</span>`,
                 'SAIU_PARA_ENTREGA': '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-motorcycle mr-1"></i> Em Rota</span>',
                 'AGUARDANDO_REPOSICAO': '<span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Aguardando Reposição</span>',
                 'ENTREGUE': '<span class="bg-green-100 text-green-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase"><i class="fa-solid fa-circle-check mr-1"></i> Entregue</span>'
@@ -947,6 +1065,19 @@
                     ? p.subOrders.flatMap(s => s.items.map(i => i.medicationName)).join(', ') 
                     : '<i class="text-gray-400">Aguardando Triagem</i>';
 
+                // SubOrders badges e botões de ação de despacho
+                const subOrdersList = p.subOrders || [];
+                const subOrdersBadgesHtml = subOrdersList.map(s => {
+                    return `<div class="mt-1">${getSubOrderStatusBadge(s.status, s.courierName)} <span class="text-[10px] text-gray-500 font-mono">${s.code}</span></div>`;
+                }).join('');
+
+                const dispatchableSubOrders = subOrdersList.filter(s => s.status === 'EM_SEPARACAO');
+                const dispatchButtonsHtml = dispatchableSubOrders.map(sub => `
+                    <button onclick="openModalDespacho('${p.id}', '${sub.id}', '${sub.code}')" class="min-h-[44px] bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5" title="Chamar entregador para coletar esta remessa">
+                        <i class="fa-solid fa-motorcycle"></i> Despachar / Chamar Entregador (${sub.code})
+                    </button>
+                `).join('');
+
                 tbody.innerHTML += `
                     <tr>
                         <td class="p-3">
@@ -964,8 +1095,9 @@
                             <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full ${statusMap[p.status] || 'bg-gray-100 text-gray-800'}">
                                 ${p.status}
                             </span>
+                            ${subOrdersBadgesHtml}
                         </td>
-                        <td class="p-3 text-right space-x-1">
+                        <td class="p-3 text-right space-x-1 space-y-1">
                             ${isPending ? `
                                 <button onclick="openModalValidacao('${p.id}')" class="min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
                                     <i class="fa-solid fa-stethoscope"></i> Validar Receita
@@ -974,6 +1106,7 @@
                                     Reprovar
                                 </button>
                             ` : ''}
+                            ${dispatchButtonsHtml}
                             <button onclick="openWhatsAppChat('${p.citizenPhone}', '${p.code}')" class="min-h-[44px] bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition" title="WhatsApp Oficial">
                                 <i class="fa-brands fa-whatsapp text-sm"></i>
                             </button>
@@ -1336,6 +1469,29 @@
                 if (rEl) rEl.innerText = counters.inRoute + counters.inSeparation;
                 if (dEl) dEl.innerText = 12 + counters.readyForPickup;
             }
+
+            // Atualiza badge de pacotes aguardando retirada no menu superior e no módulo do entregador
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getAvailableDeliveries === 'function') {
+                const readyDeliveries = window.MinhaFarmacia.getAvailableDeliveries();
+                const count = readyDeliveries.length;
+                const navBadge = document.getElementById('nav-badge-entregador');
+                if (navBadge) {
+                    navBadge.textContent = count;
+                    if (count > 0) {
+                        navBadge.classList.remove('hidden');
+                    } else {
+                        navBadge.classList.add('hidden');
+                    }
+                }
+                const centralBadge = document.getElementById('badge-count-central');
+                if (centralBadge) centralBadge.textContent = count;
+            }
+
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getActiveCourierDeliveries === 'function') {
+                const activeDeliveries = window.MinhaFarmacia.getActiveCourierDeliveries('cour-01');
+                const activeBadge = document.getElementById('badge-count-ativas');
+                if (activeBadge) activeBadge.textContent = activeDeliveries.length;
+            }
         }
 
         function openWhatsAppChat(phone, code) {
@@ -1348,60 +1504,261 @@
         }
 
         // =====================================================================
-        // MÓDULO DO ENTREGADOR / MOTOBOY
+        // MODAL DE DESPACHO / ATRIBUIR ENTREGADOR (FARMÁCIA)
         // =====================================================================
-        function renderMotoboyOrders() {
-            const container = document.getElementById('motoboy-orders-list');
-            if (!container) return;
-            container.innerHTML = '';
+        let selectedDespachoOrderId = null;
+        let selectedDespachoSubOrderId = null;
+        let selectedDespachoCourierId = '';
 
-            let deliveries = [];
-            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getCourierDeliveries === 'function') {
-                deliveries = window.MinhaFarmacia.getCourierDeliveries();
+        function openModalDespacho(orderId, subOrderId, subOrderCode) {
+            selectedDespachoOrderId = orderId;
+            selectedDespachoSubOrderId = subOrderId;
+            selectedDespachoCourierId = '';
+
+            let order = null;
+            if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                order = window.MinhaFarmacia.store.getOrderById(orderId);
             }
 
-            const activeDeliveries = deliveries.filter(d => d.status !== 'ENTREGUE');
+            const codeEl = document.getElementById('despacho-suborder-code');
+            const destEl = document.getElementById('despacho-suborder-dest');
+            const citEl = document.getElementById('despacho-suborder-citizen');
 
-            if (activeDeliveries.length === 0) {
-                container.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center text-xs text-gray-400">Nenhuma entrega atribuída no momento.</div>`;
+            if (codeEl) codeEl.innerText = subOrderCode;
+            if (citEl) citEl.innerText = (order && order.citizenName) ? order.citizenName : 'Munícipe';
+            if (destEl) destEl.innerText = (order && order.deliveryAddress) 
+                ? `${order.deliveryAddress.street}, ${order.deliveryAddress.number} - ${order.deliveryAddress.neighborhood}` 
+                : 'Indaiatuba - SP';
+
+            // Carrega lista de motoboys municipais ou frota geral
+            const container = document.getElementById('despacho-courier-options');
+            if (container) {
+                container.innerHTML = '';
+
+                let couriers = [];
+                if (window.MinhaFarmacia && window.MinhaFarmacia.store) {
+                    couriers = window.MinhaFarmacia.store.getCouriers();
+                }
+
+                // Opção 1: Frota Geral (Recomendado / Todos os motoboys)
+                container.innerHTML += `
+                    <label class="flex items-center justify-between p-3 border-2 border-emerald-500 bg-emerald-50/50 rounded-2xl cursor-pointer hover:bg-emerald-50 transition">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="despacho_courier" value="" checked onchange="selectedDespachoCourierId = ''" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                            <div>
+                                <span class="font-extrabold text-xs text-gray-900 block flex items-center gap-1.5">
+                                    <i class="fa-solid fa-users text-emerald-600"></i> Disponibilizar para Frota Geral
+                                </span>
+                                <span class="text-[11px] text-gray-500">Qualquer entregador livre da frota municipal pode aceitar no aplicativo</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold bg-emerald-200 text-emerald-950 px-2 py-0.5 rounded-full">Recomendado</span>
+                    </label>
+                `;
+
+                // Opções específicas de motoboys
+                couriers.forEach(cour => {
+                    const isAvailable = cour.status === 'DISPONIVEL';
+                    container.innerHTML += `
+                        <label class="flex items-center justify-between p-3 border border-gray-200 rounded-2xl cursor-pointer hover:bg-gray-50 transition">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="despacho_courier" value="${cour.id}" onchange="selectedDespachoCourierId = '${cour.id}'" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                                <div>
+                                    <span class="font-extrabold text-xs text-gray-800 block">${cour.name}</span>
+                                    <span class="text-[11px] text-gray-400">Distância: ~0.8 km • Pátio Central de Indaiatuba</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-extrabold ${isAvailable ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'} px-2.5 py-0.5 rounded-full">
+                                ${isAvailable ? 'Livre / Disponível' : 'Em Rota'}
+                            </span>
+                        </label>
+                    `;
+                });
+            }
+
+            const modal = document.getElementById('modal-despacho');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeModalDespacho() {
+            const modal = document.getElementById('modal-despacho');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function confirmDespacho() {
+            if (!selectedDespachoSubOrderId) {
+                alert('Nenhuma remessa selecionada para despacho.');
                 return;
             }
 
-            activeDeliveries.forEach(p => {
-                const waLink = window.MinhaFarmacia && typeof window.MinhaFarmacia.getWhatsAppLink === 'function'
-                    ? window.MinhaFarmacia.getWhatsAppLink(p.citizenPhone, p.subOrderCode, p.citizenName)
-                    : `https://wa.me/55${p.citizenPhone}`;
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.dispatchOrderForPickup === 'function') {
+                const res = window.MinhaFarmacia.dispatchOrderForPickup(
+                    selectedDespachoSubOrderId, 
+                    selectedDespachoCourierId || undefined
+                );
+                if (res && !res.success) {
+                    alert(res.error || 'Erro ao despachar remessa.');
+                    return;
+                }
+            }
 
-                const medList = p.items.map(i => `${i.medicationName} (${i.dosage})`).join(', ');
+            alert('Remessa despachada com sucesso! O pacote já está pronto na Central e aguardando retirada pelo entregador.');
+            closeModalDespacho();
+            renderAllViews();
+        }
 
-                container.innerHTML += `
-                    <div class="bg-white p-5 rounded-2xl border-2 border-blue-200 shadow-sm space-y-4">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">${p.subOrderLabel}</span>
-                                <h4 class="text-base font-black text-gray-800 mt-1">${p.citizenName}</h4>
-                                <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i> ${p.citizenAddress}</p>
+        // =====================================================================
+        // MÓDULO DO ENTREGADOR ESTILO IFOOD (CENTRAL E CORRIDAS ATIVAS)
+        // =====================================================================
+        function switchEntregadorTab(tab) {
+            const tabCentral = document.getElementById('entregador-tab-central');
+            const tabAtivas = document.getElementById('entregador-tab-ativas');
+            const btnCentral = document.getElementById('tab-entregador-central-btn');
+            const btnAtivas = document.getElementById('tab-entregador-ativas-btn');
+
+            if (tab === 'central') {
+                if (tabCentral) tabCentral.classList.remove('hidden');
+                if (tabAtivas) tabAtivas.classList.add('hidden');
+                if (btnCentral) {
+                    btnCentral.className = 'flex-1 min-h-[48px] px-4 py-3 rounded-xl border-b-2 border-emerald-600 bg-emerald-50/80 font-bold text-xs sm:text-sm text-emerald-800 flex items-center justify-center gap-2 focus:outline-none transition';
+                }
+                if (btnAtivas) {
+                    btnAtivas.className = 'flex-1 min-h-[48px] px-4 py-3 rounded-xl border-b-2 border-transparent font-medium text-xs sm:text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 focus:outline-none transition';
+                }
+            } else {
+                if (tabAtivas) tabAtivas.classList.remove('hidden');
+                if (tabCentral) tabCentral.classList.add('hidden');
+                if (btnAtivas) {
+                    btnAtivas.className = 'flex-1 min-h-[48px] px-4 py-3 rounded-xl border-b-2 border-blue-600 bg-blue-50/80 font-bold text-xs sm:text-sm text-blue-800 flex items-center justify-center gap-2 focus:outline-none transition';
+                }
+                if (btnCentral) {
+                    btnCentral.className = 'flex-1 min-h-[48px] px-4 py-3 rounded-xl border-b-2 border-transparent font-medium text-xs sm:text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 focus:outline-none transition';
+                }
+            }
+        }
+
+        function renderMotoboyOrders() {
+            // Renderiza Seção 1: Pacotes Prontos na Central (Aguardando Retirada)
+            const centralContainer = document.getElementById('motoboy-central-list');
+            if (centralContainer) {
+                centralContainer.innerHTML = '';
+
+                let availableDeliveries = [];
+                if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getAvailableDeliveries === 'function') {
+                    availableDeliveries = window.MinhaFarmacia.getAvailableDeliveries();
+                }
+
+                if (availableDeliveries.length === 0) {
+                    centralContainer.innerHTML = `
+                        <div class="bg-white p-6 rounded-2xl border text-center text-xs text-gray-400 space-y-1">
+                            <i class="fa-solid fa-box-open text-2xl text-gray-300 mb-1"></i>
+                            <p>Nenhum pacote aguardando retirada na Central no momento.</p>
+                        </div>
+                    `;
+                } else {
+                    availableDeliveries.forEach(p => {
+                        const medList = p.items.map(i => `<b>${i.medicationName}</b> (${i.dosage}) — Qtd: ${i.approvedQty}`).join('<br>');
+                        const courierAssignment = p.courierName 
+                            ? `<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Atribuído a: ${p.courierName}</span>`
+                            : `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Frota Geral (Livre para aceite)</span>`;
+
+                        centralContainer.innerHTML += `
+                            <div class="bg-white p-5 rounded-2xl border-2 border-amber-200 shadow-sm space-y-4">
+                                <div class="flex flex-wrap justify-between items-start gap-2">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="bg-amber-100 text-amber-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">Pacote Pronto</span>
+                                            <span class="font-mono text-xs font-bold text-gray-500">#${p.subOrderCode}</span>
+                                            ${courierAssignment}
+                                        </div>
+                                        <h4 class="text-base font-black text-gray-800 mt-1">${p.citizenName}</h4>
+                                        <p class="text-xs text-gray-600"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i> ${p.citizenAddress}</p>
+                                    </div>
+                                    <button onclick="acceptOrderRide('${p.subOrderId}')" class="min-h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
+                                        <i class="fa-solid fa-motorcycle"></i> Aceitar Corrida e Iniciar Rota
+                                    </button>
+                                </div>
+
+                                <div class="p-3 bg-gray-50 rounded-xl text-xs space-y-1">
+                                    <p class="font-bold text-gray-600 text-[10px] uppercase">Itens do pacote:</p>
+                                    <p class="text-emerald-700">${medList}</p>
+                                </div>
                             </div>
-                            <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="min-h-[44px] bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 transition">
-                                <i class="fa-brands fa-whatsapp text-sm"></i> Chat
-                            </a>
-                        </div>
+                        `;
+                    });
+                }
+            }
 
-                        <div class="p-3 bg-gray-50 rounded-xl text-xs space-y-1">
-                            <p class="font-bold text-gray-700">Itens desta remessa:</p>
-                            <p class="text-emerald-700 font-semibold">${medList}</p>
-                        </div>
+            // Renderiza Seção 2: Minhas Entregas Ativas (Saiu para Entrega)
+            const activeContainer = document.getElementById('motoboy-active-list');
+            if (activeContainer) {
+                activeContainer.innerHTML = '';
 
-                        <!-- Confirmação com PIN estrito de 4 dígitos -->
-                        <div class="pt-2 border-t flex items-center gap-2">
-                            <input type="text" id="pin-input-${p.subOrderId}" maxlength="4" placeholder="PIN (4 dígitos)" class="min-h-[44px] p-2 border rounded-xl text-xs w-36 font-mono text-center font-bold tracking-widest focus:ring-2 focus:ring-emerald-500">
-                            <button onclick="confirmDelivery('${p.subOrderId}')" class="min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex-grow shadow-sm transition">
-                                <i class="fa-solid fa-circle-check mr-1"></i> Confirmar Entrega
-                            </button>
+                let activeDeliveries = [];
+                if (window.MinhaFarmacia && typeof window.MinhaFarmacia.getActiveCourierDeliveries === 'function') {
+                    activeDeliveries = window.MinhaFarmacia.getActiveCourierDeliveries('cour-01');
+                }
+
+                if (activeDeliveries.length === 0) {
+                    activeContainer.innerHTML = `
+                        <div class="bg-white p-6 rounded-2xl border text-center text-xs text-gray-400 space-y-1">
+                            <i class="fa-solid fa-motorcycle text-2xl text-gray-300 mb-1"></i>
+                            <p>Você não tem nenhuma entrega em rota ativa no momento.</p>
+                            <p class="text-[11px] text-gray-400">Verifique a aba "Pacotes Prontos na Central" para aceitar novas corridas.</p>
                         </div>
-                    </div>
-                `;
-            });
+                    `;
+                } else {
+                    activeDeliveries.forEach(p => {
+                        const waLink = window.MinhaFarmacia && typeof window.MinhaFarmacia.getWhatsAppLink === 'function'
+                            ? window.MinhaFarmacia.getWhatsAppLink(p.citizenPhone, p.subOrderCode, p.citizenName)
+                            : `https://wa.me/55${p.citizenPhone}`;
+
+                        const medList = p.items.map(i => `${i.medicationName} (${i.dosage}) — Qtd: ${i.approvedQty}`).join(', ');
+
+                        activeContainer.innerHTML += `
+                            <div class="bg-white p-5 rounded-2xl border-2 border-blue-200 shadow-sm space-y-4">
+                                <div class="flex flex-wrap justify-between items-start gap-2">
+                                    <div>
+                                        <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">${p.subOrderLabel}</span>
+                                        <span class="font-mono text-xs font-bold text-gray-500 ml-1">#${p.subOrderCode}</span>
+                                        <h4 class="text-base font-black text-gray-800 mt-1">${p.citizenName}</h4>
+                                        <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i> ${p.citizenAddress}</p>
+                                    </div>
+                                    <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="min-h-[44px] bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 transition">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
+                                    </a>
+                                </div>
+
+                                <div class="p-3 bg-gray-50 rounded-xl text-xs space-y-1">
+                                    <p class="font-bold text-gray-700">Itens desta remessa:</p>
+                                    <p class="text-emerald-700 font-semibold">${medList}</p>
+                                </div>
+
+                                <!-- Confirmação com PIN estrito de 4 dígitos -->
+                                <div class="pt-2 border-t flex items-center gap-2">
+                                    <input type="text" id="pin-input-${p.subOrderId}" maxlength="4" placeholder="PIN (4 dígitos)" class="min-h-[48px] p-2 border rounded-xl text-xs w-36 font-mono text-center font-bold tracking-widest focus:ring-2 focus:ring-emerald-500">
+                                    <button onclick="confirmDelivery('${p.subOrderId}')" class="min-h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex-grow shadow-sm transition">
+                                        <i class="fa-solid fa-circle-check mr-1"></i> Confirmar Entrega
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            }
+        }
+
+        function acceptOrderRide(subOrderId) {
+            if (window.MinhaFarmacia && typeof window.MinhaFarmacia.acceptCourierDelivery === 'function') {
+                const res = window.MinhaFarmacia.acceptCourierDelivery(subOrderId, 'cour-01');
+                if (res && !res.success) {
+                    alert(res.error || 'Erro ao aceitar corrida.');
+                    return;
+                }
+            }
+            alert('Corrida aceita com sucesso! A remessa agora está na aba "Minhas Entregas Ativas" e você já pode seguir até o endereço do munícipe.');
+            switchEntregadorTab('ativas');
+            renderAllViews();
         }
 
         // Validação estrita de entrega com PIN

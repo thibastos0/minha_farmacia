@@ -432,6 +432,90 @@
         }
       }
     }
+    // === MÉTODOS DE ENTREGADORES E DESPACHO ===
+    getCouriers() {
+      return [...this.data.couriers];
+    }
+    /**
+     * Despacha uma remessa em separação para aguardando retirada pelo entregador
+     */
+    dispatchSubOrder(subOrderId, courierId) {
+      let targetSubOrder;
+      let parentOrder;
+      for (const order of this.data.orders) {
+        const sub = order.subOrders.find((s) => s.id === subOrderId);
+        if (sub) {
+          targetSubOrder = sub;
+          parentOrder = order;
+          break;
+        }
+      }
+      if (!targetSubOrder || !parentOrder) {
+        return { success: false, message: "Subpedido n\xE3o encontrado." };
+      }
+      if (targetSubOrder.status !== "EM_SEPARACAO") {
+        return {
+          success: false,
+          message: `N\xE3o \xE9 poss\xEDvel despachar uma remessa no status ${targetSubOrder.status}.`
+        };
+      }
+      targetSubOrder.status = "AGUARDANDO_RETIRADA";
+      targetSubOrder.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+      if (courierId && courierId !== "FROTA_GERAL") {
+        const courier = this.data.couriers.find((c) => c.id === courierId);
+        if (courier) {
+          targetSubOrder.courierId = courier.id;
+          targetSubOrder.courierName = courier.name;
+          targetSubOrder.notes = `Despachado na Farm\xE1cia Central. Aguardando retirada por ${courier.name}.`;
+        }
+      } else {
+        targetSubOrder.courierId = void 0;
+        targetSubOrder.courierName = void 0;
+        targetSubOrder.notes = "Disponibilizado na Central para retirada pela frota geral de entregadores.";
+      }
+      this.persistAndNotify();
+      return {
+        success: true,
+        message: `Remessa ${targetSubOrder.code} despachada para retirada com sucesso!`,
+        subOrder: targetSubOrder
+      };
+    }
+    /**
+     * Aceite de corrida pelo motoboy (AGUARDANDO_RETIRADA -> SAIU_PARA_ENTREGA)
+     */
+    acceptCourierDelivery(subOrderId, courierId) {
+      let targetSubOrder;
+      let parentOrder;
+      for (const order of this.data.orders) {
+        const sub = order.subOrders.find((s) => s.id === subOrderId);
+        if (sub) {
+          targetSubOrder = sub;
+          parentOrder = order;
+          break;
+        }
+      }
+      if (!targetSubOrder || !parentOrder) {
+        return { success: false, message: "Subpedido n\xE3o encontrado." };
+      }
+      if (targetSubOrder.status !== "AGUARDANDO_RETIRADA" && targetSubOrder.status !== "AGUARDANDO_COLETA") {
+        return {
+          success: false,
+          message: `N\xE3o \xE9 poss\xEDvel aceitar uma remessa no status ${targetSubOrder.status}.`
+        };
+      }
+      const courier = this.data.couriers.find((c) => c.id === courierId) || this.data.couriers[0];
+      targetSubOrder.status = "SAIU_PARA_ENTREGA";
+      targetSubOrder.courierId = courier ? courier.id : courierId;
+      targetSubOrder.courierName = courier ? courier.name : "Motoboy Indaiatuba";
+      targetSubOrder.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+      targetSubOrder.notes = `Corrida aceita por ${targetSubOrder.courierName}. Pacote retirado na Central, em rota at\xE9 o mun\xEDcipe.`;
+      this.persistAndNotify();
+      return {
+        success: true,
+        message: `Corrida da remessa ${targetSubOrder.code} aceita com sucesso por ${targetSubOrder.courierName}!`,
+        subOrder: targetSubOrder
+      };
+    }
     /**
      * Validação de PIN e finalização da entrega do SubOrder
      */
@@ -739,7 +823,7 @@
     const deliveries = [];
     for (const order of allOrders) {
       for (const sub of order.subOrders) {
-        if (sub.status === "SAIU_PARA_ENTREGA" || sub.status === "AGUARDANDO_COLETA" || sub.status === "EM_SEPARACAO" || sub.status === "ENTREGUE") {
+        if (sub.status === "SAIU_PARA_ENTREGA" || sub.status === "AGUARDANDO_RETIRADA" || sub.status === "AGUARDANDO_COLETA" || sub.status === "EM_SEPARACAO" || sub.status === "ENTREGUE") {
           if (!courierId || !sub.courierId || sub.courierId === courierId) {
             const addr = order.deliveryAddress;
             const formattedAddr = `${addr.street}, ${addr.number}${addr.complement ? ` (${addr.complement})` : ""} - ${addr.neighborhood}, ${addr.city}`;
@@ -766,6 +850,76 @@
       }
     }
     return deliveries;
+  }
+  function getAvailableDeliveries() {
+    const allOrders = store.getOrders();
+    const available = [];
+    for (const order of allOrders) {
+      for (const sub of order.subOrders) {
+        if (sub.status === "AGUARDANDO_RETIRADA" || sub.status === "AGUARDANDO_COLETA") {
+          const addr = order.deliveryAddress;
+          const formattedAddr = `${addr.street}, ${addr.number}${addr.complement ? ` (${addr.complement})` : ""} - ${addr.neighborhood}, ${addr.city}`;
+          available.push({
+            subOrderId: sub.id,
+            orderId: order.id,
+            orderCode: order.code,
+            subOrderCode: sub.code,
+            subOrderLabel: sub.label,
+            citizenName: order.citizenName,
+            citizenPhone: order.citizenPhone,
+            citizenAddress: formattedAddr,
+            items: sub.items,
+            status: sub.status,
+            pinCode: sub.pinCode,
+            courierId: sub.courierId,
+            courierName: sub.courierName,
+            createdAt: sub.createdAt,
+            updatedAt: sub.updatedAt,
+            deliveredAt: sub.deliveredAt
+          });
+        }
+      }
+    }
+    return available;
+  }
+  function getActiveCourierDeliveries(courierId) {
+    const allOrders = store.getOrders();
+    const active = [];
+    for (const order of allOrders) {
+      for (const sub of order.subOrders) {
+        if (sub.status === "SAIU_PARA_ENTREGA") {
+          if (!courierId || !sub.courierId || sub.courierId === courierId) {
+            const addr = order.deliveryAddress;
+            const formattedAddr = `${addr.street}, ${addr.number}${addr.complement ? ` (${addr.complement})` : ""} - ${addr.neighborhood}, ${addr.city}`;
+            active.push({
+              subOrderId: sub.id,
+              orderId: order.id,
+              orderCode: order.code,
+              subOrderCode: sub.code,
+              subOrderLabel: sub.label,
+              citizenName: order.citizenName,
+              citizenPhone: order.citizenPhone,
+              citizenAddress: formattedAddr,
+              items: sub.items,
+              status: sub.status,
+              pinCode: sub.pinCode,
+              courierId: sub.courierId,
+              courierName: sub.courierName,
+              createdAt: sub.createdAt,
+              updatedAt: sub.updatedAt,
+              deliveredAt: sub.deliveredAt
+            });
+          }
+        }
+      }
+    }
+    return active;
+  }
+  function acceptCourierDelivery(subOrderId, courierId) {
+    return store.acceptCourierDelivery(subOrderId, courierId);
+  }
+  function dispatchSubOrder(subOrderId, courierId) {
+    return store.dispatchSubOrder(subOrderId, courierId);
   }
   function validateAndCompleteDelivery(subOrderId, pinInput) {
     if (!pinInput || pinInput.trim() === "") {
@@ -827,6 +981,8 @@
         status: sub.status,
         pinCode: sub.pinCode,
         items: sub.items,
+        courierId: sub.courierId,
+        courierName: sub.courierName,
         createdAt: sub.createdAt,
         updatedAt: sub.updatedAt,
         estimatedDelivery: sub.estimatedDelivery,
@@ -946,6 +1102,7 @@
           case "AGUARDANDO_REPOSICAO":
             awaitingRestock++;
             break;
+          case "AGUARDANDO_RETIRADA":
           case "AGUARDANDO_COLETA":
             readyForPickup++;
             break;
@@ -963,6 +1120,9 @@
       inSeparation,
       totalOrders: allOrders.length
     };
+  }
+  function dispatchOrderForPickup(subOrderId, courierId) {
+    return store.dispatchSubOrder(subOrderId, courierId);
   }
 
   // src/modules/farmacia/catalogoService.ts
@@ -1181,6 +1341,10 @@
       getFleetMarkersData,
       INDAIATUBA_CENTER,
       getCourierDeliveries,
+      getAvailableDeliveries,
+      getActiveCourierDeliveries,
+      acceptCourierDelivery,
+      dispatchSubOrder,
       getWhatsAppLink,
       validateAndCompleteDelivery,
       formatPhoneForWhatsApp,
@@ -1193,6 +1357,7 @@
       previewStockImpact,
       performPharmacyTriage,
       getPharmacyDashboardCounters,
+      dispatchOrderForPickup,
       // Catálogo e Estoque
       getCatalogView,
       searchCatalog,
@@ -1211,6 +1376,11 @@
     window.initFleetMap = initFleetMap;
     window.invalidateMapSize = invalidateMapSize;
     window.getCourierDeliveries = getCourierDeliveries;
+    window.getAvailableDeliveries = getAvailableDeliveries;
+    window.getActiveCourierDeliveries = getActiveCourierDeliveries;
+    window.acceptCourierDelivery = acceptCourierDelivery;
+    window.dispatchSubOrder = dispatchSubOrder;
+    window.dispatchOrderForPickup = dispatchOrderForPickup;
     window.getWhatsAppLink = getWhatsAppLink;
     window.validateAndCompleteDelivery = validateAndCompleteDelivery;
     window.createCitizenPrescriptionOrder = createCitizenPrescriptionOrder;

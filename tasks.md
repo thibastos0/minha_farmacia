@@ -126,3 +126,21 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - [x] Fluxo 1:N completo validado com sucesso.
   - [x] Todos os módulos operam com reatividade compartilhada e persistência.
   - [x] Conformidade com a identidade visual "Minha Indaiatuba".
+
+---
+
+### 🔹 Extensão: Fluxo de Despacho e Aceite de Corridas (Farmácia ➔ Motoboy ➔ Cidadão)
+- **Objetivo:** Implementar esteira completa de delivery com separação, despacho na central, aceite no estilo iFood e entrega ao munícipe.
+- **Entregáveis:**
+  - Novo status `'AGUARDANDO_RETIRADA'` na esteira da SubOrder.
+  - Modal de Despacho na Farmácia com atribuição a entregador municipal específico ou Frota Geral.
+  - Painel do Entregador com duas abas dedicadas: "📦 Pacotes Prontos na Central" e "🛵 Minhas Entregas Ativas".
+  - Contador/badge em tempo real no menu superior de navegação para pacotes aguardando retirada.
+  - Timeline de 4 etapas transparente para o munícipe: "Em Separação" ➔ "Aguardando Coleta pelo Entregador [Nome]" ➔ "Saiu para Entrega" ➔ "Entregue".
+  - 100% de persistência no `localStorage` e suíte de testes com 64 testes aprovados.
+- **Critérios de Aceitação:**
+  - [x] Despacho de pedido em separação transiciona para `AGUARDANDO_RETIRADA`.
+  - [x] Entregador visualiza e aceita pacotes prontos na central, assumindo a rota ativa.
+  - [x] Linha do tempo do munícipe atualiza instantaneamente com o nome do entregador ou frota geral.
+  - [x] Validação estrita de PIN de 4 dígitos para conclusão da remessa.
+

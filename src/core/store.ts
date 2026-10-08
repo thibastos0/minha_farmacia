@@ -277,6 +277,114 @@ class StateStore {
     }
   }
 
+  // === MÉTODOS DE ENTREGADORES E DESPACHO ===
+  public getCouriers(): Courier[] {
+    return [...this.data.couriers];
+  }
+
+  /**
+   * Despacha uma remessa em separação para aguardando retirada pelo entregador
+   */
+  public dispatchSubOrder(
+    subOrderId: string,
+    courierId?: string
+  ): { success: boolean; message: string; subOrder?: SubOrder } {
+    let targetSubOrder: SubOrder | undefined;
+    let parentOrder: Order | undefined;
+
+    for (const order of this.data.orders) {
+      const sub = order.subOrders.find((s) => s.id === subOrderId);
+      if (sub) {
+        targetSubOrder = sub;
+        parentOrder = order;
+        break;
+      }
+    }
+
+    if (!targetSubOrder || !parentOrder) {
+      return { success: false, message: 'Subpedido não encontrado.' };
+    }
+
+    if (targetSubOrder.status !== 'EM_SEPARACAO') {
+      return {
+        success: false,
+        message: `Não é possível despachar uma remessa no status ${targetSubOrder.status}.`
+      };
+    }
+
+    targetSubOrder.status = 'AGUARDANDO_RETIRADA';
+    targetSubOrder.updatedAt = new Date().toISOString();
+
+    if (courierId && courierId !== 'FROTA_GERAL') {
+      const courier = this.data.couriers.find((c) => c.id === courierId);
+      if (courier) {
+        targetSubOrder.courierId = courier.id;
+        targetSubOrder.courierName = courier.name;
+        targetSubOrder.notes = `Despachado na Farmácia Central. Aguardando retirada por ${courier.name}.`;
+      }
+    } else {
+      targetSubOrder.courierId = undefined;
+      targetSubOrder.courierName = undefined;
+      targetSubOrder.notes = 'Disponibilizado na Central para retirada pela frota geral de entregadores.';
+    }
+
+    this.persistAndNotify();
+    return {
+      success: true,
+      message: `Remessa ${targetSubOrder.code} despachada para retirada com sucesso!`,
+      subOrder: targetSubOrder
+    };
+  }
+
+  /**
+   * Aceite de corrida pelo motoboy (AGUARDANDO_RETIRADA -> SAIU_PARA_ENTREGA)
+   */
+  public acceptCourierDelivery(
+    subOrderId: string,
+    courierId: string
+  ): { success: boolean; message: string; subOrder?: SubOrder } {
+    let targetSubOrder: SubOrder | undefined;
+    let parentOrder: Order | undefined;
+
+    for (const order of this.data.orders) {
+      const sub = order.subOrders.find((s) => s.id === subOrderId);
+      if (sub) {
+        targetSubOrder = sub;
+        parentOrder = order;
+        break;
+      }
+    }
+
+    if (!targetSubOrder || !parentOrder) {
+      return { success: false, message: 'Subpedido não encontrado.' };
+    }
+
+    if (
+      targetSubOrder.status !== 'AGUARDANDO_RETIRADA' &&
+      targetSubOrder.status !== 'AGUARDANDO_COLETA'
+    ) {
+      return {
+        success: false,
+        message: `Não é possível aceitar uma remessa no status ${targetSubOrder.status}.`
+      };
+    }
+
+    const courier = this.data.couriers.find((c) => c.id === courierId) || this.data.couriers[0];
+
+    targetSubOrder.status = 'SAIU_PARA_ENTREGA';
+    targetSubOrder.courierId = courier ? courier.id : courierId;
+    targetSubOrder.courierName = courier ? courier.name : 'Motoboy Indaiatuba';
+    targetSubOrder.updatedAt = new Date().toISOString();
+    targetSubOrder.notes = `Corrida aceita por ${targetSubOrder.courierName}. Pacote retirado na Central, em rota até o munícipe.`;
+
+    this.persistAndNotify();
+    return {
+      success: true,
+      message: `Corrida da remessa ${targetSubOrder.code} aceita com sucesso por ${targetSubOrder.courierName}!`,
+      subOrder: targetSubOrder
+    };
+  }
+
   /**
    * Validação de PIN e finalização da entrega do SubOrder
    */

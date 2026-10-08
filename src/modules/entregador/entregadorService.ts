@@ -82,6 +82,7 @@ export function getCourierDeliveries(courierId?: string): DeliveryCardView[] {
       // Inclui remessas prontas para transporte, em rota ou recém-criadas
       if (
         sub.status === 'SAIU_PARA_ENTREGA' ||
+        sub.status === 'AGUARDANDO_RETIRADA' ||
         sub.status === 'AGUARDANDO_COLETA' ||
         sub.status === 'EM_SEPARACAO' ||
         sub.status === 'ENTREGUE'
@@ -121,6 +122,108 @@ export function getCourierDeliveries(courierId?: string): DeliveryCardView[] {
   }
 
   return deliveries;
+}
+
+/**
+ * Retorna as entregas disponíveis na central aguardando retirada por qualquer motoboy
+ */
+export function getAvailableDeliveries(): DeliveryCardView[] {
+  const allOrders = store.getOrders();
+  const available: DeliveryCardView[] = [];
+
+  for (const order of allOrders) {
+    for (const sub of order.subOrders) {
+      if (sub.status === 'AGUARDANDO_RETIRADA' || sub.status === 'AGUARDANDO_COLETA') {
+        const addr = order.deliveryAddress;
+        const formattedAddr = `${addr.street}, ${addr.number}${
+          addr.complement ? ` (${addr.complement})` : ''
+        } - ${addr.neighborhood}, ${addr.city}`;
+
+        available.push({
+          subOrderId: sub.id,
+          orderId: order.id,
+          orderCode: order.code,
+          subOrderCode: sub.code,
+          subOrderLabel: sub.label,
+          citizenName: order.citizenName,
+          citizenPhone: order.citizenPhone,
+          citizenAddress: formattedAddr,
+          items: sub.items,
+          status: sub.status,
+          pinCode: sub.pinCode,
+          courierId: sub.courierId,
+          courierName: sub.courierName,
+          createdAt: sub.createdAt,
+          updatedAt: sub.updatedAt,
+          deliveredAt: sub.deliveredAt
+        });
+      }
+    }
+  }
+
+  return available;
+}
+
+/**
+ * Retorna as entregas ativas (em rota) atribuídas ao motoboy
+ */
+export function getActiveCourierDeliveries(courierId?: string): DeliveryCardView[] {
+  const allOrders = store.getOrders();
+  const active: DeliveryCardView[] = [];
+
+  for (const order of allOrders) {
+    for (const sub of order.subOrders) {
+      if (sub.status === 'SAIU_PARA_ENTREGA') {
+        if (!courierId || !sub.courierId || sub.courierId === courierId) {
+          const addr = order.deliveryAddress;
+          const formattedAddr = `${addr.street}, ${addr.number}${
+            addr.complement ? ` (${addr.complement})` : ''
+          } - ${addr.neighborhood}, ${addr.city}`;
+
+          active.push({
+            subOrderId: sub.id,
+            orderId: order.id,
+            orderCode: order.code,
+            subOrderCode: sub.code,
+            subOrderLabel: sub.label,
+            citizenName: order.citizenName,
+            citizenPhone: order.citizenPhone,
+            citizenAddress: formattedAddr,
+            items: sub.items,
+            status: sub.status,
+            pinCode: sub.pinCode,
+            courierId: sub.courierId,
+            courierName: sub.courierName,
+            createdAt: sub.createdAt,
+            updatedAt: sub.updatedAt,
+            deliveredAt: sub.deliveredAt
+          });
+        }
+      }
+    }
+  }
+
+  return active;
+}
+
+/**
+ * Aceita uma corrida na central e inicia o deslocamento
+ */
+export function acceptCourierDelivery(
+  subOrderId: string,
+  courierId: string
+) {
+  return store.acceptCourierDelivery(subOrderId, courierId);
+}
+
+/**
+ * Despacha uma remessa em separação para aguardando retirada
+ */
+export function dispatchSubOrder(
+  subOrderId: string,
+  courierId?: string
+) {
+  return store.dispatchSubOrder(subOrderId, courierId);
 }
 
 /**
