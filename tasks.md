@@ -1,7 +1,7 @@
 # 📋 Backlog de Tarefas — Minha Farmácia (Spec-Driven Development)
 
 Este documento define a sequência rigorosa de implementação incremental para o projeto **Minha Farmácia** (Prefeitura de Indaiatuba / Hackathon Fatec 2026).
-Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenvolvida de forma modular, com validação explícita de critérios de aceitação e confirmação antes do início da próxima etapa.
+Seguindo as diretrizes do framework **Superpowers**, cada tarefa foi desenvolvida de forma modular, com validação explícita de critérios de aceitação e cobertura completa de testes automatizados.
 
 ---
 
@@ -15,6 +15,9 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 - [x] **Task 6: Módulo da Farmácia (`/farmacia`) — Mapa da Frota Leaflet.js com `invalidateSize()`**
 - [x] **Task 7: Módulo do Entregador (`/entregador`) — Fila, Contato WhatsApp e Baixa por PIN**
 - [x] **Task 8: Integração Global End-to-End, Auditoria WCAG e Validação Final**
+- [x] **Extensão A: Fluxo de Despacho e Aceite de Corridas (Farmácia ➔ Motoboy ➔ Cidadão)**
+- [x] **Extensão B: Simulação Visual da Receita Médica do SUS (RDC 44/2009 ANVISA)**
+- [x] **Extensão C: Higienização Institucional de Textos e Resiliência do StateStore**
 
 ---
 
@@ -23,9 +26,9 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 ### 🔹 Task 1: Core Domain, State Store Reativo e Motor de Desmembramento (`splitEngine`)
 - **Objetivo:** Estabelecer a camada de regras de negócio pura, tipos de dados e store desacoplado com pub/sub para sincronização entre os módulos.
 - **Entregáveis:**
-  - Tipos e enums (`Order`, `SubOrder`, `Citizen`, `Medication`, `Courier`).
+  - Tipos e enums (`Order`, `SubOrder`, `Citizen`, `Medication`, `Courier`, `UBSUnit`).
   - Motor `splitEngine.evaluateAndSplitOrder()` que divide 1 pedido em `SubOrder-A` (estoque disponível) e `SubOrder-B` (aguardando reposição), gerando PINs numéricos de 4 dígitos independentes.
-  - Store reativo com persistência em `localStorage` e dados iniciais realistas de Indaiatuba (Hospital Augusto de Oliveira Camargo, Farmácia Central, Unidades de Saúde do Jd. Morada do Sol, Parque Ecológico).
+  - Store reativo com persistência em `localStorage` e dados iniciais realistas de Indaiatuba (Hospital Augusto de Oliveira Camargo, Farmácia Central, Unidades de Saúde do Jd. Morada do Sol, Parque Ecológico, Itaici, Cecap e Parque Corolla).
 - **Critérios de Aceitação:**
   - [x] Teste unitário/verificação do `splitEngine` com pedido contendo 1 item com estoque e 1 item sem estoque.
   - [x] Verificação da geração de PINs únicos e independentes para cada SubOrder.
@@ -39,10 +42,11 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - Layout global com fundo `#f8fafc`, cartões brancos com cantos `rounded-3xl` e sombras suaves.
   - Paleta institucional (Verde Saúde `#059669`, Azul Prefeitura `#0284c7`, círculos de ícones em tons pastéis).
   - Componentes com área de toque mínima de **48px x 48px** e contraste AAA/AA.
-  - Header acessível com seletor de perfil e tags ARIA (`aria-label`, `aria-selected`).
+  - Header acessível com seletor de perfil e tags ARIA (`aria-label`, `aria-selected`, `#a11y-announcer`).
+  - Mobile Bottom Navigation Bar para navegação com o polegar em smartphones.
 - **Critérios de Aceitação:**
   - [x] Elementos clicáveis com no mínimo 48px de área de toque.
-  - [x] Navegação funcional por teclado (`Tab`, `Enter`, `Space`) com anéis de foco visíveis.
+  - [x] Navegação funcional por teclado (`Tab`, `Enter`, `Space`, `Escape`) com anéis de foco visíveis.
   - [x] Transição fluida entre os 3 módulos (/cidadao, /farmacia, /entregador).
 
 ---
@@ -54,6 +58,7 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
   - Componente acessível de envio/upload de receita médica com preview.
   - Timeline de status por SubOrder com exibição em alto contraste do código PIN de 4 dígitos.
   - Banner explicativo de desmembramento (notificando divisão em Remessa A imediata e Remessa B posterior).
+  - Histórico dividido entre pedidos ativos e histórico de entregas concluídas.
 - **Critérios de Aceitação:**
   - [x] Upload da receita médica gera novo pedido no status `PENDENTE_TRIAGEM`.
   - [x] Pedidos desmembrados exibem visualmente duas remessas separadas com seus respectivos PINs e status.
@@ -66,8 +71,8 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 - **Entregáveis:**
   - Fila de triagem com visualização da receita do munícipe.
   - Conferência de estoque com indicadores visuais de disponibilidade.
-  - Ação de "Aprovar com Desmembramento (1:N)" gerando remessa imediata e remessa em espera.
-  - Dashboard inicial de contadores (pedidos pendentes, em rota, aguardando reposição).
+  - Ação de "Aprovar com Desmembramento de Remessas" gerando remessa imediata e remessa em espera.
+  - Dashboard de contadores, métricas de SLA, Top 5 Medicamentos e painel de rupturas por UBS.
 - **Critérios de Aceitação:**
   - [x] Farmacêutico consegue selecionar itens e visualizar impacto no saldo de estoque.
   - [x] Acionamento do botão de desmembramento separa o pedido em 2 SubOrders no store reativo.
@@ -79,8 +84,8 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 - **Objetivo:** Desenvolver o gerenciamento completo do catálogo municipal de medicamentos com atualização de estoque que reativa pedidos pendentes.
 - **Entregáveis:**
   - Tabela acessível com lista de medicamentos da RENAME de Indaiatuba.
-  - Modal de cadastro de novo medicamento com validação de campos.
-  - Modal de edição e botões de ajuste rápido de quantidade (`+10`, `+50`, `-10`).
+  - Modal de cadastro de novo medicamento com autocompletar integrado à RENAME.
+  - Modal de edição e botões de ajuste rápido de quantidade (`+10`, `+50`, `-10`, `+1`, `-1`).
   - Inativação lógica (soft delete) com preservação de histórico.
   - Gatilho reativo: reabastecer estoque de item em falta promove automaticamente SubOrders de `AGUARDANDO_REPOSICAO` para `EM_SEPARACAO`.
 - **Critérios de Aceitação:**
@@ -129,18 +134,41 @@ Seguindo as diretrizes do framework **Superpowers**, cada tarefa deve ser desenv
 
 ---
 
-### 🔹 Extensão: Fluxo de Despacho e Aceite de Corridas (Farmácia ➔ Motoboy ➔ Cidadão)
-- **Objetivo:** Implementar esteira completa de delivery com separação, despacho na central, aceite no estilo iFood e entrega ao munícipe.
+### 🔹 Extensão A: Fluxo de Despacho e Aceite de Corridas (Farmácia ➔ Motoboy ➔ Cidadão)
+- **Objetivo:** Implementar esteira completa de delivery com separação, despacho na central, aceite no estilo de logística municipal e entrega ao munícipe.
 - **Entregáveis:**
   - Novo status `'AGUARDANDO_RETIRADA'` na esteira da SubOrder.
   - Modal de Despacho na Farmácia com atribuição a entregador municipal específico ou Frota Geral.
   - Painel do Entregador com duas abas dedicadas: "📦 Pacotes Prontos na Central" e "🛵 Minhas Entregas Ativas".
   - Contador/badge em tempo real no menu superior de navegação para pacotes aguardando retirada.
   - Timeline de 4 etapas transparente para o munícipe: "Em Separação" ➔ "Aguardando Coleta pelo Entregador [Nome]" ➔ "Saiu para Entrega" ➔ "Entregue".
-  - 100% de persistência no `localStorage` e suíte de testes com 64 testes aprovados.
 - **Critérios de Aceitação:**
   - [x] Despacho de pedido em separação transiciona para `AGUARDANDO_RETIRADA`.
   - [x] Entregador visualiza e aceita pacotes prontos na central, assumindo a rota ativa.
   - [x] Linha do tempo do munícipe atualiza instantaneamente com o nome do entregador ou frota geral.
   - [x] Validação estrita de PIN de 4 dígitos para conclusão da remessa.
 
+---
+
+### 🔹 Extensão B: Simulação Visual da Receita Médica do SUS (RDC 44/2009 ANVISA)
+- **Objetivo:** Renderizar cartão de receita médica oficial do SUS com carimbo/assinatura digital e QR Code no modal de inspeção farmacêutica.
+- **Entregáveis:**
+  - Modal `#modal-validacao` estilizado como receituário do SUS / Prefeitura de Indaiatuba.
+  - Dados do prescritor (Dr. Eduardo Lima — CRM-SP 142.890), paciente e posologia estruturada.
+  - Transição imediata da validação para o modal de triagem e cálculo de desmembramento logístico.
+- **Critérios de Aceitação:**
+  - [x] Botão "Validar Receita" e link "📄 Receita Médica" abrem a inspeção RDC 44/2009.
+  - [x] Botão "Aprovar e Selecionar Medicamentos" abre o modal de triagem com a seleção de itens.
+
+---
+
+### 🔹 Extensão C: Higienização Institucional de Textos e Resiliência do StateStore
+- **Objetivo:** Garantir vocabulário 100% institucional público e robustez técnica no manuseio de dados de munícipes e pedidos.
+- **Entregáveis:**
+  - Substituição de jargões técnicos internos por terminologia oficial ("Entrega Desmembrada Municipal", "Acompanhar Remessas").
+  - Método `store.getCitizenById()` e getters de compatibilidade no `StateStore`.
+  - Fallbacks seguros em `openModalValidacao` e `openModalTriagem` prevenindo qualquer erro no console.
+- **Critérios de Aceitação:**
+  - [x] Textos institucionais padronizados em todos os componentes visuais.
+  - [x] Zero erros ou avisos de execução no console DevTools.
+  - [x] 100% dos 82 testes automatizados aprovados na suíte de testes.

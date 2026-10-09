@@ -579,6 +579,29 @@ if (typeof window !== 'undefined') {
     announceToScreenReader(msg);
   });
 
+  // Listener de acessibilidade para fechar modais com tecla Escape (WCAG 2.1 AA)
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      const openModals = [
+        'modal-validacao',
+        'modal-triagem',
+        'modal-despacho',
+        'modal-novo-medicamento',
+        'modal-recusa',
+        'modal-detalhes-ml',
+        'modal-cadastro'
+      ];
+      openModals.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden') && el.style.display !== 'none') {
+          el.classList.add('hidden');
+          el.setAttribute('hidden', 'true');
+          el.style.display = 'none';
+        }
+      });
+    }
+  });
+
   // Inicialização no carregamento da página
   document.addEventListener('DOMContentLoaded', () => {
     updateNavigationUI();

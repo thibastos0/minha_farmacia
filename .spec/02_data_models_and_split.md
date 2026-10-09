@@ -8,7 +8,7 @@ No modelo tradicional burocrático, o pedido todo ficaria travado ou o paciente 
 1. O pedido original (`Order`) se ramifica em dois ou mais subpedidos (`SubOrder`).
 2. Os medicamentos disponíveis no estoque da Farmácia Central são agrupados no **SubOrder-A**, que segue imediatamente para separação e entrega.
 3. Os medicamentos em falta são agrupados no **SubOrder-B**, com status `"AGUARDANDO_REPOSICAO"`, gerando uma solicitação automática de reabastecimento logístico.
-4. Cada `SubOrder` possui seu próprio ciclo de vida, rastreamento independente, entregador atribuído e **código PIN de validação único**.
+4. Cada `SubOrder` possui seu próprio ciclo de vida, rastreamento independente, entregador atribuído e **código PIN de validação único de 4 dígitos**.
 
 ---
 
@@ -16,35 +16,59 @@ No modelo tradicional burocrático, o pedido todo ficaria travado ou o paciente 
 
 ```typescript
 // Status de Pedido Geral e SubPedidos
-export type OrderStatus = 'PENDENTE_TRIAGEM' | 'EM_PROCESSAMENTO' | 'FINALIZADO' | 'CANCELADO' | 'RECUSADO';
+export type OrderStatus =
+  | 'PENDENTE_TRIAGEM'
+  | 'EM_PROCESSAMENTO'
+  | 'FINALIZADO'
+  | 'CANCELADO';
 
 export type SubOrderStatus = 
   | 'EM_SEPARACAO'          // Farmacêutico aprovou e os itens estão em separação física
   | 'AGUARDANDO_RETIRADA'   // Farmácia concluiu separação e despachou na Central, aguardando coleta
-  | 'AGUARDANDO_COLETA'     // Alias/compatibilidade para aguardando retirada
+  | 'AGUARDANDO_COLETA'     // Compatibilidade/alias para aguardando retirada
   | 'SAIU_PARA_ENTREGA'     // Entregador aceitou a corrida e está em rota até a residência
   | 'AGUARDANDO_REPOSICAO'  // Medicamento em falta aguardando novo lote municipal
   | 'ENTREGUE'              // Entregue e confirmado com PIN
   | 'CANCELADO';            // Cancelado por inviabilidade técnica
 
+// Unidades Básicas de Saúde (UBSs) de Indaiatuba
+export type UBSUnit =
+  | 'Farmácia Central'
+  | 'UBS Morada do Sol'
+  | 'UBS Itaici'
+  | 'UBS Cecap'
+  | 'UBS Parque Corolla';
+
+export const INDAIATUBA_UBS_UNITS: UBSUnit[] = [
+  'Farmácia Central',
+  'UBS Morada do Sol',
+  'UBS Itaici',
+  'UBS Cecap',
+  'UBS Parque Corolla'
+];
+
 // Munícipe / Cidadão
+export interface CitizenAddress {
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string; // "Indaiatuba - SP"
+  cep: string;
+  lat: number;
+  lng: number;
+  complement?: string;
+}
+
 export interface Citizen {
   id: string;
   name: string;
   cpf: string;
   cartaoSus: string;
   phone: string;
-  address: {
-    street: string;
-    number: string;
-    neighborhood: string;
-    city: string; // "Indaiatuba - SP"
-    lat: number;
-    lng: number;
-  };
+  address: CitizenAddress;
 }
 
-// Medicamento do Catálogo Municipal
+// Medicamento do Catálogo Municipal e Estoque Distribuído
 export interface Medication {
   id: string;
   name: string;
@@ -54,6 +78,7 @@ export interface Medication {
   minStockAlert: number;
   active: boolean;
   category: 'BASICO' | 'CONTROLADO' | 'CONTINUO' | 'ANTIBIOTICO';
+  estoquePorUnidade?: Record<UBSUnit, number>; // Saldo distribuído pelas 5 UBSs de Indaiatuba
 }
 
 // Item dentro do pedido
@@ -71,7 +96,7 @@ export interface SubOrder {
   id: string;
   orderId: string;
   code: string;               // Ex: "PED-2026-01-A", "PED-2026-01-B"
-  label: string;              // Ex: "Remessa Imediata (Itens Prontos)" vs "Segunda Remessa"
+  label: string;              // Ex: "Remessa Imediata (Estoque Disponível)" vs "Remessa Reposição"
   items: OrderItem[];
   status: SubOrderStatus;
   pinCode: string;            // Código numérico de 4 dígitos para entrega (Ex: "4921")
@@ -92,10 +117,9 @@ export interface Order {
   citizenName: string;
   citizenCpf: string;
   citizenPhone: string;
-  deliveryAddress: Citizen['address'];
+  deliveryAddress: CitizenAddress;
   prescriptionImageUrl: string;
   status: OrderStatus;
-  rejectionReason?: string;
   isSplit: boolean;           // Indica se o pedido foi desmembrado em 1:N
   splitReason?: string;
   subOrders: SubOrder[];
@@ -108,14 +132,12 @@ export interface Order {
 export interface Courier {
   id: string;
   name: string;
-  vehicle?: 'MOTO' | 'BICICLETA_ELETRICA' | 'CARRO';
-  plate?: string;
-  phone?: string;
-  active?: boolean;
+  vehicle: 'MOTO' | 'BICICLETA_ELETRICA' | 'CARRO';
+  plate: string;
+  phone: string;
+  active: boolean;
   status?: 'DISPONIVEL' | 'EM_ROTA' | 'OFFLINE';
-  currentLat?: number;
-  currentLng?: number;
-  currentLocation?: {
+  currentLocation: {
     lat: number;
     lng: number;
     updatedAt: string;
@@ -125,7 +147,22 @@ export interface Courier {
 
 ---
 
-## 3. Algoritmo do Motor de Desmembramento (`splitEngine`)
+## 3. Gestão de Estoque Distribuído pelas 5 UBSs de Indaiatuba
+
+O sistema monitora o inventário central e descentralizado nas unidades polos do município:
+1. **Farmácia Central Municipal** (Ponto central de fracionamento e despacho)
+2. **UBS Morada do Sol** (Zona Sul — alta densidade populacional)
+3. **UBS Itaici** (Zona Leste — região campestre/rural)
+4. **UBS Cecap** (Zona Norte — área residencial)
+5. **UBS Parque Corolla** (Zona Noroeste)
+
+### 3.1 Detecção de Ruptura de Estoque
+- Sempre que uma UBS ou o total do município atingir `saldo <= 0`, o sistema classifica o item como em **Ruptura**.
+- O Dashboard do Farmacêutico exibe o painel de alerta de ruptura com identificação exata de quais unidades estão zeradas para acionamento do remanejamento logístico entre postos antes da solicitação de novos lotes.
+
+---
+
+## 4. Algoritmo do Motor de Desmembramento (`splitEngine`)
 
 ```typescript
 export interface SplitResult {
@@ -183,7 +220,7 @@ export function evaluateAndSplitOrder(
       id: `${order.id}-A`,
       orderId: order.id,
       code: isSplit ? `${order.code}-A` : order.code,
-      label: isSplit ? 'Remessa Imediata (Itens Prontos)' : 'Entrega Padrão',
+      label: isSplit ? 'Remessa Imediata (Estoque Disponível)' : 'Entrega Padrão',
       items: availableItems,
       status: 'EM_SEPARACAO',
       pinCode: generateSecurePin(),
@@ -198,7 +235,7 @@ export function evaluateAndSplitOrder(
       id: `${order.id}-B`,
       orderId: order.id,
       code: `${order.code}-B`,
-      label: 'Segunda Remessa (Aguardando Reposição no Estoque)',
+      label: 'Remessa Reposição (Aguardando Novo Lote)',
       items: awaitingRestockItems,
       status: 'AGUARDANDO_REPOSICAO',
       pinCode: generateSecurePin(),
@@ -218,21 +255,19 @@ function generateSecurePin(): string {
 
 ---
 
-## 4. Máquina de Estados e Ciclo de Vida da Entrega
-
-O fluxo de despacho e entrega é modelado através de uma máquina de estados finita (State Machine) com gatilhos reativos claros entre Farmácia, Entregador e Cidadão:
+## 5. Máquina de Estados e Ciclo de Vida da Entrega
 
 ```mermaid
 stateDiagram-v2
     [*] --> PENDENTE_TRIAGEM: Munícipe anexa e envia receita médica
     PENDENTE_TRIAGEM --> EM_SEPARACAO: Farmacêutico aprova remessa com estoque
     PENDENTE_TRIAGEM --> AGUARDANDO_REPOSICAO: Item com estoque insuficiente (Remessa B)
-    PENDENTE_TRIAGEM --> RECUSADO: Farmacêutico reprova receita (com justificativa)
+    PENDENTE_TRIAGEM --> CANCELADO: Farmacêutico reprova receita (com justificativa sanitária)
 
     AGUARDANDO_REPOSICAO --> EM_SEPARACAO: Reabastecimento reativo via CRUD de catálogo
     
     EM_SEPARACAO --> AGUARDANDO_RETIRADA: Farmácia despacha / chama entregador (Frota Geral ou específico)
-    AGUARDANDO_RETIRADA --> SAIU_PARA_ENTREGA: Motoboy aceita corrida no painel estilo iFood
+    AGUARDANDO_RETIRADA --> SAIU_PARA_ENTREGA: Motoboy aceita corrida no painel municipal
     SAIU_PARA_ENTREGA --> ENTREGUE: Motoboy digita e valida o PIN de 4 dígitos do munícipe
     
     ENTREGUE --> [*]: Pedido raiz finalizado quando todas as remessas são entregues
@@ -240,40 +275,8 @@ stateDiagram-v2
 
 ---
 
-## 5. Regras do Fluxo de Despacho (Farmácia ➔ Entregador ➔ Cidadão)
+## 6. Regras do Fluxo de Despacho e Conclusão com PIN
 
-### 5.1 Despacho pela Farmácia (`EM_SEPARACAO` ➔ `AGUARDANDO_RETIRADA`)
-1. Ao concluir a separação física dos medicamentos no almoxarifado, o farmacêutico aciona o botão **"Despachar / Chamar Entregador"** na linha da remessa correspondente.
-2. É exibida a modal **"Atribuir Entregador & Despachar Remessa"** contendo o código da remessa, munícipe e endereço de entrega.
-3. O farmacêutico seleciona a estratégia de despacho:
-   - **Disponibilizar para Frota Geral (Recomendado):** O pacote fica aberto para aceite imediato de qualquer entregador municipal disponível.
-   - **Atribuição Direta por Proximidade:** Seleção direta de um motoboy específico da frota municipal (ex: *Marcos Vinicius - Moto 01*, *Carlos Silva - Moto 02* ou *Roberto Almeida - Moto 03*).
-4. Ao confirmar o despacho:
-   - O status da `SubOrder` passa para `'AGUARDANDO_RETIRADA'`.
-   - Se atribuído a um motoboy específico, os campos `courierId` e `courierName` são associados.
-   - O evento dispara notificação reativa no `StateStore`, atualizando instantaneamente os contadores globais e o badge numérico no cabeçalho do módulo do entregador.
-
-### 5.2 Aceite da Corrida pelo Entregador (`AGUARDANDO_RETIRADA` ➔ `SAIU_PARA_ENTREGA`)
-1. O motoboy acessa o módulo `/entregador` na aba **"📦 Pacotes Prontos na Central"**.
-2. Cada remessa em `AGUARDANDO_RETIRADA` exibe os itens da embalagem, endereço do munícipe e o botão **"Aceitar Corrida e Iniciar Rota"**.
-3. Ao clicar:
-   - O status da remessa muda para `'SAIU_PARA_ENTREGA'`.
-   - O entregador logado é registrado como responsável pela corrida e seu status passa para `'EM_ROTA'`.
-   - A remessa é transferida automaticamente para a aba **"🛵 Minhas Entregas Ativas"**.
-   - O motoboy conta com atalho direto de WhatsApp para avisar o morador sobre o deslocamento.
-
-### 5.3 Transparência e Timeline no Portal do Cidadão
-A linha do tempo do munícipe reflete a transição transparente das 4 etapas:
-1. **Em Separação:** Remessa aprovada pelo farmacêutico em preparação física.
-2. **Aguardando Coleta pelo Entregador [Nome do Entregador ou Frota Geral]:** Pacote selado aguardando retirada no pátio da farmácia.
-3. **Saiu para Entrega:** Motoboy em deslocamento com o pacote.
-4. **Entregue:** Concluído mediante conferência física do código PIN de 4 dígitos.
-
-### 5.4 Conclusão Segura com PIN de 4 Dígitos
-1. Cada `SubOrder` possui um código PIN aleatório e único de 4 dígitos (ex: `4921`).
-2. O PIN é exibido com exclusividade na tela do munícipe. O entregador **não tem acesso prévio ao PIN**.
-3. Na entrega presencial, o munícipe informa o PIN ao entregador, que o digita no aplicativo.
-4. Validação estrita:
-   - PIN correto ➔ transição para `'ENTREGUE'` e persistência em `localStorage`.
-   - PIN incorreto ➔ mensagem de erro acessível e remessa permanece em aberto.
-5. Quando todas as remessas do pedido estiverem `'ENTREGUE'`, o status do pedido principal é consolidado como `'FINALIZADO'`.
+1. **Despacho pela Farmácia (`EM_SEPARACAO` ➔ `AGUARDANDO_RETIRADA`):** O farmacêutico seleciona se o pacote vai para a Frota Geral ou é atribuído nominalmente a um motoboy.
+2. **Aceite pelo Entregador (`AGUARDANDO_RETIRADA` ➔ `SAIU_PARA_ENTREGA`):** O motoboy visualiza os pacotes prontos na central e aceita a rota ativa.
+3. **Conclusão com PIN de 4 Dígitos (`SAIU_PARA_ENTREGA` ➔ `ENTREGUE`):** Validação estrita do PIN exclusivo do cidadão para baixa sanitária com fé pública.

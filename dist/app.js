@@ -1934,6 +1934,27 @@
     navManager.onAnnouncement((msg) => {
       announceToScreenReader(msg);
     });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        const openModals = [
+          "modal-validacao",
+          "modal-triagem",
+          "modal-despacho",
+          "modal-novo-medicamento",
+          "modal-recusa",
+          "modal-detalhes-ml",
+          "modal-cadastro"
+        ];
+        openModals.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el && !el.classList.contains("hidden") && el.style.display !== "none") {
+            el.classList.add("hidden");
+            el.setAttribute("hidden", "true");
+            el.style.display = "none";
+          }
+        });
+      }
+    });
     document.addEventListener("DOMContentLoaded", () => {
       updateNavigationUI();
       updatePanelsVisibility();

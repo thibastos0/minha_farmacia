@@ -1024,16 +1024,16 @@
     <!-- ================================================================= -->
     <!-- MODAL 2: JUSTIFICATIVA OBRIGATÓRIA DE REPROVAÇÃO                  -->
     <!-- ================================================================= -->
-    <div id="modal-recusa" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <h3 class="text-lg font-bold text-red-600 flex items-center gap-2">
+    <div id="modal-recusa" role="dialog" aria-modal="true" aria-labelledby="modal-recusa-title" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 id="modal-recusa-title" class="text-lg font-bold text-red-600 flex items-center gap-2">
                 <i class="fa-solid fa-circle-xmark"></i> Reprovar Pedido
             </h3>
             <p class="text-xs text-gray-600">É obrigatório registrar a justificativa técnica para o indeferimento da receita médica:</p>
             <textarea id="reason-text" rows="3" placeholder="Ex: Receita sem assinatura médica, vencida ou ilegível..." class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"></textarea>
             <div class="flex justify-end space-x-2">
-                <button onclick="closeModalRecusa()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
-                <button onclick="confirmRecusa()" class="min-h-[48px] px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold">Confirmar Reprovação</button>
+                <button type="button" onclick="closeModalRecusa()" class="min-h-[48px] px-4 py-2 border rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button type="button" onclick="confirmRecusa()" class="min-h-[48px] px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold">Confirmar Reprovação</button>
             </div>
         </div>
     </div>
@@ -1042,13 +1042,15 @@
     <!-- ================================================================= -->
     <!-- MODAL 3: CADASTRO DE NOVO MEDICAMENTO NO CATÁLOGO (CRUD)          -->
     <!-- ================================================================= -->
-    <div id="modal-novo-medicamento" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div id="modal-novo-medicamento" role="dialog" aria-modal="true" aria-labelledby="modal-novo-med-title" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl p-6 space-y-5">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <h3 id="modal-novo-med-title" class="text-lg font-bold text-gray-900 flex items-center gap-2">
                     <i class="fa-solid fa-pills text-emerald-600"></i> Cadastrar Novo Medicamento
                 </h3>
-                <button onclick="closeModalNovoMedicamento()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button type="button" onclick="closeModalNovoMedicamento()" aria-label="Fechar cadastro de medicamento" class="min-h-[48px] min-w-[48px] flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-xl transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
             </div>
             <form onsubmit="handleNovoMedicamento(event)" class="space-y-4">
                 <div>
@@ -1112,13 +1114,15 @@
     <!-- ================================================================= -->
     <!-- MODAL: ATRIBUIR ENTREGADOR & DESPACHAR REMESSA                   -->
     <!-- ================================================================= -->
-    <div id="modal-despacho" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div id="modal-despacho" role="dialog" aria-modal="true" aria-labelledby="modal-despacho-title" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl p-6 space-y-5">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <h3 id="modal-despacho-title" class="text-lg font-bold text-gray-900 flex items-center gap-2">
                     <i class="fa-solid fa-motorcycle text-emerald-600"></i> Despachar / Chamar Entregador
                 </h3>
-                <button onclick="closeModalDespacho()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button type="button" onclick="closeModalDespacho()" aria-label="Fechar despacho" class="min-h-[48px] min-w-[48px] flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-xl transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
             </div>
 
             <div class="bg-gray-50 p-4 rounded-2xl border space-y-1 text-xs">
