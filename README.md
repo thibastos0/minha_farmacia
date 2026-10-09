@@ -108,3 +108,11 @@ Por ser um MVP modular e com código autocontido, você pode executá-lo diretam
 ## 👥 Equipe & Hackathon Fatec Indaiatuba 2026
 - **Repositório:** [github.com/thibastos0/minha_farmacia](https://github.com/thibastos0/minha_farmacia)
 - **Desafio:** 2.3) Minha Farmácia — Secretaria de Ciência, Tecnologia e Inovação / Prefeitura Municipal de Indaiatuba.
+
+### 👨‍💻 Componentes da Equipe
+- **Ana Luiza Scarparo Sena** — Curso DSM — 2º semestre
+- **Henrique Correa Magalhães Prates** — Curso DSM — 2º semestre
+- **Joel Gonçalves de Souz** — Curso DSM — 1º semestre
+- **Luiza Vicaria Gaeta** — Curso DSM — 3º semestre
+- **Thiago Lima de Carvalho Bastos Luiz** — Curso DSM — 5º semestre
+- **Wesley Goulart da Silva** — Curso DSM — 1º semestre
